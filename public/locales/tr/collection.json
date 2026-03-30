@@ -223,7 +223,11 @@
     "externalListingUrl": "Harici İlan Bağlantısı",
     "externalListingUrlDescription": "İsteğe bağlı: Bu öğe için onaylanmış bir harici pazaryerine bağlantı ekleyin (örn. eBay, Amazon).",
     "invalidUrl": "Lütfen geçerli bir URL girin (örn. https://www.ebay.com/itm/123)",
-    "urlNotApproved": "Yalnızca onaylanmış web sitelerinden bağlantılara izin verilir (örn. eBay, Amazon). Yeni bir web sitesinin onaylanması için yöneticiyle iletişime geçin."
+    "urlNotApproved": "Yalnızca onaylanmış web sitelerinden bağlantılara izin verilir (örn. eBay, Amazon). Yeni bir web sitesinin onaylanması için yöneticiyle iletişime geçin.",
+    "domainNotApproved": "Bu alan adı şu anda onaylanmamış. Kaydedebilirsiniz, ancak bağlantı onaylanana kadar görünmeyecek.",
+    "requestApproval": "Onay İste",
+    "approvalRequested": "Onay İstendi",
+    "approvalRequestedDescription": "Talebiniz gönderildi. Bir yönetici inceleyecek."
   },
   "loginRequired": "Giriş gerekli",
   "mustBeLoggedInToAddBanknotes": "Banknot koleksiyonunuza eklemek için giriş yapmalısınız.",

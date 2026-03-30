@@ -12,7 +12,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
-import { Loader2, Upload, Check, ExternalLink, X } from 'lucide-react';
+import { Loader2, Upload, Check, ExternalLink, X, Globe } from 'lucide-react';
+import { fetchApprovedDomains, isUrlApproved, createPendingDomainRequest, normalizeDomain } from '@/services/approvedDomainsService';
 import { useLanguage } from '@/context/LanguageContext';
 
 export interface ProfileEditFormProps {
@@ -33,12 +34,23 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
   const [instagramUrl, setInstagramUrl] = useState(profile.instagram_url || '');
   const [twitterUrl, setTwitterUrl] = useState(profile.twitter_url || '');
   const [linkedinUrl, setLinkedinUrl] = useState(profile.linkedin_url || '');
+  const [personalWebsiteUrl, setPersonalWebsiteUrl] = useState(profile.personal_website_url || '');
+  const [approvedDomains, setApprovedDomains] = useState<string[]>([]);
+  const [websiteUrlError, setWebsiteUrlError] = useState('');
+  const [websiteApprovalRequested, setWebsiteApprovalRequested] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { direction } = useLanguage();
+
+  // Load approved domains for website URL validation
+  useEffect(() => {
+    fetchApprovedDomains().then(domains => {
+      setApprovedDomains(domains.map(d => d.domain));
+    });
+  }, []);
 
   // Clean up object URL when selectedFile changes
   useEffect(() => {
@@ -63,9 +75,19 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
       return;
     }
     
+    // Validate personal website URL format (don't block on unapproved domains)
+    if (personalWebsiteUrl.trim()) {
+      try {
+        new URL(personalWebsiteUrl.trim());
+      } catch {
+        setWebsiteUrlError(t('editForm.invalidUrl', 'Please enter a valid URL'));
+        return;
+      }
+    }
+
     setIsLoading(true);
     setIsSuccess(false);
-    
+
     try {
       // Upload avatar first if a new file is selected
       let newAvatarUrl = avatarUrl;
@@ -81,6 +103,9 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
       }
       
       // Update profile data
+      const websiteUrl = personalWebsiteUrl.trim() || null;
+      const urlApproved = websiteUrl ? isUrlApproved(websiteUrl, approvedDomains) : true;
+
       await updateUserProfile(authUser.id, {
         username,
         about: about || null,
@@ -88,8 +113,10 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         instagram_url: instagramUrl.trim() || null,
         twitter_url: twitterUrl.trim() || null,
         linkedin_url: linkedinUrl.trim() || null,
+        personal_website_url: websiteUrl,
+        is_url_approved: urlApproved,
       });
-      
+
       // Update the local user state
       updateUserState({
         username,
@@ -99,6 +126,8 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
         instagram_url: instagramUrl.trim() || null,
         twitter_url: twitterUrl.trim() || null,
         linkedin_url: linkedinUrl.trim() || null,
+        personal_website_url: websiteUrl,
+        is_url_approved: urlApproved,
       });
       
       setIsSuccess(true);
@@ -390,6 +419,88 @@ export function ProfileEditForm({ profile, onCancel, onSaveComplete }: ProfileEd
                   dir={direction === 'rtl' ? 'rtl' : 'ltr'}
                 />
               </div>
+
+            {/* Personal Website / Shop */}
+            <div className="space-y-4">
+              <h4 className={`font-medium ${direction === 'rtl' ? 'text-right' : ''}`}>
+                <span>{t('editForm.personalWebsite', 'Personal Website / Shop')}</span>
+              </h4>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <Input
+                    value={personalWebsiteUrl}
+                    onChange={(e) => { setPersonalWebsiteUrl(e.target.value); setWebsiteUrlError(''); }}
+                    placeholder={t('editForm.personalWebsitePlaceholder', 'https://www.ebay.com/usr/your-shop')}
+                    className="flex-1"
+                    dir="ltr"
+                  />
+                  {personalWebsiteUrl && (
+                    <>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => { setPersonalWebsiteUrl(''); setWebsiteUrlError(''); }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                      <a
+                        href={personalWebsiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 rounded hover:bg-muted transition-colors text-blue-500"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t('editForm.personalWebsiteDescription', 'Add a link to your shop or website on an approved platform.')}
+                </p>
+                {websiteUrlError && (
+                  <p className="text-sm font-medium text-destructive">{websiteUrlError}</p>
+                )}
+                {(() => {
+                  const url = personalWebsiteUrl.trim();
+                  if (!url) return null;
+                  let valid = false;
+                  try { new URL(url); valid = true; } catch {}
+                  if (!valid || isUrlApproved(url, approvedDomains)) return null;
+                  return (
+                    <div className="flex items-center gap-2 p-2 rounded bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+                      <p className="text-sm text-yellow-800 dark:text-yellow-200 flex-1">
+                        {t('editForm.domainNotApproved', 'This domain is not currently approved. You can still save, but the link won\'t be visible until approved.')}
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={websiteApprovalRequested}
+                        onClick={async () => {
+                          if (!authUser?.id) return;
+                          const domain = normalizeDomain(url);
+                          const success = await createPendingDomainRequest(authUser.id, domain, url);
+                          if (success) {
+                            setWebsiteApprovalRequested(true);
+                            toast({
+                              title: t('editForm.approvalRequested', 'Approval Requested'),
+                              description: t('editForm.approvalRequestedDescription', 'Your request has been submitted. An admin will review it.'),
+                            });
+                          }
+                        }}
+                      >
+                        {websiteApprovalRequested
+                          ? t('editForm.approvalRequested', 'Approval Requested')
+                          : t('editForm.requestApproval', 'Request Approval')}
+                      </Button>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
 
             <div className="space-y-4">
               <h4 className={`font-medium ${direction === 'rtl' ? 'text-right' : ''}`}> <span>{t('editForm.socialMediaLinks')}</span> </h4>

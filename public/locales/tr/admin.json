@@ -44,7 +44,12 @@
     "domainRemoved": "\"{{domain}}\" onaylı alan adlarından kaldırıldı",
     "failedToAdd": "Alan adı eklenemedi",
     "failedToDelete": "Alan adı silinemedi",
-    "failedToLoad": "Onaylı alan adları yüklenemedi"
+    "failedToLoad": "Onaylı alan adları yüklenemedi",
+    "waitingForApproval": "Onay Bekliyor",
+    "approve": "Onayla",
+    "reject": "Reddet",
+    "requestedBy": "Talep eden",
+    "requestRejected": "\"{{domain}}\" için talepler reddedildi"
   },
   "userManagement": {
     "searchPlaceholder": "Kullanıcılarda ara...",

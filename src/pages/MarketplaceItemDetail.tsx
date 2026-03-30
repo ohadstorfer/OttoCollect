@@ -415,7 +415,7 @@ const MarketplaceItemDetail = () => {
 
 
             {/* External listing link */}
-            {item.external_listing_url && (() => {
+            {item.external_listing_url && item.is_url_approved !== false && (() => {
               let domain = '';
               try {
                 const hostname = new URL(item.external_listing_url).hostname;

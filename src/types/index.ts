@@ -97,6 +97,8 @@ export interface User {
   instagram_url?: string;
   twitter_url?: string;
   linkedin_url?: string;
+  personal_website_url?: string;
+  is_url_approved?: boolean;
 }
 
 // Add missing Banknote interface
@@ -330,6 +332,7 @@ export interface MarketplaceItem {
   banknote_id: string;
   status: 'Available' | 'Sold' | 'Reserved';
   external_listing_url?: string;
+  is_url_approved?: boolean;
   created_at: string;
   updated_at: string;
   // Additional properties returned by the service

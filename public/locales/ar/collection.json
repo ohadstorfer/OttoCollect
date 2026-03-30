@@ -367,7 +367,11 @@
     "externalListingUrl": "رابط الإعلان الخارجي",
     "externalListingUrlDescription": "اختياري: أضف رابطًا لهذا العنصر على سوق خارجي معتمد (مثل eBay أو Amazon).",
     "invalidUrl": "يرجى إدخال رابط صالح (مثل https://www.ebay.com/itm/123)",
-    "urlNotApproved": "يُسمح فقط بالروابط من المواقع المعتمدة (مثل eBay أو Amazon). تواصل مع المسؤول إذا كنت بحاجة إلى اعتماد موقع جديد."
+    "urlNotApproved": "يُسمح فقط بالروابط من المواقع المعتمدة (مثل eBay أو Amazon). تواصل مع المسؤول إذا كنت بحاجة إلى اعتماد موقع جديد.",
+    "domainNotApproved": "هذا النطاق غير معتمد حاليًا. يمكنك الحفظ، لكن الرابط لن يظهر حتى تتم الموافقة عليه.",
+    "requestApproval": "طلب الموافقة",
+    "approvalRequested": "تم طلب الموافقة",
+    "approvalRequestedDescription": "تم إرسال طلبك. سيقوم المسؤول بمراجعته."
   },
   "details": {
     "publicDetails": "التفاصيل العامة",

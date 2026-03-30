@@ -38,7 +38,7 @@ import { BanknoteCondition, DetailedBanknote, CollectionItem } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { addToCollection, updateCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
 import { addToMarketplace, removeFromMarketplace } from '@/services/marketplaceService';
-import { fetchApprovedDomains, isUrlApproved } from '@/services/approvedDomainsService';
+import { fetchApprovedDomains, isUrlApproved, createPendingDomainRequest, normalizeDomain } from '@/services/approvedDomainsService';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchBanknoteById, searchBanknotes } from '@/services/banknoteService';
 import { collectionItemTranslationService, CollectionItemTranslationService } from '@/services/collectionItemTranslationService';
@@ -155,6 +155,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
   const isLimitedRank = authUser ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(authUser.rank || '') : false;
   const [approvedDomains, setApprovedDomains] = useState<string[]>([]);
   const [externalUrlError, setExternalUrlError] = useState<string>('');
+  const [approvalRequested, setApprovalRequested] = useState(false);
 
   // Create form schema with translations
   const formSchema = createFormSchema(t);
@@ -330,16 +331,12 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       return;
     }
 
-    // Validate external listing URL against approved domains
+    // Validate external listing URL format (but don't block on unapproved domains)
     if (values.isForSale && values.externalListingUrl && values.externalListingUrl.trim()) {
       try {
-        new URL(values.externalListingUrl); // Validate it's a proper URL
+        new URL(values.externalListingUrl);
       } catch {
         setExternalUrlError(t('item.invalidUrl', 'Please enter a valid URL (e.g. https://www.ebay.com/itm/123)'));
-        return;
-      }
-      if (!isUrlApproved(values.externalListingUrl, approvedDomains)) {
-        setExternalUrlError(t('item.urlNotApproved', 'Only links from approved websites are allowed (e.g. eBay, Amazon). Contact an admin if you need a new website approved.'));
         return;
       }
     }
@@ -481,9 +478,10 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
         // Update external listing URL on marketplace item if for sale
         if (values.isForSale) {
           const urlToSave = values.externalListingUrl?.trim() || null;
+          const urlApproved = urlToSave ? isUrlApproved(urlToSave, approvedDomains) : true;
           await supabase
             .from('marketplace_items')
-            .update({ external_listing_url: urlToSave })
+            .update({ external_listing_url: urlToSave, is_url_approved: urlApproved })
             .eq('collection_item_id', currentItem.id);
         }
 
@@ -1124,28 +1122,66 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
                 <FormField
                   control={form.control}
                   name="externalListingUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('item.externalListingUrl', 'External Listing URL')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="https://www.ebay.com/itm/..."
-                          onChange={(e) => {
-                            field.onChange(e);
-                            setExternalUrlError('');
-                          }}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        {t('item.externalListingUrlDescription', 'Optional: Add a link to this item on an approved external marketplace (e.g. eBay, Amazon).')}
-                      </FormDescription>
-                      {externalUrlError && (
-                        <p className="text-sm font-medium text-destructive">{externalUrlError}</p>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const urlValue = field.value?.trim() || '';
+                    let urlIsValid = false;
+                    let urlIsApproved = true;
+                    if (urlValue) {
+                      try { new URL(urlValue); urlIsValid = true; } catch { urlIsValid = false; }
+                      if (urlIsValid) urlIsApproved = isUrlApproved(urlValue, approvedDomains);
+                    }
+                    return (
+                      <FormItem>
+                        <FormLabel>{t('item.externalListingUrl', 'External Listing URL')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="https://www.ebay.com/itm/..."
+                            onChange={(e) => {
+                              field.onChange(e);
+                              setExternalUrlError('');
+                            }}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          {t('item.externalListingUrlDescription', 'Optional: Add a link to this item on an approved external marketplace (e.g. eBay, Amazon).')}
+                        </FormDescription>
+                        {externalUrlError && (
+                          <p className="text-sm font-medium text-destructive">{externalUrlError}</p>
+                        )}
+                        {urlValue && urlIsValid && !urlIsApproved && (
+                          <div className="flex items-center gap-2 p-2 rounded bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+                            <p className="text-sm text-yellow-800 dark:text-yellow-200 flex-1">
+                              {t('item.domainNotApproved', 'This domain is not currently approved. You can still save, but the link won\'t be visible until approved.')}
+                            </p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={approvalRequested}
+                              onClick={async () => {
+                                if (!authUser?.id) return;
+                                const domain = normalizeDomain(urlValue);
+                                const success = await createPendingDomainRequest(authUser.id, domain, urlValue);
+                                if (success) {
+                                  setApprovalRequested(true);
+                                  toast({
+                                    title: t('item.approvalRequested', 'Approval Requested'),
+                                    description: t('item.approvalRequestedDescription', 'Your request has been submitted. An admin will review it.'),
+                                  });
+                                }
+                              }}
+                            >
+                              {approvalRequested
+                                ? t('item.approvalRequested', 'Approval Requested')
+                                : t('item.requestApproval', 'Request Approval')}
+                            </Button>
+                          </div>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
               )}
 

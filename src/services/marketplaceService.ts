@@ -373,6 +373,7 @@ export async function getMarketplaceItemById(id: string): Promise<MarketplaceIte
       seller,
       status: data.status,
       external_listing_url: data.external_listing_url,
+      is_url_approved: data.is_url_approved,
       createdAt: data.created_at,
       updatedAt: data.updated_at
     } as MarketplaceItem;
@@ -437,6 +438,7 @@ export async function getMarketplaceItemForCollectionItem(
       seller,
       status: data.status,
       external_listing_url: data.external_listing_url,
+      is_url_approved: data.is_url_approved,
       createdAt: data.created_at,
       updatedAt: data.updated_at
     } as MarketplaceItem;

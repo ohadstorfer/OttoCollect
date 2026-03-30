@@ -44,7 +44,12 @@
     "domainRemoved": "تمت إزالة \"{{domain}}\" من النطاقات المعتمدة",
     "failedToAdd": "فشل في إضافة النطاق",
     "failedToDelete": "فشل في حذف النطاق",
-    "failedToLoad": "فشل في تحميل النطاقات المعتمدة"
+    "failedToLoad": "فشل في تحميل النطاقات المعتمدة",
+    "waitingForApproval": "في انتظار الموافقة",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "requestedBy": "طلب بواسطة",
+    "requestRejected": "تم رفض طلبات \"{{domain}}\""
   },
   "userManagement": {
     "searchPlaceholder": "البحث في المستخدمين...",

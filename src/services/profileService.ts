@@ -186,6 +186,8 @@ export async function getUserProfile(userIdOrUsername: string, currentLanguage?:
       ...(data.instagram_url && { instagram_url: data.instagram_url }),
       ...(data.twitter_url && { twitter_url: data.twitter_url }),
       ...(data.linkedin_url && { linkedin_url: data.linkedin_url }),
+      ...(data.personal_website_url && { personal_website_url: data.personal_website_url }),
+      is_url_approved: data.is_url_approved ?? true,
     };
 
     return userProfile;
@@ -206,6 +208,8 @@ export async function updateUserProfile(
     instagram_url?: string | null;
     twitter_url?: string | null;
     linkedin_url?: string | null;
+    personal_website_url?: string | null;
+    is_url_approved?: boolean;
   }
 ): Promise<boolean> {
   try {

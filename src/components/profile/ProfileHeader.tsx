@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Edit } from "lucide-react";
-import { Facebook, Instagram, Twitter, Linkedin } from "lucide-react";
+import { Facebook, Instagram, Twitter, Linkedin, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -85,8 +85,18 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick, s
                     </span>
                     
                     {/* Social Media Links */}
-                    {(profile.facebook_url || profile.instagram_url || profile.twitter_url || profile.linkedin_url) && (
+                    {(profile.personal_website_url || profile.facebook_url || profile.instagram_url || profile.twitter_url || profile.linkedin_url) && (
                       <div className="flex items-center justify-center gap-2 md:justify-start">
+                        {profile.personal_website_url && profile.is_url_approved !== false && (
+                          <a
+                            href={profile.personal_website_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1 rounded hover:bg-muted transition-colors"
+                          >
+                            <Globe className="h-4 w-4 text-green-600" />
+                          </a>
+                        )}
                         {profile.facebook_url && (
                           <a 
                             href={profile.facebook_url} 
@@ -189,8 +199,18 @@ export function ProfileHeader({ profile, isEditingProfile, onEditProfileClick, s
                   </span>
                   
                   {/* Social Media Links */}
-                  {(profile.facebook_url || profile.instagram_url || profile.twitter_url || profile.linkedin_url) && (
+                  {(profile.personal_website_url || profile.facebook_url || profile.instagram_url || profile.twitter_url || profile.linkedin_url) && (
                     <div className="flex items-center gap-2">
+                      {profile.personal_website_url && profile.is_url_approved !== false && (
+                        <a
+                          href={profile.personal_website_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1 rounded hover:bg-muted transition-colors"
+                        >
+                          <Globe className="h-4 w-4 text-green-600" />
+                        </a>
+                      )}
                       {profile.facebook_url && (
                         <a 
                           href={profile.facebook_url} 

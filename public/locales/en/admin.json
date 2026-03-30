@@ -44,7 +44,12 @@
     "domainRemoved": "\"{{domain}}\" removed from approved domains",
     "failedToAdd": "Failed to add domain",
     "failedToDelete": "Failed to delete domain",
-    "failedToLoad": "Failed to load approved domains"
+    "failedToLoad": "Failed to load approved domains",
+    "waitingForApproval": "Waiting for Approval",
+    "approve": "Approve",
+    "reject": "Reject",
+    "requestedBy": "Requested by",
+    "requestRejected": "Requests for \"{{domain}}\" rejected"
   },
   "userManagement": {
     "searchPlaceholder": "Search users...",

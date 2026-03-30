@@ -153,7 +153,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             facebook_url: data.facebook_url,
             instagram_url: data.instagram_url,
             twitter_url: data.twitter_url,
-            linkedin_url: data.linkedin_url
+            linkedin_url: data.linkedin_url,
+            personal_website_url: data.personal_website_url,
+            is_url_approved: data.is_url_approved
           };
           setUser(userProfile);
           setBlockedNotice(null);

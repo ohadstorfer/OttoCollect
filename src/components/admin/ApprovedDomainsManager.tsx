@@ -29,13 +29,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, CheckCircle, XCircle } from 'lucide-react';
 import {
   fetchApprovedDomains,
   addApprovedDomain,
   deleteApprovedDomain,
   normalizeDomain,
-  type ApprovedDomain
+  fetchPendingDomainRequests,
+  approvePendingDomain,
+  deletePendingRequestsByDomain,
+  type ApprovedDomain,
+  type PendingDomainRequest
 } from '@/services/approvedDomainsService';
 
 const ApprovedDomainsManager: React.FC = () => {
@@ -47,9 +51,11 @@ const ApprovedDomainsManager: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState<ApprovedDomain | null>(null);
   const [newDomain, setNewDomain] = useState('');
+  const [pendingRequests, setPendingRequests] = useState<PendingDomainRequest[]>([]);
 
   useEffect(() => {
     loadDomains();
+    loadPendingRequests();
   }, []);
 
   const loadDomains = async () => {
@@ -65,6 +71,30 @@ const ApprovedDomainsManager: React.FC = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPendingRequests = async () => {
+    const data = await fetchPendingDomainRequests();
+    setPendingRequests(data);
+  };
+
+  const handleApproveDomain = async (domain: string) => {
+    const success = await approvePendingDomain(domain);
+    if (success) {
+      toast({ title: t('urls.domainAdded', { domain }) });
+      loadDomains();
+      loadPendingRequests();
+    } else {
+      toast({ title: t('urls.failedToAdd'), variant: "destructive" });
+    }
+  };
+
+  const handleRejectDomain = async (domain: string) => {
+    const success = await deletePendingRequestsByDomain(domain);
+    if (success) {
+      toast({ title: t('urls.requestRejected', { domain, defaultValue: `Requests for "${domain}" rejected` }) });
+      loadPendingRequests();
     }
   };
 
@@ -166,7 +196,7 @@ const ApprovedDomainsManager: React.FC = () => {
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('urls.addApprovedDomain')}</DialogTitle>
+            <DialogTitle><span>{t('urls.addApprovedDomain')}</span></DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
@@ -209,6 +239,60 @@ const ApprovedDomainsManager: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Pending Approval Requests */}
+      {pendingRequests.length > 0 && (
+        <div className="mt-8">
+          <h4 className="text-lg font-medium mb-4"><span>{t('urls.waitingForApproval', 'Waiting for Approval')}</span></h4>
+          {(() => {
+            // Group requests by domain
+            const grouped = new Map<string, PendingDomainRequest[]>();
+            pendingRequests.forEach(req => {
+              const list = grouped.get(req.domain) || [];
+              list.push(req);
+              grouped.set(req.domain, list);
+            });
+
+            return Array.from(grouped.entries()).map(([domain, requests]) => (
+              <div key={domain} className="mb-4 p-4 border rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-lg">{domain}</span>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => handleApproveDomain(domain)}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      {t('urls.approve', 'Approve')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleRejectDomain(domain)}
+                    >
+                      <XCircle className="h-4 w-4 mr-1" />
+                      {t('urls.reject', 'Reject')}
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  {requests.map(req => (
+                    <div key={req.id} className="text-sm text-muted-foreground flex items-center gap-2">
+                      <span>{t('urls.requestedBy', 'Requested by')}: <strong>{req.profiles?.username || 'Unknown'}</strong></span>
+                      <span>—</span>
+                      <a href={req.requested_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline truncate max-w-[300px]">
+                        {req.requested_url}
+                      </a>
+                      <span className="text-xs">({new Date(req.created_at).toLocaleDateString()})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ));
+          })()}
+        </div>
+      )}
     </div>
   );
 };

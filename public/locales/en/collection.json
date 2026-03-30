@@ -346,7 +346,11 @@
     "externalListingUrl": "External Listing URL",
     "externalListingUrlDescription": "Optional: Add a link to this item on an approved external marketplace (e.g. eBay, Amazon).",
     "invalidUrl": "Please enter a valid URL (e.g. https://www.ebay.com/itm/123)",
-    "urlNotApproved": "Only links from approved websites are allowed (e.g. eBay, Amazon). Contact an admin if you need a new website approved."
+    "urlNotApproved": "Only links from approved websites are allowed (e.g. eBay, Amazon). Contact an admin if you need a new website approved.",
+    "domainNotApproved": "This domain is not currently approved. You can still save, but the link won't be visible until approved.",
+    "requestApproval": "Request Approval",
+    "approvalRequested": "Approval Requested",
+    "approvalRequestedDescription": "Your request has been submitted. An admin will review it."
   },
   "details": {
     "publicDetails": "Public Details",
