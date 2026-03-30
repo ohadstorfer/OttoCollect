@@ -300,7 +300,8 @@ export default function useMessages(): UseMessagesReturn {
     
     setLoading(true);
     setActiveConversation(userId);
-    
+    setCurrentMessages([]); // Clear immediately to prevent stale messages showing
+
     try {
       const { data, error } = await supabase
         .from('messages')

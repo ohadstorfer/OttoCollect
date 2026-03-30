@@ -41,6 +41,11 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation(['messaging']);
   
+  // Clear local messages when switching conversations
+  useEffect(() => {
+    setLocalMessages([]);
+  }, [recipientId]);
+
   useEffect(() => {
     if (messages && messages.length > 0) {
       setLocalMessages(messages);

@@ -195,10 +195,10 @@ const Admin = () => {
               <Link className="mr-2 h-4 w-4" />
               {t('admin:tabs.urls')}
             </TabsTrigger>
-            {/* <TabsTrigger value="test-notifications">
+            <TabsTrigger value="test-notifications">
               <Bell className="mr-2 h-4 w-4" />
               Test Notifications
-            </TabsTrigger> */}
+            </TabsTrigger>
           </TabsList>
 
          
