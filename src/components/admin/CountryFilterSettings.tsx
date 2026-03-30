@@ -12,6 +12,7 @@ import TypesManager from "./filter/TypesManager";
 import SortOptionsManager from "./filter/SortOptionsManager";
 import CurrenciesManager from "./filter/CurrenciesManager";
 import SultansManager from "./filter/SultansManager";
+import CatalogLabelManager from "./filter/CatalogLabelManager";
 import { fetchSortOptionsByCountryId } from "@/services/countryService";
 import { useTranslation } from 'react-i18next';
 
@@ -107,7 +108,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
 
       {selectedCountryId && (
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className={`grid ${hasSultanSort ? 'grid-cols-5' : 'grid-cols-4'} mb-6`}>
+          <TabsList className={`grid ${hasSultanSort ? 'grid-cols-6' : 'grid-cols-5'} mb-6`}>
             <TabsTrigger value="categories">
               {t('countryFilterSettings.tabs.categories')}
             </TabsTrigger>
@@ -119,6 +120,9 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
             </TabsTrigger>
             <TabsTrigger value="currencies">
               {t('countryFilterSettings.tabs.currencies')}
+            </TabsTrigger>
+            <TabsTrigger value="labels">
+              {t('countryFilterSettings.tabs.labels', 'Labels')}
             </TabsTrigger>
             {hasSultanSort && (
               <TabsTrigger value="sultans">
@@ -176,6 +180,19 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
               </CardHeader>
               <CardContent>
                 <CurrenciesManager countryId={selectedCountryId} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="labels">
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  <span>{t('countryFilterSettings.cardTitles.labelsFor', { countryName: countries.find(c => c.id === selectedCountryId)?.name || t('countryFilterSettings.cardTitles.selectedCountry') })}</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CatalogLabelManager countryId={selectedCountryId} />
               </CardContent>
             </Card>
           </TabsContent>

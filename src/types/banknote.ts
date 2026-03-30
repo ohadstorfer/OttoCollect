@@ -82,6 +82,11 @@ export interface EnhancedBanknote {
   authority_name?: string;
   authority_name_ar?: string;
   authority_name_tr?: string;
+
+  // Turk catalog label per country
+  turk_catalog_label?: string;
+  turk_catalog_label_ar?: string;
+  turk_catalog_label_tr?: string;
 }
 
 export interface DetailedBanknote {
@@ -97,6 +102,9 @@ export interface DetailedBanknote {
   authorityName?: string;
   authorityName_ar?: string;
   authorityName_tr?: string;
+  turkCatalogLabel?: string;
+  turkCatalogLabel_ar?: string;
+  turkCatalogLabel_tr?: string;
   gregorianYear?: string;
   islamicYear?: string;
   description?: string;

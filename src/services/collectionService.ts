@@ -73,6 +73,9 @@ export function normalizeBanknoteData(data: any, source: 'detailed' | 'unlisted'
       authorityName: null,
       authorityName_ar: data.authority_name_ar || '',
       authorityName_tr: data.authority_name_tr || '',
+      turkCatalogLabel: data.turk_catalog_label || null,
+      turkCatalogLabel_ar: data.turk_catalog_label_ar || null,
+      turkCatalogLabel_tr: data.turk_catalog_label_tr || null,
       // Map unlisted banknote image fields to match expected interface
       signaturesFrontUrls: data.signatures_front || [],
       signaturesBackUrls: data.signatures_back || [],

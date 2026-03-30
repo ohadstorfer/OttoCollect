@@ -65,6 +65,12 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
     return banknote.authorityName || t('authority');
   };
 
+  const getLocalizedTurkCatalogLabel = (banknote: any): string => {
+    if (currentLanguage === 'ar' && banknote?.turkCatalogLabel_ar) return banknote.turkCatalogLabel_ar;
+    if (currentLanguage === 'tr' && banknote?.turkCatalogLabel_tr) return banknote.turkCatalogLabel_tr;
+    return banknote?.turkCatalogLabel || t('details.turkCatalogNumber', 'Turk Catalog Number');
+  };
+
   // Helper function to get localized banknote field (similar to BanknoteDetailCard)
   const getLocalizedField = (field: string, fieldType: any): string => {
    
@@ -233,7 +239,7 @@ const BanknoteCollectionDetaiUnlisted: React.FC<BanknoteCollectionDetailProps> =
             )}
             {collectionItem.banknote?.turkCatalogNumber && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.turkCatalogNumber')}</span>
+                <span className="text-sm font-medium text-muted-foreground w-32">{getLocalizedTurkCatalogLabel(collectionItem.banknote)}</span>
                 <span className="text-base">{collectionItem.banknote.turkCatalogNumber}</span>
               </div>
             )}

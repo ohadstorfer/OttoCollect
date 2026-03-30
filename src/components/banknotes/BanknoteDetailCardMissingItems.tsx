@@ -17,6 +17,8 @@ import { deleteWishlistItem } from "@/services/wishlistService";
 import { useTutorial } from "@/context/TutorialContext";
 import { useAuth } from "@/context/AuthContext";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { useLanguage } from "@/context/LanguageContext";
+import { useTranslation } from 'react-i18next';
 
 interface BanknoteDetailCardProps {
   banknote: any;
@@ -50,6 +52,14 @@ const BanknoteDetailCardMissingItems = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const { user } = useAuth();
   const { triggerEditBanknoteGuide } = useTutorial();
+  const { currentLanguage } = useLanguage();
+  const { t } = useTranslation(['catalog']);
+
+  const getLocalizedTurkCatalogLabel = (): string => {
+    if (currentLanguage === 'ar' && banknote.turkCatalogLabel_ar) return banknote.turkCatalogLabel_ar;
+    if (currentLanguage === 'tr' && banknote.turkCatalogLabel_tr) return banknote.turkCatalogLabel_tr;
+    return banknote.turkCatalogLabel || t('details.turkCatalogNumber', 'Turk Catalog Number');
+  };
 
   // Toast window state: track shown toast's ID to programmatically dismiss it
   const toastIdRef = useRef<string | null>(null);
@@ -357,7 +367,7 @@ const BanknoteDetailCardMissingItems = ({
                   </Badge>
                 )}
                 {banknote.turkCatalogNumber && (
-                  <Badge title={"Turkish Catalog Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  <Badge title={getLocalizedTurkCatalogLabel()} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                     {banknote.turkCatalogNumber}
                   </Badge>
                 )}
@@ -450,7 +460,7 @@ const BanknoteDetailCardMissingItems = ({
                 </Badge>
               )}
               {banknote.turkCatalogNumber && (
-                <Badge title={"Turkish Catalog Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                <Badge title={getLocalizedTurkCatalogLabel()} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {banknote.turkCatalogNumber}
                 </Badge>
               )}

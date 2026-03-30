@@ -321,6 +321,9 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     authority_name,
     authority_name_ar,
     authority_name_tr,
+    turk_catalog_label,
+    turk_catalog_label_ar,
+    turk_catalog_label_tr,
     front_picture_watermarked,
     back_picture_watermarked,
     front_picture_thumbnail,
@@ -455,6 +458,11 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     authorityName: authority_name || null,
     authorityName_ar: authority_name_ar || null,
     authorityName_tr: authority_name_tr || null,
+
+    // Turk catalog label per country
+    turkCatalogLabel: turk_catalog_label || null,
+    turkCatalogLabel_ar: turk_catalog_label_ar || null,
+    turkCatalogLabel_tr: turk_catalog_label_tr || null,
     
     // Watermarked and thumbnail images
     frontPictureWatermarked: front_picture_watermarked || null,

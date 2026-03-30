@@ -245,7 +245,8 @@
       "types": "الأنواع",
       "sortOptions": "خيارات الترتيب",
       "currencies": "العملات",
-      "sultans": "السلاطين"
+      "sultans": "السلاطين",
+      "labels": "التسميات"
     },
     "cardTitles": {
       "categoriesFor": "الفئات لـ {{countryName}}",
@@ -253,6 +254,7 @@
       "sortOptionsFor": "خيارات الترتيب لـ {{countryName}}",
       "currenciesFor": "العملات لـ {{countryName}}",
       "sultansFor": "السلاطين لـ {{countryName}}",
+      "labelsFor": "التسميات لـ {{countryName}}",
       "selectedCountry": "الدولة المختارة"
     }
   },

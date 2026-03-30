@@ -245,7 +245,8 @@
       "types": "Türler",
       "sortOptions": "Sıralama Seçenekleri",
       "currencies": "Para Birimleri",
-      "sultans": "Sultanlar"
+      "sultans": "Sultanlar",
+      "labels": "Etiketler"
     },
     "cardTitles": {
       "categoriesFor": "{{countryName}} için Kategoriler",
@@ -253,6 +254,7 @@
       "sortOptionsFor": "{{countryName}} için Sıralama Seçenekleri",
       "currenciesFor": "{{countryName}} için Para Birimleri",
       "sultansFor": "{{countryName}} için Sultanlar",
+      "labelsFor": "{{countryName}} için Etiketler",
       "selectedCountry": "Seçilen Ülke"
     }
   },

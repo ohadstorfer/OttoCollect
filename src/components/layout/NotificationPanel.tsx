@@ -2,7 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import { Bell, Check, CheckCheck, MessageCircle, UserPlus, BookOpen, MessageSquare, Trophy } from 'lucide-react';
+import { Bell, Check, CheckCheck, MessageCircle, UserPlus, BookOpen, MessageSquare, Trophy, Camera } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,6 +88,8 @@ export function NotificationPanel({
         return UserPlus;
       case 'collection_activity':
         return BookOpen;
+      case 'collection_image_upload':
+        return Camera;
       case 'forum_post':
         return MessageSquare;
       case 'blog_post':
@@ -140,10 +142,35 @@ export function NotificationPanel({
               {translatedTitle}
             </p>
           </div>
-          <div className={`flex items-center gap-2 mt-1 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
+          <div className={`mt-1 ${direction === 'rtl' ? 'text-right' : ''}`}>
             <p className={`text-sm text-muted-foreground line-clamp-2 ${direction === 'rtl' ? 'text-right' : ''}`}>
               {translatedContent}
             </p>
+            {(notification.type === 'collection_activity' || notification.type === 'collection_image_upload') && notification.reference_data?.items?.length > 0 && (
+              <div className={`flex flex-wrap items-center gap-1 mt-1.5 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                {notification.reference_data.items.map((item: any) => (
+                  <button
+                    key={item.collection_item_id}
+                    className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-medium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const path = item.is_unlisted
+                        ? `/collection-item-unlisted/${item.collection_item_id}`
+                        : `/collection-item/${item.collection_item_id}`;
+                      navigate(path);
+                      onOpenChange(false);
+                    }}
+                  >
+                    {item.extended_pick_number}
+                  </button>
+                ))}
+                {notification.reference_data.items_added > notification.reference_data.items.length && (
+                  <span className="text-xs text-muted-foreground">
+                    and {notification.reference_data.items_added - notification.reference_data.items.length} more...
+                  </span>
+                )}
+              </div>
+            )}
             {isBadgeNotification && badgeData && (
               <BadgeDisplay
                 badge={{

@@ -70,6 +70,13 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
     return item.banknote.authorityName || tWithFallback('authority', 'Authority');
   };
 
+  const getLocalizedTurkCatalogLabel = (): string => {
+    const banknoteAny = item.banknote as any;
+    if (currentLanguage === 'ar' && banknoteAny.turkCatalogLabel_ar) return banknoteAny.turkCatalogLabel_ar;
+    if (currentLanguage === 'tr' && banknoteAny.turkCatalogLabel_tr) return banknoteAny.turkCatalogLabel_tr;
+    return banknoteAny.turkCatalogLabel || tWithFallback('turkishCatalogNumber', 'Turk Catalog Number');
+  };
+
   // Helper function to get localized banknote field (similar to BanknoteDetailCard)
   const getLocalizedField = (field: string, fieldType: any): string => {
     
@@ -297,7 +304,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
                 </Badge>
               )}
               {item?.banknote?.turkCatalogNumber && (
-                <Badge title={tWithFallback('turkishCatalogNumber', 'Turkish Catalog Number')} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                <Badge title={getLocalizedTurkCatalogLabel()} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {item.banknote.turkCatalogNumber}
                 </Badge>
               )}
@@ -361,7 +368,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
                 </Badge>
               )}
               {item.banknote.turkCatalogNumber && (
-                <Badge title={tWithFallback('turkishCatalogNumber', 'Turkish Catalog Number')} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                <Badge title={getLocalizedTurkCatalogLabel()} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {item.banknote.turkCatalogNumber}
                 </Badge>
               )}

@@ -245,7 +245,8 @@
       "types": "Types",
       "sortOptions": "Sort Options",
       "currencies": "Currencies",
-      "sultans": "Sultans"
+      "sultans": "Sultans",
+      "labels": "Labels"
     },
     "cardTitles": {
       "categoriesFor": "Categories for {{countryName}}",
@@ -253,6 +254,7 @@
       "sortOptionsFor": "Sort Options for {{countryName}}",
       "currenciesFor": "Currencies for {{countryName}}",
       "sultansFor": "Sultans for {{countryName}}",
+      "labelsFor": "Labels for {{countryName}}",
       "selectedCountry": "Selected Country"
     }
   },

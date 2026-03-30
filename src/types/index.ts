@@ -127,6 +127,9 @@ export interface Banknote {
   authorityName?: string;
   authorityName_ar?: string;
   authorityName_tr?: string;
+  turkCatalogLabel?: string;
+  turkCatalogLabel_ar?: string;
+  turkCatalogLabel_tr?: string;
   description?: string;
   obverseDescription?: string;
   reverseDescription?: string;

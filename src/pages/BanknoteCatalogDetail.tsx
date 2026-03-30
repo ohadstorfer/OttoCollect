@@ -90,7 +90,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   const location = useLocation();
   const { user } = useAuth();
   const { t } = useTranslation(['catalog']);
-  const { direction } = useLanguage();
+  const { direction, currentLanguage } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showCollectorsDialog, setShowCollectorsDialog] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -474,6 +474,13 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
   }
 
 
+  const getLocalizedTurkCatalogLabel = (): string => {
+    const banknoteAny = banknote as any;
+    if (currentLanguage === 'ar' && banknoteAny?.turkCatalogLabel_ar) return banknoteAny.turkCatalogLabel_ar;
+    if (currentLanguage === 'tr' && banknoteAny?.turkCatalogLabel_tr) return banknoteAny.turkCatalogLabel_tr;
+    return banknoteAny?.turkCatalogLabel || t('details.turkCatalogNumber');
+  };
+
   const detailGroups = [
     {
       title: t('details.basicInformation'),
@@ -481,7 +488,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
       fields: [
         { label: t('details.extendedPickNumber'), value: banknote?.extendedPickNumber, icon: <Hash className="h-4 w-4" /> },
         { label: t('details.pickNumber'), value: banknote?.pickNumber, icon: <Hash className="h-4 w-4" /> },
-        { label: t('details.turkCatalogNumber'), value: banknote?.turkCatalogNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: getLocalizedTurkCatalogLabel(), value: banknote?.turkCatalogNumber, icon: <Hash className="h-4 w-4" /> },
         { label: t('details.faceValue'), value: banknote?.denomination, icon: <CircleDollarSign className="h-4 w-4" /> },
         { label: t('details.country'), value: banknote?.country, icon: <Map className="h-4 w-4" /> },
         { label: t('details.islamicYear'), value: banknote?.islamicYear, icon: <Calendar className="h-4 w-4" /> },

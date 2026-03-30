@@ -27,6 +27,13 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
     return banknote.authorityName || t('details.sultanName');
   };
 
+  const getLocalizedTurkCatalogLabel = (): string => {
+    const banknoteAny = banknote as any;
+    if (currentLanguage === 'ar' && banknoteAny.turkCatalogLabel_ar) return banknoteAny.turkCatalogLabel_ar;
+    if (currentLanguage === 'tr' && banknoteAny.turkCatalogLabel_tr) return banknoteAny.turkCatalogLabel_tr;
+    return banknoteAny.turkCatalogLabel || t('details.turkCatalogNumber');
+  };
+
   // Helper function to get localized banknote field
   const getLocalizedField = (field: string, translatedField?: string): string => {
     const result = currentLanguage === 'en' || !translatedField 
@@ -93,7 +100,7 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
       )}
       {banknote?.turkCatalogNumber && (
         <div className={`flex items-center gap-x-2 border-b border-gray-100 py-1 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-          <span className={`text-sm font-medium text-muted-foreground w-32 ${direction === 'rtl' ? 'text-right' : ''}`}>{t('details.turkCatalogNumber')}</span>
+          <span className={`text-sm font-medium text-muted-foreground w-32 ${direction === 'rtl' ? 'text-right' : ''}`}>{getLocalizedTurkCatalogLabel()}</span>
           <span className={`text-base ${direction === 'rtl' ? 'text-right' : ''}`}>{banknote.turkCatalogNumber}</span>
         </div>
       )}

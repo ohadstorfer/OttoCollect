@@ -102,14 +102,22 @@ const BanknoteDetailCard = ({
   // Helper function to get localized authority name
   const getLocalizedAuthorityName = (): string => {
     const banknoteAny = banknote as any;
-    
+
     if (currentLanguage === 'ar' && banknoteAny.authorityName_ar) {
       return banknoteAny.authorityName_ar;
     } else if (currentLanguage === 'tr' && banknoteAny.authorityName_tr) {
       return banknoteAny.authorityName_tr;
     }
-    
+
     return banknote.authorityName || tWithFallback('authority', 'Authority');
+  };
+
+  // Helper function to get localized turk catalog label
+  const getLocalizedTurkCatalogLabel = (): string => {
+    const banknoteAny = banknote as any;
+    if (currentLanguage === 'ar' && banknoteAny.turkCatalogLabel_ar) return banknoteAny.turkCatalogLabel_ar;
+    if (currentLanguage === 'tr' && banknoteAny.turkCatalogLabel_tr) return banknoteAny.turkCatalogLabel_tr;
+    return banknoteAny.turkCatalogLabel || tWithFallback('turkishCatalogNumber', 'Turk Catalog Number');
   };
   const [isHovering, setIsHovering] = useState(false);
   const { setNavigatingToDetail } = useBanknoteDialogState(countryId || '');
@@ -581,7 +589,7 @@ const BanknoteDetailCard = ({
                   </Badge>
                 )}
                 {banknote.turkCatalogNumber && (
-                  <Badge title={tWithFallback('turkishCatalogNumber', 'Turkish Catalog Number')} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  <Badge title={getLocalizedTurkCatalogLabel()} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                     {banknote.turkCatalogNumber}
                   </Badge>
                 )}
@@ -748,7 +756,7 @@ const BanknoteDetailCard = ({
                 </Badge>
               )}
               {banknote.turkCatalogNumber && (
-                <Badge title={tWithFallback('turkishCatalogNumber', 'Turkish Catalog Number')} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                <Badge title={getLocalizedTurkCatalogLabel()} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {banknote.turkCatalogNumber}
                 </Badge>
               )}

@@ -67,6 +67,13 @@ const BanknoteDetailCardWishList = ({
     return banknote.authorityName || t('authority', 'Authority');
   };
 
+  const getLocalizedTurkCatalogLabel = (): string => {
+    const b = banknote as any;
+    if (currentLanguage === 'ar' && b.turkCatalogLabel_ar) return b.turkCatalogLabel_ar;
+    if (currentLanguage === 'tr' && b.turkCatalogLabel_tr) return b.turkCatalogLabel_tr;
+    return b.turkCatalogLabel || t('details.turkCatalogNumber', 'Turk Catalog Number');
+  };
+
   // Toast window state: track shown toast's ID to programmatically dismiss it
   const toastIdRef = useRef<string | null>(null);
   const addBtnEventRef = useRef<React.MouseEvent | null>(null);
@@ -425,7 +432,7 @@ const BanknoteDetailCardWishList = ({
                   </Badge>
                 )}
                 {banknote.turk_catalog_number && (
-                  <Badge title={"Turkish Catalog Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                  <Badge title={getLocalizedTurkCatalogLabel()} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                     {banknote.turk_catalog_number}
                   </Badge>
                 )}
@@ -518,7 +525,7 @@ const BanknoteDetailCardWishList = ({
                 </Badge>
               )}
               {banknote.turk_catalog_number && (
-                <Badge title={"Turkish Catalog Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
+                <Badge title={getLocalizedTurkCatalogLabel()} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
                   {banknote.turk_catalog_number}
                 </Badge>
               )}

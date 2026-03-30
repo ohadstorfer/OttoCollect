@@ -33,6 +33,13 @@ const CollectionItemDetailCard = ({ banknote, collectionItem }: CollectionItemCa
     return banknote.authorityName || t('authority', 'Authority');
   };
 
+  const getLocalizedTurkCatalogLabel = (): string => {
+    const banknoteAny = banknote as any;
+    if (currentLanguage === 'ar' && banknoteAny.turkCatalogLabel_ar) return banknoteAny.turkCatalogLabel_ar;
+    if (currentLanguage === 'tr' && banknoteAny.turkCatalogLabel_tr) return banknoteAny.turkCatalogLabel_tr;
+    return banknoteAny.turkCatalogLabel || t('details.turkCatalogNumber', 'Turk Catalog Number');
+  };
+
   const displayImage =
     collectionItem?.obverseImage ||
     (banknote.imageUrls && banknote.imageUrls.length > 0
@@ -104,7 +111,7 @@ const CollectionItemDetailCard = ({ banknote, collectionItem }: CollectionItemCa
             )}
             {banknote.turkCatalogNumber && (
               <p className="text-sm text-muted-foreground">
-                Turk Catalog Number: {banknote.turkCatalogNumber}
+                {getLocalizedTurkCatalogLabel()}: {banknote.turkCatalogNumber}
               </p>
             )}
             {banknote.rarity && (

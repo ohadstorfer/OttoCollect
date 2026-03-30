@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'message' | 'forum_post' | 'collection_activity' | 'follow' | 'badge_earned' | 'badge_achievement' | 'blog_post';
+  type: 'message' | 'forum_post' | 'collection_activity' | 'collection_image_upload' | 'follow' | 'badge_earned' | 'badge_achievement' | 'blog_post';
   title: string;
   title_ar?: string;
   title_tr?: string;
@@ -128,7 +128,17 @@ export const notificationService = {
       case 'follow':
         return `/profile/${notification.reference_data?.follower_username}`;
       case 'collection_activity':
-        return `/profile/${notification.reference_data?.active_username}`;
+      case 'collection_image_upload': {
+        const activeUsername = notification.reference_data?.active_username;
+        // Determine country: from single-country field, from items array, or from countries object
+        const country = notification.reference_data?.country
+          || (notification.reference_data?.items?.[0]?.country)
+          || (notification.reference_data?.countries ? Object.keys(notification.reference_data.countries)[0] : null);
+        if (activeUsername && country) {
+          return `/profile/${activeUsername}/${encodeURIComponent(country)}`;
+        }
+        return `/profile/${activeUsername}`;
+      }
       case 'forum_post':
         return `/forum-post/${notification.reference_id}`;
       case 'blog_post':

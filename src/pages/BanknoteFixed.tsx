@@ -182,7 +182,7 @@ const BanknoteFixed: React.FC = () => {
                 <strong>Pick Number:</strong> {banknoteData.pickNumber || '-'}
               </div>
               <div>
-                <strong>Turk Catalog Number:</strong> {banknoteData.turkCatalogNumber || '-'}
+                <strong>{(banknoteData as any).turkCatalogLabel || 'Turk Catalog Number'}:</strong> {banknoteData.turkCatalogNumber || '-'}
               </div>
               <div>
                 <strong>Extended Pick Number:</strong> {banknoteData.extendedPickNumber || '-'}
