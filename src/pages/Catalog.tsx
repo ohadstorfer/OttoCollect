@@ -61,7 +61,7 @@ const Catalog = () => {
     };
 
     loadCountries();
-  }, [toast, currentLanguage, isAdmin]);
+  }, [toast, currentLanguage, isSuperAdmin, adminCountryName]);
 
   // Fetch user collection once user is signed in
   useEffect(() => {
