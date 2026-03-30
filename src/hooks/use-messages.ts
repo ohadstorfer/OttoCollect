@@ -344,6 +344,15 @@ export default function useMessages(): UseMessagesReturn {
         
       if (unreadMsgIds.length > 0) {
         await Promise.all(unreadMsgIds.map(id => markMessageAsRead(id)));
+
+        // Update local messages state to reflect read status and rebuild conversations
+        setMessages(prev => {
+          const updated = prev.map(msg =>
+            unreadMsgIds.includes(msg.id) ? { ...msg, isRead: true } : msg
+          );
+          buildConversations(updated);
+          return updated;
+        });
       }
     } catch (err) {
       console.error('Error loading conversation messages:', err);
