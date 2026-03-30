@@ -2,13 +2,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { CountryData } from "@/types";
 import { databaseTranslationService, createNameTranslationConfig } from "./databaseTranslationService";
 
-export async function fetchCountriesForCatalog(currentLanguage: string = 'en', isAdmin: boolean = false): Promise<CountryData[]> {
+export async function fetchCountriesForCatalog(currentLanguage: string = 'en', options: { isSuperAdmin?: boolean; adminCountryName?: string } = {}): Promise<CountryData[]> {
   try {
     let query = supabase
       .from('countries')
       .select('id, name, name_ar, name_tr, description, image_url, display_order, is_visible');
 
-    if (!isAdmin) {
+    if (options.isSuperAdmin) {
+      // Super admins see all countries
+    } else if (options.adminCountryName) {
+      // Country admins see visible countries + their own hidden country
+      query = query.or(`is_visible.eq.true,name.eq.${options.adminCountryName}`);
+    } else {
       query = query.eq('is_visible', true);
     }
 

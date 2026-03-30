@@ -16,7 +16,8 @@
     "youPrefix": "You",
     "temporaryConversations": "Temporary Conversations",
     "temporary": "Temporary",
-    "newConversation": "New conversation"
+    "newConversation": "New conversation",
+    "youFollowed": "You followed {{name}}"
   },
   "panel": {
     "dailyLimitReached": {

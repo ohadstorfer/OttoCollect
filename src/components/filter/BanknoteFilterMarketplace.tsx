@@ -189,7 +189,16 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
 
   // Load user preferences when external data is provided
   useEffect(() => {
-    if (externalCategories && externalTypes && externalCountries && !initialLoadComplete) {
+    if (externalCategories?.length > 0 && externalTypes?.length > 0 && !initialLoadComplete) {
+      // Set sort options (these are fixed for marketplace, not from DB)
+      setSortOptions([
+        { id: "country", name: tWithFallback('sort.country', 'Country'), fieldName: "country", isRequired: false },
+        { id: "priceHighToLow", name: tWithFallback('sort.priceHighToLow', 'Price: High to Low'), fieldName: "priceHighToLow", isRequired: false },
+        { id: "priceLowToHigh", name: tWithFallback('sort.priceLowToHigh', 'Price: Low to High'), fieldName: "priceLowToHigh", isRequired: false },
+        { id: "newest", name: tWithFallback('sort.newest', 'Newest Listed'), fieldName: "newest", isRequired: false },
+        { id: "oldest", name: tWithFallback('sort.oldest', 'Oldest Listed'), fieldName: "oldest", isRequired: false },
+      ]);
+
       const loadPreferencesWithExternalData = async () => {
         try {
           await loadUserPreferences(externalCategories, externalTypes, externalCountries || []);
@@ -198,105 +207,60 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
           console.error("Error loading preferences with external data:", error);
         }
       };
-      
+
       loadPreferencesWithExternalData();
     }
   }, [externalCategories, externalTypes, externalCountries, initialLoadComplete, loadUserPreferences]);
 
-  // Load filter options once on component mount
+  // Load filter options from DB only when NO external data is provided.
+  // When Marketplace.tsx provides external categories/types (derived from actual marketplace items),
+  // we rely on Effect 1 above to handle initialization — DB categories use UUID IDs which don't
+  // match the slug-based IDs from marketplace items.
   useEffect(() => {
-    // Skip if already loaded
-    if (initialLoadComplete) {
-      return;
-    }
-    
+    if (initialLoadComplete) return;
+    // Skip DB fetch when external data will be provided (Marketplace.tsx always passes these props)
+    if (externalCategories || externalTypes) return;
+
     const loadFilterOptions = async () => {
       setIsLoading(true);
-      
+
       try {
-        // Get all categories and types
         const { data: categoriesData, error: categoriesError } = await supabase
           .from('banknote_category_definitions')
           .select('*')
           .order('display_order');
-          
         if (categoriesError) throw categoriesError;
 
         const { data: typesData, error: typesError } = await supabase
           .from('banknote_type_definitions')
           .select('*')
           .order('display_order');
-          
         if (typesError) throw typesError;
-        
-        // Get all countries
-        const { data: countriesData, error: countriesError } = await supabase
-          .from('countries')
-          .select('*')
-          .order('name');
-          
-        if (countriesError) throw countriesError;
-        
-        // Map the data to FilterOption format
+
         const mappedCategories = categoriesData.map(cat => ({
           id: cat.id,
           name: cat.name,
         }));
-        
+
         const mappedTypes = typesData.map(type => ({
           id: type.id,
           name: type.name,
         }));
-        
-        const mappedCountries = countriesData.map(country => ({
-          id: country.id,
-          name: country.name,
-        }));
-        
-                 // Create fixed sort options for marketplace
-         const sortOptions = [
-           {
-             id: "country",
-             name: tWithFallback('sort.country', 'Country'),
-             fieldName: "country",
-             isRequired: false
-           },
-           {
-             id: "priceHighToLow",
-             name: tWithFallback('sort.priceHighToLow', 'Price: High to Low'),
-             fieldName: "priceHighToLow",
-             isRequired: false
-           },
-           {
-             id: "priceLowToHigh", 
-             name: tWithFallback('sort.priceLowToHigh', 'Price: Low to High'),
-             fieldName: "priceLowToHigh",
-             isRequired: false
-           },
-           {
-             id: "newest",
-             name: tWithFallback('sort.newest', 'Newest Listed'),
-             fieldName: "newest",
-             isRequired: false
-           },
-           {
-             id: "oldest",
-             name: tWithFallback('sort.oldest', 'Oldest Listed'),
-             fieldName: "oldest", 
-             isRequired: false
-           }
-         ];
-        
+
+        const sortOptions = [
+          { id: "country", name: tWithFallback('sort.country', 'Country'), fieldName: "country", isRequired: false },
+          { id: "priceHighToLow", name: tWithFallback('sort.priceHighToLow', 'Price: High to Low'), fieldName: "priceHighToLow", isRequired: false },
+          { id: "priceLowToHigh", name: tWithFallback('sort.priceLowToHigh', 'Price: Low to High'), fieldName: "priceLowToHigh", isRequired: false },
+          { id: "newest", name: tWithFallback('sort.newest', 'Newest Listed'), fieldName: "newest", isRequired: false },
+          { id: "oldest", name: tWithFallback('sort.oldest', 'Oldest Listed'), fieldName: "oldest", isRequired: false },
+        ];
+
         setCategories(mappedCategories);
         setTypes(mappedTypes);
         setSortOptions(sortOptions);
-        
-        // Load user preferences
+
         await loadUserPreferences(mappedCategories, mappedTypes, []);
-        
-        // Mark initial load as complete
         setInitialLoadComplete(true);
-        
       } catch (error) {
         console.error("Error loading filter options:", error);
         toast({

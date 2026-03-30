@@ -28,6 +28,7 @@ export interface Conversation {
   };
   lastMessage: Message;
   unreadCount: number;
+  isFollowConversation?: boolean;
 }
 
 export interface Role {

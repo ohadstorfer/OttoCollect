@@ -37,14 +37,15 @@ const Catalog = () => {
     }
   });
 
-  const isAdmin = user?.originalRole === 'Super Admin' ||
-    (user?.originalRole && user.originalRole !== 'Super Admin' && user.originalRole.includes('Admin'));
+  const isSuperAdmin = user?.originalRole === 'Super Admin';
+  const isCountryAdmin = !isSuperAdmin && user?.originalRole?.includes('Admin');
+  const adminCountryName = isCountryAdmin ? user?.originalRole?.replace(' Admin', '') : undefined;
 
   useEffect(() => {
     const loadCountries = async () => {
       setLoading(true);
       try {
-        const data = await fetchCountriesForCatalog(currentLanguage, !!isAdmin);
+        const data = await fetchCountriesForCatalog(currentLanguage, { isSuperAdmin: !!isSuperAdmin, adminCountryName });
         // Remove alphabetical sorting - keep database order by display_order
         setCountries(data);
       } catch (error) {

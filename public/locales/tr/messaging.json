@@ -16,7 +16,8 @@
     "youPrefix": "Sen",
     "temporaryConversations": "Geçici Konuşmalar",
     "temporary": "Geçici",
-    "newConversation": "Yeni konuşma"
+    "newConversation": "Yeni konuşma",
+    "youFollowed": "{{name}} kullanıcısını takip ettiniz"
   },
   "panel": {
     "dailyLimitReached": {

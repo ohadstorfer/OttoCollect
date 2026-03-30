@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Conversation, Message } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { getMessages, sendMessage as sendMessageService, markMessageAsRead, getUnreadMessagesCount, subscribeToMessages, checkUserDailyMessagingLimit } from '@/services/messageService';
+import { getFollowing } from '@/services/followService';
 
 interface UseMessagesReturn {
   messages: Message[];
@@ -102,8 +103,46 @@ export default function useMessages(): UseMessagesReturn {
       // Fetch user information for each conversation partner
       const userIds = Array.from(conversationUsers).filter(Boolean) as string[];
       if (userIds.length === 0) {
-        // Only temporary conversations may exist
-        setConversations(Array.from(temporaryConversations.values()));
+        // No real conversations — still merge temporary and follow-conversations
+        const allConversations: Conversation[] = Array.from(temporaryConversations.values());
+        try {
+          const followingData = await getFollowing(user.id);
+          for (const follow of followingData) {
+            const followedUserId = follow.following_id;
+            if (allConversations.some(c => c.otherUserId === followedUserId)) continue;
+            const profile = follow.following_profile;
+            if (!profile) continue;
+            allConversations.push({
+              otherUserId: followedUserId,
+              otherUser: {
+                id: profile.id,
+                username: profile.username || 'Unknown User',
+                avatarUrl: profile.avatar_url,
+                rank: profile.rank || 'User',
+              },
+              lastMessage: {
+                id: `follow-${followedUserId}`,
+                sender_id: user.id,
+                receiver_id: followedUserId,
+                content: '',
+                created_at: follow.created_at,
+                isRead: true,
+                senderId: user.id,
+                receiverId: followedUserId,
+                createdAt: follow.created_at,
+                recipientId: followedUserId,
+              },
+              unreadCount: 0,
+              isFollowConversation: true,
+            });
+          }
+        } catch (err) {
+          console.error('Error fetching following for conversations:', err);
+        }
+        allConversations.sort((a, b) =>
+          new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime()
+        );
+        setConversations(allConversations);
         return;
       }
       const { data: usersData, error: usersError } = await supabase
@@ -156,20 +195,61 @@ export default function useMessages(): UseMessagesReturn {
           allConversations.push(tempConv);
         }
       });
-      
+
+      // Merge follow-conversations for followed users with no existing conversation
+      try {
+        const followingData = await getFollowing(user.id);
+        const existingUserIds = new Set(allConversations.map(c => c.otherUserId));
+
+        for (const follow of followingData) {
+          const followedUserId = follow.following_id;
+          if (existingUserIds.has(followedUserId)) continue;
+
+          const profile = follow.following_profile;
+          if (!profile) continue;
+
+          const followConv: Conversation = {
+            otherUserId: followedUserId,
+            otherUser: {
+              id: profile.id,
+              username: profile.username || 'Unknown User',
+              avatarUrl: profile.avatar_url,
+              rank: profile.rank || 'User',
+            },
+            lastMessage: {
+              id: `follow-${followedUserId}`,
+              sender_id: user.id,
+              receiver_id: followedUserId,
+              content: '',
+              created_at: follow.created_at,
+              isRead: true,
+              senderId: user.id,
+              receiverId: followedUserId,
+              createdAt: follow.created_at,
+              recipientId: followedUserId,
+            },
+            unreadCount: 0,
+            isFollowConversation: true,
+          };
+          allConversations.push(followConv);
+        }
+      } catch (err) {
+        console.error('Error fetching following for conversations:', err);
+      }
+
       // Sort conversations so temporary ones appear first, then by latest message
       allConversations.sort((a, b) => {
         const aIsTemp = a.lastMessage.id.startsWith('temp-');
         const bIsTemp = b.lastMessage.id.startsWith('temp-');
-        
+
         // If one is temporary and the other isn't, temporary comes first
         if (aIsTemp && !bIsTemp) return -1;
         if (!aIsTemp && bIsTemp) return 1;
-        
+
         // If both are temporary or both are real, sort by latest message
         return new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime();
       });
-      
+
       setConversations(allConversations);
     } catch (err) {
       console.error('Error building conversations:', err);

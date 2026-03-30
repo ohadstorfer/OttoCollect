@@ -16,7 +16,8 @@
     "youPrefix": "أنت",
     "temporaryConversations": "محادثات مؤقتة",
     "temporary": "مؤقت",
-    "newConversation": "محادثة جديدة"
+    "newConversation": "محادثة جديدة",
+    "youFollowed": "أنت تتابع {{name}}"
   },
   "panel": {
     "dailyLimitReached": {

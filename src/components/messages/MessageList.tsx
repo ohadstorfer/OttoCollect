@@ -89,7 +89,7 @@ export function MessageList({
                 key={conversation.otherUserId}
                 className={`w-full flex items-start gap-3 p-3 rounded-md hover:bg-accent/20 transition-colors mb-1
                       ${activeConversationId === conversation.otherUserId ? 'bg-accent/30' : showUnreadCount ? 'bg-muted/50' : ''}
-                      ${conversation.lastMessage.id.startsWith('temp-') ? 'border-2 border-primary/50 bg-primary/5' : ''}
+                      ${!conversation.isFollowConversation && conversation.lastMessage.id.startsWith('temp-') ? 'border-2 border-primary/50 bg-primary/5' : ''}
                       ${direction === 'rtl' ? 'flex-row-reverse' : 'flex-row'}
                     `}
               >
@@ -135,7 +135,9 @@ export function MessageList({
     direction === 'rtl' ? 'text-right' : 'text-left'
   }`}
 >
-  {conversation.lastMessage.senderId === conversation.otherUserId ? (
+  {conversation.isFollowConversation ? (
+    t('list.youFollowed', { name: conversation.otherUser.username })
+  ) : conversation.lastMessage.senderId === conversation.otherUserId ? (
     conversation.lastMessage.content || t('list.newConversation', 'New conversation')
   ) : direction === 'rtl' ? (
     `${conversation.lastMessage.content || t('list.newConversation', 'New conversation')} :${t('list.youPrefix')}`
