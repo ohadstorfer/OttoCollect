@@ -81,7 +81,11 @@ export async function fetchCountriesForCatalog(currentLanguage: string = 'en', o
         .from('countries')
         .select('id, name, name_ar, name_tr, description, image_url, display_order, is_visible');
 
-      if (!isAdmin) {
+      if (options.isSuperAdmin) {
+        // Super admins see all countries
+      } else if (options.adminCountryName) {
+        updatedQuery = updatedQuery.or(`is_visible.eq.true,name.eq.${options.adminCountryName}`);
+      } else {
         updatedQuery = updatedQuery.eq('is_visible', true);
       }
 
