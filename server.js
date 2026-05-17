@@ -16,6 +16,79 @@ const supabase = createClient(
 // Get port from environment variable (Cloud Run sets this)
 const PORT = process.env.PORT || 8080;
 
+// Single source of truth for crawler detection across all handlers.
+const CRAWLER_REGEX = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i;
+
+// Returns true if a row with column=value exists in `table`. Fails open
+// (returns true) on errors so a transient DB blip doesn't 404 valid URLs.
+async function dbHas(table, column, value) {
+  try {
+    const { count, error } = await supabase
+      .from(table)
+      .select(column, { count: 'exact', head: true })
+      .eq(column, value);
+    if (error) {
+      console.error(`dbHas ${table}.${column} error:`, error);
+      return true;
+    }
+    return (count || 0) > 0;
+  } catch (e) {
+    console.error(`dbHas ${table}.${column} threw:`, e);
+    return true;
+  }
+}
+
+// Serve an entity-bound page: try the pre-rendered static HTML for crawlers,
+// fall through to a real 404 when the entity is gone, otherwise serve the
+// React shell. Centralises the same flow used by all our dynamic routes.
+async function serveEntityPage(req, res, opts) {
+  // opts: { staticFileName?, dbTable, dbColumn, dbValue, missingMessage }
+  const isCrawler = CRAWLER_REGEX.test(req.get('User-Agent') || '');
+
+  if (isCrawler && opts.staticFileName) {
+    try {
+      const { data, error } = await supabase.storage
+        .from('static-pages')
+        .download(opts.staticFileName);
+      if (!error && data) {
+        const htmlContent = await data.text();
+        res.set('Content-Type', 'text/html');
+        return res.send(htmlContent);
+      }
+      console.log(`Static HTML missing for ${opts.staticFileName}, checking DB`);
+    } catch (e) {
+      console.error(`Error fetching ${opts.staticFileName}:`, e);
+    }
+  }
+
+  if (!(await dbHas(opts.dbTable, opts.dbColumn, opts.dbValue))) {
+    return send404Html(res, opts.missingMessage);
+  }
+
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+}
+
+// 404 response with a meta noindex so Google removes the URL from the index
+// instead of treating it as soft 404.
+function send404Html(res, message) {
+  res.status(404)
+    .set('Content-Type', 'text/html; charset=utf-8')
+    .send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>404 — Not Found | OttoCollect</title>
+  <meta name="robots" content="noindex,follow">
+  <style>body{font-family:system-ui,sans-serif;max-width:640px;margin:60px auto;padding:0 20px;color:#1f2937;line-height:1.6}h1{margin-bottom:.5em}a{color:#1d4ed8}</style>
+</head>
+<body>
+  <h1>404 — Page not found</h1>
+  <p>${message}</p>
+  <p><a href="https://ottocollect.com/">Return to homepage</a> &middot; <a href="https://ottocollect.com/catalog">Browse the catalog</a></p>
+</body>
+</html>`);
+}
+
 // Add logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -65,44 +138,14 @@ app.get('/sitemap.xml', async (req, res) => {
   }
 });
 
-// Handle banknote detail pages - serve static HTML for crawlers
-app.get('/catalog-banknote/:id', async (req, res) => {
-  const banknoteId = req.params.id;
-  const userAgent = req.get('User-Agent') || '';
-  
-  // Check if this is a crawler/bot
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
-  
-  if (isCrawler) {
-    console.log(`Crawler detected for banknote ${banknoteId}, serving static HTML`);
-    try {
-      // Fetch static HTML from Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('static-pages')
-        .download(`catalog-banknote-${banknoteId}.html`);
-      
-      if (error) {
-        console.error(`Error fetching static HTML for ${banknoteId}:`, error);
-        // Fallback to React app
-        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-        return;
-      }
-      
-      // Convert blob to text
-      const htmlContent = await data.text();
-      res.set('Content-Type', 'text/html');
-      res.send(htmlContent);
-    } catch (error) {
-      console.error(`Error serving static HTML for ${banknoteId}:`, error);
-      // Fallback to React app
-      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-    }
-  } else {
-    // Regular users get the React app
-    console.log(`Regular user for banknote ${banknoteId}, serving React app`);
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-  }
-});
+// Banknote detail pages
+app.get('/catalog-banknote/:id', (req, res) => serveEntityPage(req, res, {
+  staticFileName: `catalog-banknote-${req.params.id}.html`,
+  dbTable: 'detailed_banknotes',
+  dbColumn: 'id',
+  dbValue: req.params.id,
+  missingMessage: 'The banknote you are looking for does not exist or has been removed.',
+}));
 
 // Handle forum page - serve static HTML for crawlers
 app.get('/forum', async (req, res) => {
@@ -164,67 +207,23 @@ app.get('/blog', async (req, res) => {
   }
 });
 
-// Handle forum posts - serve static HTML for crawlers
-app.get('/forum/post/:id', async (req, res) => {
-  const postId = req.params.id;
-  const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
-  
-  if (isCrawler) {
-    console.log(`Crawler detected for forum post ${postId}, serving static HTML`);
-    try {
-      const { data, error } = await supabase.storage
-        .from('static-pages')
-        .download(`forum-post-${postId}.html`);
-      
-      if (error) {
-        console.error(`Error fetching forum-post-${postId}.html:`, error);
-        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-        return;
-      }
-      
-      const htmlContent = await data.text();
-      res.set('Content-Type', 'text/html');
-      res.send(htmlContent);
-    } catch (error) {
-      console.error(`Error serving forum-post-${postId}.html:`, error);
-      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-    }
-  } else {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-  }
-});
+// Forum post pages
+app.get('/forum-post/:id', (req, res) => serveEntityPage(req, res, {
+  staticFileName: `forum-post-${req.params.id}.html`,
+  dbTable: 'forum_posts',
+  dbColumn: 'id',
+  dbValue: req.params.id,
+  missingMessage: 'The forum post you are looking for does not exist or has been removed.',
+}));
 
-// Handle blog posts - serve static HTML for crawlers
-app.get('/blog/post/:id', async (req, res) => {
-  const postId = req.params.id;
-  const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
-  
-  if (isCrawler) {
-    console.log(`Crawler detected for blog post ${postId}, serving static HTML`);
-    try {
-      const { data, error } = await supabase.storage
-        .from('static-pages')
-        .download(`blog-post-${postId}.html`);
-      
-      if (error) {
-        console.error(`Error fetching blog-post-${postId}.html:`, error);
-        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-        return;
-      }
-      
-      const htmlContent = await data.text();
-      res.set('Content-Type', 'text/html');
-      res.send(htmlContent);
-    } catch (error) {
-      console.error(`Error serving blog-post-${postId}.html:`, error);
-      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-    }
-  } else {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-  }
-});
+// Blog post pages
+app.get('/blog-post/:id', (req, res) => serveEntityPage(req, res, {
+  staticFileName: `blog-post-${req.params.id}.html`,
+  dbTable: 'blog_posts',
+  dbColumn: 'id',
+  dbValue: req.params.id,
+  missingMessage: 'The blog post you are looking for does not exist or has been removed.',
+}));
 
 // Handle homepage - serve static HTML for crawlers (MUST be before static middleware and catch-all)
 app.get('/', async (req, res) => {
@@ -357,37 +356,16 @@ app.get('/catalog', async (req, res) => {
 
 // (removed earlier catch-all; single catch-all kept at bottom to avoid intercepting dynamic routes)
 
-// Handle country catalog pages - serve static HTML for crawlers
-app.get('/catalog/:country', async (req, res) => {
+// Country catalog pages
+app.get('/catalog/:country', (req, res) => {
   const country = decodeURIComponent(req.params.country);
-  const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
-  
-  if (isCrawler) {
-    console.log(`Crawler detected for country ${country}, serving static HTML`);
-    try {
-      // Re-encode to match the filename in storage (which was stored with encodeURIComponent)
-      const fileName = `catalog-${encodeURIComponent(country)}.html`;
-      const { data, error } = await supabase.storage
-        .from('static-pages')
-        .download(fileName);
-      
-      if (error) {
-        console.error(`Error fetching ${fileName}:`, error);
-        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-        return;
-      }
-      
-      const htmlContent = await data.text();
-      res.set('Content-Type', 'text/html');
-      res.send(htmlContent);
-    } catch (error) {
-      console.error(`Error serving ${fileName}:`, error);
-      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-    }
-  } else {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-  }
+  return serveEntityPage(req, res, {
+    staticFileName: `catalog-${encodeURIComponent(country)}.html`,
+    dbTable: 'countries',
+    dbColumn: 'name',
+    dbValue: country,
+    missingMessage: `The catalog for "${country}" does not exist.`,
+  });
 });
 
 // Handle contact page - serve static HTML for crawlers
@@ -450,36 +428,22 @@ app.get('/marketplace', async (req, res) => {
   }
 });
 
-// Handle marketplace item detail pages - serve static HTML for crawlers
-app.get('/marketplace-item/:id', async (req, res) => {
-  const itemId = req.params.id;
-  const userAgent = req.get('User-Agent') || '';
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i.test(userAgent);
-  
-  if (isCrawler) {
-    console.log(`Crawler detected for marketplace item ${itemId}, serving static HTML`);
-    try {
-      const { data, error } = await supabase.storage
-        .from('static-pages')
-        .download(`marketplace-item-${itemId}.html`);
-      
-      if (error) {
-        console.error(`Error fetching marketplace-item-${itemId}.html:`, error);
-        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-        return;
-      }
-      
-      const htmlContent = await data.text();
-      res.set('Content-Type', 'text/html');
-      res.send(htmlContent);
-    } catch (error) {
-      console.error(`Error serving marketplace-item-${itemId}.html:`, error);
-      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-    }
-  } else {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-  }
-});
+// Marketplace item detail pages (listed)
+app.get('/marketplace-item/:id', (req, res) => serveEntityPage(req, res, {
+  staticFileName: `marketplace-item-${req.params.id}.html`,
+  dbTable: 'collection_items',
+  dbColumn: 'id',
+  dbValue: req.params.id,
+  missingMessage: 'The marketplace listing you are looking for does not exist or has been removed.',
+}));
+
+// Marketplace item detail pages (unlisted — no static HTML yet, but still validate)
+app.get('/marketplace-item-unlisted/:id', (req, res) => serveEntityPage(req, res, {
+  dbTable: 'collection_items',
+  dbColumn: 'id',
+  dbValue: req.params.id,
+  missingMessage: 'The marketplace listing you are looking for does not exist or has been removed.',
+}));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -19,90 +19,142 @@ Deno.serve(async (req) => {
     const baseUrl = 'https://ottocollect.com';
     const currentDate = new Date().toISOString().split('T')[0];
 
+    // Last edit date of the truly-static page React components.
+    // Bump this string when /guide, /about, /contact, /privacy, /terms or
+    // /cookie-policy actually change. A stale lastmod for static pages is
+    // honest: their content rarely changes.
+    const STATIC_PAGE_LASTMOD = '2025-10-06';
+
+    // Latest updated_at per content area, computed in parallel.
+    const [
+      forumLatest,
+      blogLatest,
+      countriesLatest,
+      banknotesLatest,
+      marketplaceLatest,
+      announcementsLatest,
+    ] = await Promise.all([
+      supabase.from('forum_posts').select('updated_at').order('updated_at', { ascending: false }).limit(1),
+      supabase.from('blog_posts').select('updated_at').order('updated_at', { ascending: false }).limit(1),
+      supabase.from('countries').select('updated_at').order('updated_at', { ascending: false }).limit(1),
+      supabase.from('detailed_banknotes').select('updated_at').eq('is_approved', true).order('updated_at', { ascending: false }).limit(1),
+      supabase.from('collection_items').select('updated_at').eq('is_for_sale', true).order('updated_at', { ascending: false }).limit(1),
+      supabase.from('forum_announcements').select('updated_at').order('updated_at', { ascending: false }).limit(1),
+    ]);
+
+    const pickMax = (...candidates: (string | undefined)[]): string => {
+      const dates = candidates.filter(Boolean) as string[];
+      if (!dates.length) return currentDate;
+      dates.sort();
+      return new Date(dates[dates.length - 1]).toISOString().split('T')[0];
+    };
+
+    const homepageLastmod = pickMax(
+      forumLatest.data?.[0]?.updated_at,
+      blogLatest.data?.[0]?.updated_at,
+      countriesLatest.data?.[0]?.updated_at,
+      banknotesLatest.data?.[0]?.updated_at,
+      marketplaceLatest.data?.[0]?.updated_at,
+    );
+    const catalogLastmod = pickMax(
+      countriesLatest.data?.[0]?.updated_at,
+      banknotesLatest.data?.[0]?.updated_at,
+    );
+    const marketplacePageLastmod = pickMax(marketplaceLatest.data?.[0]?.updated_at);
+    const forumPageLastmod = pickMax(
+      forumLatest.data?.[0]?.updated_at,
+      announcementsLatest.data?.[0]?.updated_at,
+    );
+    const blogPageLastmod = pickMax(blogLatest.data?.[0]?.updated_at);
+    // Community page is profile-driven; profiles.updated_at exists but the
+    // page rarely benefits from per-profile freshness, so we tie it to the
+    // most recent forum activity (a reasonable proxy for community life).
+    const communityLastmod = forumPageLastmod;
+
     let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Homepage -->
   <url>
     <loc>${baseUrl}/</loc>
-    <lastmod>${currentDate}</lastmod>
+    <lastmod>${homepageLastmod}</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
-  
+
   <!-- Main Pages -->
   <url>
     <loc>${baseUrl}/catalog</loc>
-    <lastmod>${currentDate}</lastmod>
+    <lastmod>${catalogLastmod}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
-  
+
   <url>
     <loc>${baseUrl}/marketplace</loc>
-    <lastmod>${currentDate}</lastmod>
+    <lastmod>${marketplacePageLastmod}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
-  
+
   <url>
     <loc>${baseUrl}/forum</loc>
-    <lastmod>${currentDate}</lastmod>
+    <lastmod>${forumPageLastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-  
+
   <url>
     <loc>${baseUrl}/blog</loc>
-    <lastmod>${currentDate}</lastmod>
+    <lastmod>${blogPageLastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-  
+
   <url>
     <loc>${baseUrl}/community</loc>
-    <lastmod>${currentDate}</lastmod>
+    <lastmod>${communityLastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-  
+
   <url>
     <loc>${baseUrl}/guide</loc>
-    <lastmod>${currentDate}</lastmod>
+    <lastmod>${STATIC_PAGE_LASTMOD}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-  
+
   <url>
     <loc>${baseUrl}/about</loc>
-    <lastmod>${currentDate}</lastmod>
+    <lastmod>${STATIC_PAGE_LASTMOD}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-  
+
   <url>
     <loc>${baseUrl}/contact</loc>
-    <lastmod>${currentDate}</lastmod>
+    <lastmod>${STATIC_PAGE_LASTMOD}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  
+
   <url>
     <loc>${baseUrl}/privacy</loc>
-    <lastmod>${currentDate}</lastmod>
+    <lastmod>${STATIC_PAGE_LASTMOD}</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
-  
+
   <url>
     <loc>${baseUrl}/terms</loc>
-    <lastmod>${currentDate}</lastmod>
+    <lastmod>${STATIC_PAGE_LASTMOD}</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
-  
+
   <url>
     <loc>${baseUrl}/cookie-policy</loc>
-    <lastmod>${currentDate}</lastmod>
+    <lastmod>${STATIC_PAGE_LASTMOD}</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -175,18 +227,26 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch banknotes dynamically
+    // Fetch banknotes dynamically. Only include banknotes that have at least
+    // one front image — banknotes without an image are thin from Google's POV
+    // and dilute the sitemap's signal/noise ratio.
     const { data: banknotes } = await supabase
       .from('detailed_banknotes')
-      .select('id, updated_at')
+      .select('id, updated_at, front_picture_watermarked, front_picture_thumbnail')
       .eq('is_approved', true)
       .order('extended_pick_number');
 
-    if (banknotes) {
+    const indexableBanknotes = (banknotes || []).filter((b: any) =>
+      !!(b.front_picture_watermarked || b.front_picture_thumbnail)
+    );
+    const droppedThinCount = (banknotes?.length || 0) - indexableBanknotes.length;
+    console.log(`Sitemap: ${indexableBanknotes.length} indexable banknotes, ${droppedThinCount} dropped (no image)`);
+
+    if (indexableBanknotes.length) {
       sitemap += '\n  <!-- Banknote detail pages -->\n';
-      banknotes.forEach(banknote => {
-        const lastmod = banknote.updated_at 
-          ? new Date(banknote.updated_at).toISOString().split('T')[0] 
+      indexableBanknotes.forEach((banknote: any) => {
+        const lastmod = banknote.updated_at
+          ? new Date(banknote.updated_at).toISOString().split('T')[0]
           : currentDate;
         sitemap += `  <url>
     <loc>${baseUrl}/catalog-banknote/${banknote.id}</loc>

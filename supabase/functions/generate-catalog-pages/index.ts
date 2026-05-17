@@ -14,14 +14,46 @@ serve(async (req)=>{
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Optional incremental mode. Body shape: {since: ISO timestamp}.
+    // When provided, only banknotes with updated_at >= since whose country is
+    // visible are regenerated, plus the country pages of affected countries.
+    // Used by the weekly cron to keep recent edits in sync without rebuilding
+    // forum/blog/marketplace pages.
+    let since: string | null = null;
+    try {
+      const body = await req.clone().json();
+      if (body && typeof body.since === 'string' && body.since.length > 0) {
+        since = body.since;
+      }
+    } catch (_) {
+      // No body or invalid JSON — full mode.
+    }
+    const incremental = since !== null;
+    console.log(incremental ? `Incremental mode: since=${since}` : 'Full regeneration mode');
+
     console.log('Fetching all approved banknotes...');
-    // Fetch all approved banknotes
-    const { data: banknotes, error } = await supabase.from('detailed_banknotes').select('*');
+    // Always fetch the full set so we can build a cross-reference index for the
+    // related-links section. In incremental mode the regeneration set is a
+    // filtered subset of allBanknotes.
+    const { data: rawBanknotes, error } = await supabase.from('detailed_banknotes').select('*');
     if (error) {
       console.error('Error fetching banknotes:', error);
       throw error;
     }
-    console.log(`Found ${banknotes?.length || 0} banknotes to process`);
+    // Only consider banknotes that have at least one front image. Aligned with
+    // the sitemap filter: we don't generate static HTML or related-link targets
+    // for URLs Google won't see anyway.
+    const allBanknotes: any[] = (rawBanknotes || []).filter((b: any) =>
+      !!(b.front_picture_watermarked || b.front_picture_thumbnail)
+    );
+    const droppedThinCount = (rawBanknotes?.length || 0) - allBanknotes.length;
+    console.log(`Banknotes: ${rawBanknotes?.length || 0} fetched, ${allBanknotes.length} indexable, ${droppedThinCount} dropped (no image)`);
+    let banknotes: any[] = allBanknotes;
+    if (incremental) {
+      banknotes = banknotes.filter((b: any) => b.updated_at && b.updated_at >= since!);
+    }
+    console.log(`${banknotes.length} banknotes to (re)generate this run`);
     // Fetch forum posts with comment counts
     console.log('Fetching forum posts...');
     const { data: forumPostsRaw, error: forumError } = await supabase
@@ -133,9 +165,13 @@ serve(async (req)=>{
     } else {
       console.log(`Found ${marketplaceItems?.length || 0} marketplace items to process`);
     }
-    // Fetch countries data
+    // Fetch countries data (visible-only in incremental mode)
     console.log('Fetching countries...');
-    const { data: countries, error: countriesError } = await supabase.from('countries').select('*');
+    let countryQuery = supabase.from('countries').select('*');
+    if (incremental) {
+      countryQuery = countryQuery.eq('is_visible', true);
+    }
+    const { data: countries, error: countriesError } = await countryQuery;
     if (countriesError) {
       console.error('Error fetching countries:', countriesError);
     // You can either throw the error or continue without countries
@@ -143,8 +179,20 @@ serve(async (req)=>{
     } else {
       console.log(`Found ${countries?.length || 0} countries to process`);
     }
-    // Generate HTML for blog page
-    try {
+
+    // In incremental mode, restrict banknotes to those whose country is visible,
+    // and compute the set of countries actually affected (so we only regenerate
+    // their catalog page below).
+    let affectedCountryNames: Set<string> | null = null;
+    if (incremental) {
+      const visibleCountryNames = new Set((countries || []).map((c: any) => c.name));
+      banknotes = (banknotes || []).filter((b: any) => visibleCountryNames.has(b.country));
+      affectedCountryNames = new Set((banknotes || []).map((b: any) => b.country));
+      console.log(`Incremental: ${banknotes?.length || 0} banknotes after visibility filter, ${affectedCountryNames.size} affected countries`);
+    }
+
+    // Generate HTML for blog page (skipped in incremental mode)
+    if (!incremental) try {
       const blogHtml = generateBlogPageHTML(blogPosts || []);
       const { error: uploadError } = await supabase.storage.from('static-pages').upload('blog.html', blogHtml, {
         contentType: 'text/html',
@@ -167,8 +215,8 @@ serve(async (req)=>{
         error: error.message
       });
     }
-    // Generate HTML for marketplace page
-    try {
+    // Generate HTML for marketplace page (skipped in incremental mode)
+    if (!incremental) try {
       const marketplaceHtml = generateMarketplaceHTML(marketplaceItems || []);
       const { error: uploadError } = await supabase.storage.from('static-pages').upload('marketplace.html', marketplaceHtml, {
         contentType: 'text/html',
@@ -191,8 +239,8 @@ serve(async (req)=>{
         error: error.message
       });
     }
-    // Generate HTML for each marketplace item
-    for (const item of marketplaceItems || []){
+    // Generate HTML for each marketplace item (skipped in incremental mode)
+    if (!incremental) for (const item of marketplaceItems || []){
       try {
         const html = generateMarketplaceItemHTML(item);
         const fileName = `marketplace-item-${item.id}.html`;
@@ -219,10 +267,15 @@ serve(async (req)=>{
         });
       }
     }
+    // Precompute indices over the FULL banknote set (not just the regeneration
+    // subset) so related-links inside a regenerated page can still point to
+    // banknotes that didn't change this run.
+    const banknoteIndex = buildBanknoteIndex(allBanknotes || []);
+
     // Generate HTML for each banknote
     for (const banknote of banknotes || []){
       try {
-        const html = generateCatalogItemHTML(banknote);
+        const html = generateCatalogItemHTML(banknote, banknoteIndex);
         const fileName = `catalog-banknote-${banknote.id}.html`;
         // Upload to storage bucket
         const { error: uploadError } = await supabase.storage.from('static-pages').upload(fileName, html, {
@@ -247,8 +300,8 @@ serve(async (req)=>{
         });
       }
     }
-    // Generate HTML for each forum post
-    for (const post of forumPosts || []){
+    // Generate HTML for each forum post (skipped in incremental mode)
+    if (!incremental) for (const post of forumPosts || []){
       try {
         const html = generateForumPostHTML(post);
         const fileName = `forum-post-${post.id}.html`;
@@ -275,8 +328,8 @@ serve(async (req)=>{
         });
       }
     }
-    // Generate HTML for contact page
-    try {
+    // Generate HTML for contact page (skipped in incremental mode)
+    if (!incremental) try {
       const contactHtml = generateContactPageHTML();
       const { error: uploadError } = await supabase.storage.from('static-pages').upload('contact.html', contactHtml, {
         contentType: 'text/html',
@@ -299,8 +352,8 @@ serve(async (req)=>{
         error: error.message
       });
     }
-    // Generate HTML for about page
-    try {
+    // Generate HTML for about page (skipped in incremental mode)
+    if (!incremental) try {
       const aboutHtml = generateAboutPageHTML();
       const { error: uploadError } = await supabase.storage.from('static-pages').upload('about.html', aboutHtml, {
         contentType: 'text/html',
@@ -323,8 +376,8 @@ serve(async (req)=>{
         error: error.message
       });
     }
-    // Generate HTML for catalog page
-    try {
+    // Generate HTML for catalog page (skipped in incremental mode)
+    if (!incremental) try {
       const catalogHtml = generateCatalogPageHTML(countries);
       const { error: uploadError } = await supabase.storage.from('static-pages').upload('catalog.html', catalogHtml, {
         contentType: 'text/html',
@@ -347,8 +400,8 @@ serve(async (req)=>{
         error: error.message
       });
     }
-    // Generate HTML for homepage
-    try {
+    // Generate HTML for homepage (skipped in incremental mode)
+    if (!incremental) try {
       const homeHtml = generateHomePageHTML(forumPosts, marketplaceItems, countries);
       const { error: uploadError } = await supabase.storage.from('static-pages').upload('index.html', homeHtml, {
         contentType: 'text/html',
@@ -371,8 +424,12 @@ serve(async (req)=>{
         error: error.message
       });
     }
-    // Generate HTML for each country page
+    // Generate HTML for each country page.
+    // In incremental mode, only regenerate countries whose banknotes changed.
     for (const country of countries || []){
+      if (incremental && affectedCountryNames && !affectedCountryNames.has(country.name)) {
+        continue;
+      }
       try {
         // Fetch banknotes for this country
         const { data: countryBanknotes, error: banknotesError } = await supabase.from('detailed_banknotes').select('*').eq('country', country.name).eq('is_approved', true).eq('is_pending', false);
@@ -435,8 +492,8 @@ serve(async (req)=>{
       };
     }) || [];
     
-    // Generate HTML for forum page
-    try {
+    // Generate HTML for forum page (skipped in incremental mode)
+    if (!incremental) try {
       const forumHtml = generateForumPageHTML(forumPosts || [], announcements || []);
       const { error: uploadError } = await supabase.storage.from('static-pages').upload('forum.html', forumHtml, {
         contentType: 'text/html',
@@ -459,8 +516,8 @@ serve(async (req)=>{
         error: error.message
       });
     }
-    // Generate HTML for each blog post
-    for (const post of blogPosts || []){
+    // Generate HTML for each blog post (skipped in incremental mode)
+    if (!incremental) for (const post of blogPosts || []){
       try {
         const html = generateBlogPostHTML(post);
         const fileName = `blog-post-${post.id}.html`;
@@ -493,6 +550,8 @@ serve(async (req)=>{
     }
     return new Response(JSON.stringify({
       success: true,
+      mode: incremental ? 'incremental' : 'full',
+      since: since,
       generated: generatedPages.length,
       errors: errors.length,
       errorDetails: errors.slice(0, 10),
@@ -519,7 +578,220 @@ serve(async (req)=>{
     });
   }
 });
-function generateCatalogItemHTML(banknote) {
+// Build a narrative body for each banknote out of whatever real fields the row
+// has. The output is several <p> paragraphs; each sentence is only emitted when
+// its source field is populated, so we never write placeholder/invented text
+// and the paragraph order/length differs naturally between banknotes.
+function buildBanknoteNarrative(b: any): string {
+  const paras: string[] = [];
+
+  // Paragraph 1 — identification
+  const ident: string[] = [];
+  const denom = b.face_value;
+  const country = b.country;
+  const yearG = b.gregorian_year;
+  const yearH = b.islamic_year;
+  if (denom && country) {
+    const yearStr = yearG && yearH ? `${yearG} CE / AH ${yearH}`
+                   : yearG ? `${yearG}`
+                   : yearH ? `AH ${yearH}`
+                   : '';
+    ident.push(`The ${denom} ${country} banknote${yearStr ? ` of ${yearStr}` : ''} is a documented piece of ${country} paper-money history.`);
+  }
+  const refs: string[] = [];
+  if (b.extended_pick_number) refs.push(`Pick #${b.extended_pick_number}`);
+  else if (b.pick_number) refs.push(`Pick #${b.pick_number}`);
+  if (b.turk_catalog_number) refs.push(`Turk Catalog ${b.turk_catalog_number}`);
+  if (refs.length) ident.push(`It is cataloged as ${refs.join(' and ')}.`);
+  if (b.issuing_authority) ident.push(`The note was issued by ${b.issuing_authority}.`);
+  if (b.sultan_name) ident.push(`It dates from the reign of ${b.sultan_name}.`);
+  if (ident.length) paras.push(ident.join(' '));
+
+  // Paragraph 2 — production and physical specs
+  const physical: string[] = [];
+  if (b.printer) physical.push(`printed by ${b.printer}`);
+  if (b.designers) physical.push(`designed by ${b.designers}`);
+  if (b.dimensions) physical.push(`measuring ${b.dimensions}`);
+  if (b.material) physical.push(`on ${b.material}`);
+  if (b.colors) physical.push(`with dominant ${b.colors} tones`);
+  if (physical.length) paras.push(`Production details — ${physical.join(', ')}.`);
+
+  // Paragraph 3 — security elements
+  const security: string[] = [];
+  if (b.watermark) security.push(`The watermark depicts ${b.watermark}.`);
+  if (b.security_element) security.push(`Security elements: ${b.security_element}.`);
+  if (b.security_features) security.push(`Additional security features include ${b.security_features}.`);
+  if (b.serial_numbering) security.push(`Serial numbering style: ${b.serial_numbering}.`);
+  if (security.length) paras.push(security.join(' '));
+
+  // Paragraph 4 — signatures and seals
+  const auth: string[] = [];
+  if (b.signatures_front) auth.push(`Front signatures: ${b.signatures_front}.`);
+  if (b.signatures_back) auth.push(`Back signatures: ${b.signatures_back}.`);
+  if (b.seal_names) auth.push(`Seals on the note read: ${b.seal_names}.`);
+  if (auth.length) paras.push(auth.join(' '));
+
+  // Paragraph 5 — iconography (obverse / reverse)
+  const visual: string[] = [];
+  if (b.obverse_description) visual.push(`<strong>Obverse:</strong> ${b.obverse_description}`);
+  if (b.reverse_description) visual.push(`<strong>Reverse:</strong> ${b.reverse_description}`);
+  if (visual.length) paras.push(visual.join(' '));
+
+  // Paragraph 6 — catalog classification
+  const meta: string[] = [];
+  if (b.type) meta.push(`type ${b.type}`);
+  if (b.category) meta.push(`category ${b.category}`);
+  if (b.series) meta.push(`series ${b.series}`);
+  if (b.grade) meta.push(`grade ${b.grade}`);
+  if (b.rarity) meta.push(`rarity ${b.rarity}`);
+  if (meta.length) paras.push(`Catalog classification — ${meta.join(', ')}.`);
+
+  // Paragraph 7 — historical description (free text, naturally unique)
+  if (b.historical_description) {
+    paras.push(`<strong>Historical context.</strong> ${b.historical_description}`);
+  }
+
+  // Paragraph 8 — free description (free text, naturally unique)
+  if (b.banknote_description) {
+    paras.push(`<strong>About this banknote.</strong> ${b.banknote_description}`);
+  }
+
+  return paras.map(p => `      <p>${p}</p>`).join('\n');
+}
+
+// Build precomputed indices over all banknotes so each page's related-links
+// section can be assembled with O(1) lookups instead of N queries.
+function buildBanknoteIndex(banknotes: any[]) {
+  const bySultan: Record<string, any[]> = {};
+  const byPrinter: Record<string, any[]> = {};
+  const byCountry: Record<string, any[]> = {};
+  const byCountryFaceValue: Record<string, any[]> = {};
+  for (const b of banknotes || []) {
+    if (b.sultan_name) (bySultan[b.sultan_name] ||= []).push(b);
+    if (b.printer) (byPrinter[b.printer] ||= []).push(b);
+    if (b.country) (byCountry[b.country] ||= []).push(b);
+    if (b.country && b.face_value) {
+      (byCountryFaceValue[`${b.country}::${b.face_value}`] ||= []).push(b);
+    }
+  }
+  return { bySultan, byPrinter, byCountry, byCountryFaceValue };
+}
+
+// Anchor label used everywhere we link to a related banknote. Keeps the link
+// text descriptive ("5 para Ottoman Empire 1917") instead of generic.
+function relatedAnchorLabel(b: any): string {
+  const year = b.gregorian_year || b.islamic_year || '';
+  return `${b.face_value || ''} ${b.country || ''}${year ? ' ' + year : ''}`.trim();
+}
+
+function renderRelatedList(banknotes: any[]): string {
+  return banknotes.map(b =>
+    `        <li><a href="/catalog-banknote/${b.id}" rel="related">${relatedAnchorLabel(b)}</a></li>`
+  ).join('\n');
+}
+
+// Build the related-links HTML for a single banknote. Up to 4 themed sections,
+// each capped at 6 links. Sections whose source field is empty are omitted.
+function buildBanknoteRelatedLinks(banknote: any, idx: ReturnType<typeof buildBanknoteIndex>): string {
+  const id = banknote.id;
+  const sections: string[] = [];
+  const MAX = 6;
+
+  const sameSultan = banknote.sultan_name
+    ? (idx.bySultan[banknote.sultan_name] || []).filter((b: any) => b.id !== id).slice(0, MAX)
+    : [];
+  if (sameSultan.length) {
+    sections.push(`      <div class="related-group">
+        <h3>More banknotes from the reign of ${banknote.sultan_name}</h3>
+        <ul>
+${renderRelatedList(sameSultan)}
+        </ul>
+      </div>`);
+  }
+
+  const samePrinter = banknote.printer
+    ? (idx.byPrinter[banknote.printer] || []).filter((b: any) => b.id !== id).slice(0, MAX)
+    : [];
+  if (samePrinter.length) {
+    sections.push(`      <div class="related-group">
+        <h3>More banknotes printed by ${banknote.printer}</h3>
+        <ul>
+${renderRelatedList(samePrinter)}
+        </ul>
+      </div>`);
+  }
+
+  const sameDenom = (banknote.country && banknote.face_value)
+    ? (idx.byCountryFaceValue[`${banknote.country}::${banknote.face_value}`] || []).filter((b: any) => b.id !== id).slice(0, MAX)
+    : [];
+  if (sameDenom.length) {
+    sections.push(`      <div class="related-group">
+        <h3>Other ${banknote.face_value} ${banknote.country} banknotes</h3>
+        <ul>
+${renderRelatedList(sameDenom)}
+        </ul>
+      </div>`);
+  }
+
+  // Contemporary notes from the same country (year ± 10), excluding ones
+  // already covered by the more specific sections above.
+  const refYear = Number(banknote.gregorian_year);
+  const already = new Set([
+    id,
+    ...sameSultan.map((b: any) => b.id),
+    ...samePrinter.map((b: any) => b.id),
+    ...sameDenom.map((b: any) => b.id),
+  ]);
+  const contemporaries = (banknote.country && !isNaN(refYear))
+    ? (idx.byCountry[banknote.country] || [])
+        .filter((b: any) => {
+          if (already.has(b.id)) return false;
+          const y = Number(b.gregorian_year);
+          return !isNaN(y) && Math.abs(y - refYear) <= 10;
+        })
+        .slice(0, MAX)
+    : [];
+  if (contemporaries.length) {
+    sections.push(`      <div class="related-group">
+        <h3>${banknote.country} banknotes from around ${refYear}</h3>
+        <ul>
+${renderRelatedList(contemporaries)}
+        </ul>
+      </div>`);
+  }
+
+  // Fallback: always include at least one block of country-mates so even
+  // banknotes without a sultan/printer/contemporaries match get internal links.
+  const countryMates = banknote.country
+    ? (idx.byCountry[banknote.country] || [])
+        .filter((b: any) => !already.has(b.id))
+        .slice(0, MAX)
+    : [];
+  if (countryMates.length) {
+    sections.push(`      <div class="related-group">
+        <h3>More ${banknote.country} banknotes</h3>
+        <ul>
+${renderRelatedList(countryMates)}
+        </ul>
+      </div>`);
+  }
+
+  // Catalog landing link.
+  if (banknote.country) {
+    sections.push(`      <div class="related-group">
+        <h3>Browse the full catalog</h3>
+        <p><a href="/catalog/${encodeURIComponent(banknote.country)}" rel="related">View all ${banknote.country} banknotes</a></p>
+      </div>`);
+  }
+
+  if (!sections.length) return '';
+  return `<section class="related-links" aria-label="Related banknotes">
+      <h2>Related banknotes</h2>
+${sections.join('\n')}
+    </section>`;
+}
+
+function generateCatalogItemHTML(banknote, banknoteIndex?: ReturnType<typeof buildBanknoteIndex>) {
   const imageUrl = banknote.front_picture_watermarked || banknote.front_picture_thumbnail || 'https://ottocollect.com/OttoCollectIcon.PNG';
   const backImageUrl = banknote.back_picture_watermarked || banknote.back_picture_thumbnail;
   // Title matching the format from the image
@@ -897,7 +1169,84 @@ function generateCatalogItemHTML(banknote) {
       color: #333;
       flex: 1;
     }
-    
+
+    .narrative {
+      background: white;
+      border-radius: 8px;
+      padding: 28px 32px;
+      margin-top: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .narrative h2 {
+      font-size: 1.5rem;
+      margin: 0 0 16px;
+      color: #222;
+    }
+
+    .narrative p {
+      margin: 0 0 14px;
+      color: #333;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .narrative p:last-child {
+      margin-bottom: 0;
+    }
+
+    .narrative strong {
+      color: #1f2937;
+    }
+
+    .related-links {
+      background: #faf9f5;
+      border-radius: 8px;
+      padding: 28px 32px;
+      margin-top: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .related-links > h2 {
+      font-size: 1.5rem;
+      margin: 0 0 18px;
+      color: #222;
+    }
+
+    .related-group {
+      margin-bottom: 22px;
+    }
+
+    .related-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .related-group h3 {
+      font-size: 1.05rem;
+      color: #444;
+      margin: 0 0 10px;
+      font-weight: 600;
+    }
+
+    .related-group ul {
+      list-style: disc;
+      padding-left: 20px;
+      margin: 0;
+    }
+
+    .related-group li {
+      margin: 4px 0;
+    }
+
+    .related-group a {
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+
+    .related-group a:hover {
+      text-decoration: underline;
+    }
+
     .redirect-notice {
       text-align: center;
       padding: 20px;
@@ -1103,6 +1452,16 @@ function generateCatalogItemHTML(banknote) {
       </div>
     </div>
     
+    ${(() => {
+      const narrativeHtml = buildBanknoteNarrative(banknote);
+      return narrativeHtml ? `<section class="narrative">
+      <h2>About this ${banknote.face_value || ''} ${banknote.country || ''} banknote</h2>
+${narrativeHtml}
+    </section>` : '';
+    })()}
+
+    ${banknoteIndex ? buildBanknoteRelatedLinks(banknote, banknoteIndex) : ''}
+
     <div class="redirect-notice">
       <p>If you are not redirected automatically, <a href="/catalog-banknote/${banknote.id}">click here to view the interactive version</a>.</p>
     </div>
