@@ -12,6 +12,7 @@ import { useOptimizedBanknoteSorting } from "@/hooks/use-optimized-banknote-sort
 import { useOptimizedBanknoteGroups } from "@/hooks/use-optimized-banknote-groups";
 import { getSultanOrderMap } from "@/services/sultanOrderService";
 import { CollectionItem, fetchUserCollection } from "@/services/collectionService";
+import { fetchCountryDefaultPreferences } from "@/services/countryService";
 import { useAuth } from "@/context/AuthContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import SEOHead from "@/components/seo/SEOHead";
@@ -40,11 +41,12 @@ const CountryDetail = () => {
             categories: parsed.categories,
             types: parsed.types,
             sort: parsed.sort || [],
+            imagesOnly: typeof parsed.imagesOnly === 'boolean' ? parsed.imagesOnly : true,
           };
         }
       }
     } catch {}
-    return { search: "", categories: [], types: [], sort: [] };
+    return { search: "", categories: [], types: [], sort: [], imagesOnly: true };
   });
 
   // New: user + collection loading

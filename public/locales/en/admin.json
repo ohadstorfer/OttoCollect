@@ -246,7 +246,8 @@
       "sortOptions": "Sort Options",
       "currencies": "Currencies",
       "sultans": "Sultans",
-      "labels": "Labels"
+      "labels": "Labels",
+      "displayDefaults": "Display Defaults"
     },
     "cardTitles": {
       "categoriesFor": "Categories for {{countryName}}",
@@ -255,7 +256,52 @@
       "currenciesFor": "Currencies for {{countryName}}",
       "sultansFor": "Sultans for {{countryName}}",
       "labelsFor": "Labels for {{countryName}}",
+      "displayDefaultsFor": "Display defaults for {{countryName}}",
       "selectedCountry": "Selected Country"
+    }
+  },
+  "catalogDefaults": {
+    "audienceLabel": "Audience",
+    "audience": {
+      "anonymous": "Anonymous visitors",
+      "newUser": "New registered users",
+      "anonymousHelp": "Applied to visitors without an account.",
+      "newUserHelp": "Applied at signup. Does not affect users who already have saved preferences."
+    },
+    "fields": {
+      "viewMode": "Default view",
+      "groupMode": "Group by category",
+      "imagesOnly": "Images only",
+      "categories": "Pre-selected categories",
+      "types": "Pre-selected types",
+      "sortOptions": "Pre-selected sort options"
+    },
+    "viewMode": {
+      "grid": "Grid",
+      "list": "List"
+    },
+    "selectAll": "Select all",
+    "clear": "Clear",
+    "save": "Save defaults",
+    "saving": "Saving...",
+    "saved": "Defaults saved",
+    "loading": "Loading defaults...",
+    "empty": {
+      "categories": "No categories defined for this country.",
+      "types": "No types defined for this country.",
+      "sortOptions": "No sort options defined for this country."
+    },
+    "errors": {
+      "loadTitle": "Could not load defaults",
+      "loadDescription": "Please try again.",
+      "saveTitle": "Could not save defaults",
+      "saveDescription": "Please try again."
+    },
+    "confirmCascade": {
+      "title": "Overwrite all users?",
+      "description": "Saving will overwrite the catalog preferences of every registered user for this country, including those who customized their filters. This cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Overwrite and save"
     }
   },
   "imageCleanupTool": {

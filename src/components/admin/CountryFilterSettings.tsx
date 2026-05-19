@@ -13,6 +13,7 @@ import SortOptionsManager from "./filter/SortOptionsManager";
 import CurrenciesManager from "./filter/CurrenciesManager";
 import SultansManager from "./filter/SultansManager";
 import CatalogLabelManager from "./filter/CatalogLabelManager";
+import CatalogDefaultsManager from "./filter/CatalogDefaultsManager";
 import { fetchSortOptionsByCountryId } from "@/services/countryService";
 import { useTranslation } from 'react-i18next';
 
@@ -108,7 +109,7 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
 
       {selectedCountryId && (
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className={`grid ${hasSultanSort ? 'grid-cols-6' : 'grid-cols-5'} mb-6`}>
+          <TabsList className={`grid ${hasSultanSort ? 'grid-cols-7' : 'grid-cols-6'} mb-6`}>
             <TabsTrigger value="categories">
               {t('countryFilterSettings.tabs.categories')}
             </TabsTrigger>
@@ -123,6 +124,9 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
             </TabsTrigger>
             <TabsTrigger value="labels">
               {t('countryFilterSettings.tabs.labels', 'Labels')}
+            </TabsTrigger>
+            <TabsTrigger value="display-defaults">
+              {t('countryFilterSettings.tabs.displayDefaults', 'Display Defaults')}
             </TabsTrigger>
             {hasSultanSort && (
               <TabsTrigger value="sultans">
@@ -193,6 +197,19 @@ const CountryFilterSettings: React.FC<CountryFilterSettingsProps> = ({
               </CardHeader>
               <CardContent>
                 <CatalogLabelManager countryId={selectedCountryId} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="display-defaults">
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  <span>{t('countryFilterSettings.cardTitles.displayDefaultsFor', { countryName: countries.find(c => c.id === selectedCountryId)?.name || t('countryFilterSettings.cardTitles.selectedCountry'), defaultValue: `Display defaults for ${countries.find(c => c.id === selectedCountryId)?.name || ''}` })}</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CatalogDefaultsManager countryId={selectedCountryId} />
               </CardContent>
             </Card>
           </TabsContent>

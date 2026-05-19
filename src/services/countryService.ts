@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { CategoryDefinition, TypeDefinition, SortOption, UserFilterPreference, CountryData } from "@/types/filter";
+import { CategoryDefinition, TypeDefinition, SortOption, UserFilterPreference, CountryData, CountryDefaultPreference, CatalogDefaultAudience } from "@/types/filter";
 
 export async function fetchCountries(): Promise<CountryData[]> {
   try {
@@ -160,24 +160,29 @@ export async function saveUserFilterPreferences(
     selected_sort_options: string[];
     group_mode: boolean;
     view_mode?: 'grid' | 'list';
+    images_only?: boolean;
   }
 ): Promise<void> {
   try {
+    const row: Record<string, unknown> = {
+      user_id: userId,
+      country_id: countryId,
+      selected_categories: preferences.selected_categories,
+      selected_types: preferences.selected_types,
+      selected_sort_options: preferences.selected_sort_options,
+      group_mode: preferences.group_mode,
+      view_mode: preferences.view_mode || 'grid',
+      updated_at: new Date().toISOString(),
+    };
+    // Only set images_only when explicitly provided so partial saves (e.g. from
+    // category/sort changes) don't overwrite an existing preference.
+    if (typeof preferences.images_only === 'boolean') {
+      row.images_only = preferences.images_only;
+    }
+
     const { data, error } = await supabase
       .from('user_filter_preferences')
-      .upsert(
-        {
-          user_id: userId,
-          country_id: countryId,
-          selected_categories: preferences.selected_categories,
-          selected_types: preferences.selected_types,
-          selected_sort_options: preferences.selected_sort_options,
-          group_mode: preferences.group_mode,
-          view_mode: preferences.view_mode || 'grid',
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id,country_id' }
-      );
+      .upsert(row, { onConflict: 'user_id,country_id' });
 
     if (error) {
       console.error("Error saving user filter preferences:", error);
@@ -185,6 +190,95 @@ export async function saveUserFilterPreferences(
     }
   } catch (error) {
     console.error("Error in saveUserFilterPreferences:", error);
+  }
+}
+
+export async function fetchCountryDefaultPreferences(
+  countryId: string,
+  audience: CatalogDefaultAudience
+): Promise<CountryDefaultPreference | null> {
+  try {
+    const { data, error } = await supabase
+      .from('country_default_preferences')
+      .select('*')
+      .eq('country_id', countryId)
+      .eq('audience', audience)
+      .maybeSingle();
+
+    if (error) {
+      console.error(`Error fetching country defaults for ${countryId}/${audience}:`, error);
+      return null;
+    }
+    return data as CountryDefaultPreference | null;
+  } catch (error) {
+    console.error("Error in fetchCountryDefaultPreferences:", error);
+    return null;
+  }
+}
+
+export async function fetchAllCountryDefaultPreferences(
+  countryId: string
+): Promise<{ anonymous: CountryDefaultPreference | null; new_user: CountryDefaultPreference | null }> {
+  try {
+    const { data, error } = await supabase
+      .from('country_default_preferences')
+      .select('*')
+      .eq('country_id', countryId);
+
+    if (error) {
+      console.error(`Error fetching all country defaults for ${countryId}:`, error);
+      return { anonymous: null, new_user: null };
+    }
+
+    const rows = (data || []) as CountryDefaultPreference[];
+    return {
+      anonymous: rows.find(r => r.audience === 'anonymous') || null,
+      new_user: rows.find(r => r.audience === 'new_user') || null,
+    };
+  } catch (error) {
+    console.error("Error in fetchAllCountryDefaultPreferences:", error);
+    return { anonymous: null, new_user: null };
+  }
+}
+
+export async function saveCountryDefaultPreferences(
+  countryId: string,
+  audience: CatalogDefaultAudience,
+  payload: {
+    group_mode: boolean;
+    view_mode: 'grid' | 'list';
+    images_only: boolean;
+    selected_categories: string[];
+    selected_types: string[];
+    selected_sort_options: string[];
+  }
+): Promise<void> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    const row = {
+      country_id: countryId,
+      audience,
+      group_mode: payload.group_mode,
+      view_mode: payload.view_mode,
+      images_only: payload.images_only,
+      selected_categories: payload.selected_categories,
+      selected_types: payload.selected_types,
+      selected_sort_options: payload.selected_sort_options,
+      updated_at: new Date().toISOString(),
+      updated_by: user?.id ?? null,
+    };
+
+    const { error } = await supabase
+      .from('country_default_preferences')
+      .upsert(row, { onConflict: 'country_id,audience' });
+
+    if (error) {
+      console.error("Error saving country default preferences:", error);
+      throw error;
+    }
+  } catch (error) {
+    console.error("Error in saveCountryDefaultPreferences:", error);
+    throw error;
   }
 }
 

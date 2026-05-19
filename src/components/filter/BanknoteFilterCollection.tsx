@@ -517,6 +517,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         activeTab={activeTab}
         onTabChange={onTabChange}
         isOwner={isOwner}
+        countryId={countryId}
         countryName={countryName}
         countryNameAr={countryNameAr}
         countryNameTr={countryNameTr}

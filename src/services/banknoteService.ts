@@ -42,12 +42,13 @@ export async function fetchBanknotes(filters?: BanknoteFilters): Promise<Detaile
 }
 
 export async function fetchBanknotesByCountryId(
-  countryId: string, 
-  filters?: { 
+  countryId: string,
+  filters?: {
     search?: string;
     categories?: string[];
     types?: string[];
     sort?: string[];
+    imagesOnly?: boolean;
   },
   language: string = 'en'
 ): Promise<DetailedBanknote[]> {
@@ -93,10 +94,17 @@ export async function fetchBanknotesByCountryId(
       const searchTerm = filters.search.toLowerCase();
       query = query.or(
         `extended_pick_number.ilike.%${searchTerm}%,` +
-        `face_value.ilike.%${searchTerm}%,` + 
+        `face_value.ilike.%${searchTerm}%,` +
         `banknote_description.ilike.%${searchTerm}%,` +
         `sultan_name.ilike.%${searchTerm}%`
       );
+    }
+
+    // Server-side filter: drop rows where both pictures are NULL when the
+    // user wants images-only. Empty-string cases are filtered client-side
+    // below to match how imageUrls is built (filter(Boolean) drops both).
+    if (filters?.imagesOnly) {
+      query = query.or('front_picture.not.is.null,back_picture.not.is.null');
     }
     
     console.log(`🌐 [BanknoteService] Fetching from view: ${viewName} for language: ${language}`);
@@ -152,6 +160,17 @@ export async function fetchBanknotesByCountryId(
           }
           return itemType.includes(normalizedTypeName) || normalizedTypeName.includes(itemType);
         });
+      });
+    }
+
+    // Drop rows whose picture columns exist but are empty strings — the
+    // server filter only catches NULL, and downstream code treats '' as
+    // "no image" via filter(Boolean) in mapBanknoteFromDatabase.
+    if (filters?.imagesOnly) {
+      filteredData = filteredData.filter(banknote => {
+        const front = typeof banknote.front_picture === 'string' ? banknote.front_picture.trim() : banknote.front_picture;
+        const back = typeof banknote.back_picture === 'string' ? banknote.back_picture.trim() : banknote.back_picture;
+        return Boolean(front) || Boolean(back);
       });
     }
 

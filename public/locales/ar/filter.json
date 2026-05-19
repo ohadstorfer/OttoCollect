@@ -64,6 +64,12 @@
     "disabled": "معطل",
     "toggleGroupMode": "تجميع الأوراق النقدية المتشابهة"
   },
+
+  "imagesOnly": {
+    "toggle": "إظهار الأوراق النقدية التي بها صور فقط",
+    "toggleOn": "مفعل",
+    "toggleOff": "معطل"
+  },
   
   "country": {
     "catalogue": "فهرس",

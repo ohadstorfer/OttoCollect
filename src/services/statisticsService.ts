@@ -266,8 +266,26 @@ export const statisticsService = {
       country_id_param: countryId,
       viewer_id_param: viewerId || null
     });
-    
+
     if (error) console.error('Error tracking collection view:', error);
+  },
+
+  // Read the authorized view count. Returns null when the caller is not
+  // authorized (DB enforces owner / super admin / country admin of that country),
+  // so the UI can simply hide the badge when null comes back.
+  async getCollectionViewCount(
+    userId: string,
+    countryId: string
+  ): Promise<number | null> {
+    const { data, error } = await (supabase.rpc as any)('get_collection_view_count', {
+      target_user_id: userId,
+      target_country_id: countryId,
+    });
+    if (error) {
+      console.error('Error fetching collection view count:', error);
+      return null;
+    }
+    return (data as number | null);
   },
 
   // Track blog post view

@@ -37,6 +37,7 @@ import { CollectionItem } from '@/types';
 import { generateExcel, downloadExcel, generateFilename } from '@/services/csvExportService';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from "@/context/LanguageContext";
+import { CollectionViewCount } from "@/components/collection/CollectionViewCount";
 
 
 export type FilterOption = {
@@ -67,6 +68,7 @@ export type BaseBanknoteFilterProps = {
   onTabChange?: (tab: 'collection' | 'wishlist' | 'missing' | 'sale') => void;
   isOwner?: boolean;
   userId?: string;
+  countryId?: string;
   countryName?: string;
   countryNameAr?: string;
   countryNameTr?: string;
@@ -108,6 +110,7 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
   onTabChange: propOnTabChange,
   isOwner,
   userId,
+  countryId,
   countryName,
   countryNameAr,
   countryNameTr,
@@ -626,8 +629,8 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
       <div className="w-full">
         {/* Profile Header Row */}
         {profileUser && (
-          <div className="flex items-center justify-center w-full mb-4 px-2 sm:px-4 text-sm sm:text-base">
-            <div className="flex items-center gap-1 sm:gap-2">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center w-full mb-4 px-2 sm:px-4 text-sm sm:text-base gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 justify-self-start min-w-0">
               {onBackToCountries && (
                 <Button
                   variant="ghost"
@@ -655,12 +658,16 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
               )}
             </div>
 
-            {translatedCountryName && activeTab && (
-              <div className="flex items-center min-w-0 shrink">
+            {translatedCountryName && activeTab ? (
+              <div className="flex items-center min-w-0 justify-self-center">
                 <span className="text-muted-foreground px-1 sm:px-3">/</span>
-                <span className="font-medium min-w-0 shrink">{translatedCountryName} {getTranslatedTabLabel(activeTab)}</span>
+                <span className="font-medium min-w-0 truncate">{translatedCountryName} {getTranslatedTabLabel(activeTab)}</span>
               </div>
-            )}
+            ) : <div />}
+
+            <div className="justify-self-end">
+              <CollectionViewCount userId={profileUser.id} countryId={countryId} />
+            </div>
           </div>
         )}
 

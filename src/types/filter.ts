@@ -69,8 +69,25 @@ export interface UserFilterPreference {
   selected_sort_options: string[];
   group_mode: boolean;
   view_mode: 'grid' | 'list';
+  images_only: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export type CatalogDefaultAudience = 'anonymous' | 'new_user';
+
+export interface CountryDefaultPreference {
+  id: string;
+  country_id: string;
+  audience: CatalogDefaultAudience;
+  group_mode: boolean;
+  view_mode: 'grid' | 'list';
+  images_only: boolean;
+  selected_categories: string[];
+  selected_types: string[];
+  selected_sort_options: string[];
+  updated_at: string;
+  updated_by?: string | null;
 }
 
 export interface FilterCategoryOption {
@@ -86,6 +103,7 @@ export interface DynamicFilterState {
   sort: string[];
   country_id?: string; // Make sure country_id is included here
   countries?: string[]; // Add countries array for marketplace filtering
+  imagesOnly?: boolean; // When true, hide banknotes without front_picture or back_picture (catalog only)
 }
 
 export interface FilterableItem {

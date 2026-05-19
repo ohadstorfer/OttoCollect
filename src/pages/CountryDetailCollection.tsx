@@ -179,13 +179,12 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     }
   }, [countryLoading, collectionDataLoading, countryId, effectiveCountryName, isFullyLoaded]);
 
-  // Track collection view when page is loaded
+  // Track collection view when page is loaded (skip when the viewer is the owner)
   useEffect(() => {
-    if (countryId && effectiveUserId && isFullyLoaded) {
-      // Track the collection view
+    if (countryId && effectiveUserId && isFullyLoaded && !isOwner) {
       statisticsService.trackCollectionView(effectiveUserId, countryId, user?.id);
     }
-  }, [countryId, effectiveUserId, user?.id, isFullyLoaded]);
+  }, [countryId, effectiveUserId, user?.id, isFullyLoaded, isOwner]);
   
 
 

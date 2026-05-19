@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { flushSync } from "react-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { fetchCountryByName, fetchCategoriesByCountryId, fetchUserFilterPreferences } from "@/services/countryService";
+import { fetchCountryByName, fetchCategoriesByCountryId, fetchUserFilterPreferences, fetchCountryDefaultPreferences } from "@/services/countryService";
 import { supabase } from "@/integrations/supabase/client";
 import { CategoryDefinition, CountryData } from "@/types/filter";
 import { Currency } from "@/types/banknote";
@@ -112,16 +112,22 @@ export const useCountryData = ({
             console.error("Error loading group mode from preferences:", err);
           }
         } else if (!user && !hasLoadedPreferences.current && !initialLoadComplete.current) {
-          // If no user is logged in, try to load from session storage
+          // Anonymous: session storage first, then country-level admin default.
           try {
             const savedMode = sessionStorage.getItem(`groupMode-${countryData.id}`);
             if (savedMode !== null) {
               const parsedMode = JSON.parse(savedMode);
               setGroupMode(parsedMode);
               hasLoadedPreferences.current = true;
+            } else {
+              const anonDefaults = await fetchCountryDefaultPreferences(countryData.id, 'anonymous');
+              if (anonDefaults && typeof anonDefaults.group_mode === 'boolean') {
+                setGroupMode(anonDefaults.group_mode);
+                hasLoadedPreferences.current = true;
+              }
             }
           } catch (err) {
-            console.error("Error loading group mode from session storage:", err);
+            console.error("Error loading group mode for anonymous user:", err);
           }
         }
         

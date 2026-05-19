@@ -6,6 +6,97 @@ interface ProcessedImages {
   thumbnail: string;
 }
 
+// === Watermark tuning knobs — change these to adjust size, position, and opacity ===
+// Todos los valores son ratios (0..1) — escalan con el tamaño de la imagen.
+export const WATERMARK_WIDTH_RATIO_PORTRAIT = 0.35;        // tamaño del watermark = % del ancho (portrait)
+export const WATERMARK_WIDTH_RATIO_LANDSCAPE = 0.15;       // tamaño del watermark = % del ancho (landscape)
+export const WATERMARK_PADDING_X_RATIO_PORTRAIT = 0.04;    // separación del borde derecho = % del ancho (portrait)
+export const WATERMARK_PADDING_Y_RATIO_PORTRAIT = 0.025;   // separación del borde inferior = % del alto (portrait)
+export const WATERMARK_PADDING_X_RATIO_LANDSCAPE = 0.08;   // separación del borde derecho = % del ancho (landscape) — subilo para moverlo a la izquierda
+export const WATERMARK_PADDING_Y_RATIO_LANDSCAPE = 0.14;   // separación del borde inferior = % del alto (landscape) — subilo para moverlo arriba
+export const WATERMARK_OPACITY = 0.5;                      // 0..1
+// ==================================================================================
+
+export interface WatermarkParamsApplied {
+  isLandscape: boolean;
+  widthRatio: number;
+  paddingXRatio: number;
+  paddingYRatio: number;
+  paddingX: number;
+  paddingY: number;
+  opacity: number;
+  watermarkWidth: number;
+  watermarkHeight: number;
+}
+
+/**
+ * Renders the watermark onto a canvas containing the original image.
+ * Pure: does not touch Supabase. Reused by both the upload pipeline and the preview page.
+ */
+export async function generateWatermarkedCanvas(
+  originalImage: ImageBitmap
+): Promise<{ canvas: HTMLCanvasElement; params: WatermarkParamsApplied }> {
+  const canvas = document.createElement('canvas');
+  canvas.width = originalImage.width;
+  canvas.height = originalImage.height;
+  const ctx = canvas.getContext('2d', {
+    alpha: true,
+    willReadFrequently: false,
+  })!;
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(originalImage, 0, 0);
+
+  const watermarkImage = new Image();
+  watermarkImage.src = '/watermark.png';
+  await new Promise((resolve, reject) => {
+    watermarkImage.onload = resolve;
+    watermarkImage.onerror = (e) => {
+      console.error('Failed to load watermark:', e);
+      reject(e);
+    };
+  });
+
+  const isLandscape = originalImage.width > originalImage.height;
+  const widthRatio = isLandscape
+    ? WATERMARK_WIDTH_RATIO_LANDSCAPE
+    : WATERMARK_WIDTH_RATIO_PORTRAIT;
+  const paddingXRatio = isLandscape
+    ? WATERMARK_PADDING_X_RATIO_LANDSCAPE
+    : WATERMARK_PADDING_X_RATIO_PORTRAIT;
+  const paddingYRatio = isLandscape
+    ? WATERMARK_PADDING_Y_RATIO_LANDSCAPE
+    : WATERMARK_PADDING_Y_RATIO_PORTRAIT;
+
+  const paddingX = originalImage.width * paddingXRatio;
+  const paddingY = originalImage.height * paddingYRatio;
+
+  const watermarkWidth = originalImage.width * widthRatio;
+  const watermarkHeight = (watermarkWidth / watermarkImage.width) * watermarkImage.height;
+  const watermarkX = originalImage.width - watermarkWidth - paddingX;
+  const watermarkY = originalImage.height - watermarkHeight - paddingY;
+
+  ctx.globalAlpha = WATERMARK_OPACITY;
+  ctx.drawImage(watermarkImage, watermarkX, watermarkY, watermarkWidth, watermarkHeight);
+  ctx.globalAlpha = 1;
+
+  return {
+    canvas,
+    params: {
+      isLandscape,
+      widthRatio,
+      paddingXRatio,
+      paddingYRatio,
+      paddingX,
+      paddingY,
+      opacity: WATERMARK_OPACITY,
+      watermarkWidth,
+      watermarkHeight,
+    },
+  };
+}
+
 /**
  * Processes an uploaded image to create watermarked and thumbnail versions
  * @param file The original file to process
@@ -35,59 +126,9 @@ export async function processAndUploadImage(
       premultiplyAlpha: 'premultiply', // Better quality for transparent images
       colorSpaceConversion: 'default'
     });
-    
-    // Create a canvas for the watermarked version with high DPI support
-    const watermarkedCanvas = document.createElement('canvas');
-    const scale = window.devicePixelRatio || 1; // Support high DPI displays
-    watermarkedCanvas.width = originalImage.width;
-    watermarkedCanvas.height = originalImage.height;
-    const watermarkedCtx = watermarkedCanvas.getContext('2d', {
-      alpha: true,
-      willReadFrequently: false
-    })!;
 
-    // Enable high-quality image scaling
-    watermarkedCtx.imageSmoothingEnabled = true;
-    watermarkedCtx.imageSmoothingQuality = 'high';
-    
-    // Draw the original image at full quality
-    watermarkedCtx.drawImage(originalImage, 0, 0);
-    
-    // Load and draw watermark image
-    const watermarkImage = new Image();
-    watermarkImage.src = '/watermark.png';
-    await new Promise((resolve, reject) => {
-      watermarkImage.onload = resolve;
-      watermarkImage.onerror = (e) => {
-        console.error('Failed to load watermark:', e);
-        reject(e);
-      };
-    });
+    const { canvas: watermarkedCanvas } = await generateWatermarkedCanvas(originalImage);
 
-    // Calculate watermark dimensions (35% of the original image width)
-    const watermarkWidth = originalImage.width * 0.35;
-    const watermarkHeight = (watermarkWidth / watermarkImage.width) * watermarkImage.height;
-
-    // Position watermark at bottom right with padding
-    const padding = 40;
-    const watermarkX = originalImage.width - watermarkWidth - padding;
-    const watermarkY = originalImage.height - watermarkHeight - padding;
-
-    // Set transparency
-    watermarkedCtx.globalAlpha = 0.6;
-    
-    // Draw the watermark with high quality
-    watermarkedCtx.drawImage(
-      watermarkImage,
-      watermarkX,
-      watermarkY,
-      watermarkWidth,
-      watermarkHeight
-    );
-
-    // Reset transparency
-    watermarkedCtx.globalAlpha = 1;
-    
     // Create thumbnail version (max 300px width/height while maintaining aspect ratio)
     const thumbnailCanvas = document.createElement('canvas');
     const maxThumbnailSize = 300;

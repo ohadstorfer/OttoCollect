@@ -51,7 +51,8 @@ export const useBanknoteQuery = ({
         search: filters.search,
         categories: filters.categories,
         types: filters.types,
-        sort: filters.sort
+        sort: filters.sort,
+        imagesOnly: filters.imagesOnly
       };
       return fetchBanknotesByCountryId(countryId, filterParams, currentLanguage);
     },
@@ -110,7 +111,8 @@ export const useBanknoteData = (
           search: filters.search,
           categories: filters.categories,
           types: filters.types,
-          sort: filters.sort
+          sort: filters.sort,
+          imagesOnly: filters.imagesOnly
         };
         return fetchBanknotesByCountryId(countryId, filterParams, currentLanguage);
       },

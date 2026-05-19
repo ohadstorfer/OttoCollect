@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { DetailedBanknote, CollectionItem } from '@/types';
 import BanknoteDetailCard from './BanknoteDetailCard';
 import { BanknoteCardGroup } from './BanknoteCardGroup';
@@ -29,6 +29,64 @@ interface BanknoteGroupsProps {
   groupMode?: boolean;
   userCollection: CollectionItem[]; // <-- ADDED
 }
+
+const FitOneLineHeading: React.FC<{
+  text: string;
+  className?: string;
+  maxSizePx?: number;
+  minSizePx?: number;
+}> = ({ text, className, maxSizePx = 20, minSizePx = 10 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const measureRef = useRef<HTMLSpanElement>(null);
+  const [fontSize, setFontSize] = useState(maxSizePx);
+
+  useEffect(() => {
+    const fit = () => {
+      const container = containerRef.current;
+      const measure = measureRef.current;
+      if (!container || !measure) return;
+
+      const availableWidth = container.clientWidth;
+      if (availableWidth === 0) return;
+
+      measure.style.fontSize = `${maxSizePx}px`;
+      const naturalWidth = measure.scrollWidth;
+
+      if (naturalWidth <= availableWidth) {
+        setFontSize(maxSizePx);
+        return;
+      }
+
+      const ratio = availableWidth / naturalWidth;
+      const newSize = Math.max(minSizePx, Math.floor(maxSizePx * ratio));
+      setFontSize(newSize);
+    };
+
+    fit();
+    const ro = new ResizeObserver(fit);
+    if (containerRef.current) ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, [text, maxSizePx, minSizePx]);
+
+  return (
+    <div ref={containerRef} className="w-full overflow-hidden relative">
+      <h2
+        className={cn('font-bold whitespace-nowrap', className)}
+        style={{ fontSize: `${fontSize}px`, lineHeight: 1.2 }}
+      >
+        <span>{text}</span>
+      </h2>
+      <span
+        ref={measureRef}
+        aria-hidden
+        className={cn('font-bold whitespace-nowrap absolute invisible pointer-events-none', className)}
+        style={{ left: 0, top: 0, fontSize: `${maxSizePx}px` }}
+      >
+        {text}
+      </span>
+    </div>
+  );
+};
 
 export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
   groups,
@@ -187,7 +245,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
       {groups.map((group, groupIndex) => (
         <div key={`group-${groupIndex}-${forceUpdate}`} className={cn("space-y-4 w-full", direction === 'rtl' ? 'text-right' : 'text-left')}>
           <div className="sticky top-[200px] sm:top-[150px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-full md:mx-0 px-6 md:px-0">
-            <h2 className="text-xl font-bold"><span>{getTranslatedCategoryName(group)}</span></h2>
+            <FitOneLineHeading text={getTranslatedCategoryName(group)} />
           </div>
 
           <div className="space-y-6 w-full">

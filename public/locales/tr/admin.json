@@ -246,7 +246,8 @@
       "sortOptions": "Sıralama Seçenekleri",
       "currencies": "Para Birimleri",
       "sultans": "Sultanlar",
-      "labels": "Etiketler"
+      "labels": "Etiketler",
+      "displayDefaults": "Varsayılan Görünüm"
     },
     "cardTitles": {
       "categoriesFor": "{{countryName}} için Kategoriler",
@@ -255,7 +256,52 @@
       "currenciesFor": "{{countryName}} için Para Birimleri",
       "sultansFor": "{{countryName}} için Sultanlar",
       "labelsFor": "{{countryName}} için Etiketler",
+      "displayDefaultsFor": "{{countryName}} için Varsayılan Görünüm",
       "selectedCountry": "Seçilen Ülke"
+    }
+  },
+  "catalogDefaults": {
+    "audienceLabel": "Hedef Kitle",
+    "audience": {
+      "anonymous": "Anonim ziyaretçiler",
+      "newUser": "Yeni kayıtlı kullanıcılar",
+      "anonymousHelp": "Hesabı olmayan ziyaretçilere uygulanır.",
+      "newUserHelp": "Kayıt sırasında uygulanır. Halihazırda kaydedilmiş tercihleri olan kullanıcıları etkilemez."
+    },
+    "fields": {
+      "viewMode": "Varsayılan görünüm",
+      "groupMode": "Kategoriye göre grupla",
+      "imagesOnly": "Yalnızca görselli",
+      "categories": "Önceden seçili kategoriler",
+      "types": "Önceden seçili türler",
+      "sortOptions": "Önceden seçili sıralama seçenekleri"
+    },
+    "viewMode": {
+      "grid": "Izgara",
+      "list": "Liste"
+    },
+    "selectAll": "Tümünü seç",
+    "clear": "Temizle",
+    "save": "Varsayılanları kaydet",
+    "saving": "Kaydediliyor...",
+    "saved": "Varsayılanlar kaydedildi",
+    "loading": "Varsayılanlar yükleniyor...",
+    "empty": {
+      "categories": "Bu ülke için tanımlı kategori yok.",
+      "types": "Bu ülke için tanımlı tür yok.",
+      "sortOptions": "Bu ülke için tanımlı sıralama seçeneği yok."
+    },
+    "errors": {
+      "loadTitle": "Varsayılanlar yüklenemedi",
+      "loadDescription": "Lütfen tekrar deneyin.",
+      "saveTitle": "Varsayılanlar kaydedilemedi",
+      "saveDescription": "Lütfen tekrar deneyin."
+    },
+    "confirmCascade": {
+      "title": "Tüm kullanıcıların üzerine yazılsın mı?",
+      "description": "Kaydetmek, bu ülke için kayıtlı tüm kullanıcıların katalog tercihlerinin (filtrelerini özelleştirmiş olanlar dahil) üzerine yazar. Bu işlem geri alınamaz.",
+      "cancel": "İptal",
+      "confirm": "Üzerine yaz ve kaydet"
     }
   },
   "imageCleanupTool": {

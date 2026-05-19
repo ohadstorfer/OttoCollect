@@ -2,12 +2,13 @@ import React, { useState, useEffect, useRef, memo, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BaseBanknoteFilter, FilterOption } from "./BaseBanknoteFilter";
 import { DynamicFilterState } from "@/types/filter";
-import { 
-  fetchCategoriesByCountryId, 
-  fetchTypesByCountryId, 
-  fetchSortOptionsByCountryId, 
-  saveUserFilterPreferences, 
-  fetchUserFilterPreferences 
+import {
+  fetchCategoriesByCountryId,
+  fetchTypesByCountryId,
+  fetchSortOptionsByCountryId,
+  saveUserFilterPreferences,
+  fetchUserFilterPreferences,
+  fetchCountryDefaultPreferences
 } from "@/services/countryService";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -82,6 +83,10 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
+  // Default the images-only toggle ON; the real value is hydrated during the
+  // load effect below (DB row for logged users, localStorage for anonymous).
+  const [imagesOnly, setImagesOnlyState] = useState<boolean>(true);
+
   // Add refs to track states and prevent render loops
   const initialLoadComplete = useRef(false);
   const ignoreNextGroupModeChange = useRef(false);
@@ -210,6 +215,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
                 search?: string;
                 viewMode?: 'grid' | 'list';
                 groupMode?: boolean;
+                imagesOnly?: boolean;
               };
 
               // Validate cached IDs against current definitions
@@ -224,11 +230,15 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
                   new Set([...cachedSort, ...requiredSortFields])
                 );
 
+                const cachedImagesOnly = typeof parsed.imagesOnly === 'boolean' ? parsed.imagesOnly : true;
+                setImagesOnlyState(cachedImagesOnly);
+
                 onFilterChange({
                   categories: cachedCategories,
                   types: cachedTypes,
                   sort: finalSortFields,
                   search: parsed.search || '',
+                  imagesOnly: cachedImagesOnly,
                 });
 
                 // Restore viewMode
@@ -255,9 +265,16 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         // If not restored from cache, fall back to DB preferences or defaults
         if (!restoredFromCache) {
           let userPreferences = null;
+          let anonDefaults: Awaited<ReturnType<typeof fetchCountryDefaultPreferences>> = null;
+          // Resolve the images-only preference per auth state. Default ON
+          // for new users (no row) and anonymous users (no localStorage entry).
+          let resolvedImagesOnly = true;
           if (user) {
             try {
               userPreferences = await fetchUserFilterPreferences(user.id, countryId);
+              if (userPreferences && typeof userPreferences.images_only === 'boolean') {
+                resolvedImagesOnly = userPreferences.images_only;
+              }
               // Set group mode if it's defined in preferences, but only during initial load
               if (userPreferences &&
                   typeof userPreferences.group_mode === 'boolean' &&
@@ -285,20 +302,53 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
               console.error("Error fetching user preferences:", err);
             }
           } else {
-            // For non-logged-in users, try to load viewMode from session storage
+            // Anonymous users: read images-only from localStorage if present.
+            let imagesOnlyOverridden = false;
+            try {
+              const stored = localStorage.getItem('imagesOnly');
+              if (stored === 'false') {
+                resolvedImagesOnly = false;
+                imagesOnlyOverridden = true;
+              } else if (stored === 'true') {
+                resolvedImagesOnly = true;
+                imagesOnlyOverridden = true;
+              }
+            } catch {
+              // localStorage may be disabled
+            }
+
+            // Pull country-level anonymous defaults set by admin (if any).
+            try {
+              anonDefaults = await fetchCountryDefaultPreferences(countryId, 'anonymous');
+            } catch (err) {
+              console.error("Error loading country anonymous defaults:", err);
+            }
+            if (anonDefaults && !imagesOnlyOverridden && typeof anonDefaults.images_only === 'boolean') {
+              resolvedImagesOnly = anonDefaults.images_only;
+            }
+
+            // viewMode: sessionStorage takes priority, otherwise admin default
+            let viewModeApplied = false;
             try {
               const savedViewMode = sessionStorage.getItem(`viewMode-${countryId}`);
               if (savedViewMode && onViewModeChange && !initialLoadComplete.current) {
                 const parsedViewMode = JSON.parse(savedViewMode) as 'grid' | 'list';
-
                 ignoreNextViewModeChange.current = true;
                 setViewMode(parsedViewMode);
                 onViewModeChange(parsedViewMode);
+                viewModeApplied = true;
               }
             } catch (err) {
               console.error("Error loading view mode from session storage:", err);
             }
+            if (!viewModeApplied && anonDefaults?.view_mode && onViewModeChange && !initialLoadComplete.current) {
+              ignoreNextViewModeChange.current = true;
+              setViewMode(anonDefaults.view_mode);
+              onViewModeChange(anonDefaults.view_mode);
+            }
           }
+
+          setImagesOnlyState(resolvedImagesOnly);
 
           if (userPreferences && !initialLoadComplete.current) {
             const sortFieldNames = userPreferences.selected_sort_options
@@ -316,19 +366,44 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
               categories: userPreferences.selected_categories,
               types: userPreferences.selected_types,
               sort: finalSortFields,
+              imagesOnly: resolvedImagesOnly,
             });
           } else if (!initialLoadComplete.current && !user) {
-            // Only apply defaults if there's no user (not logged in)
-            const defaultCategoryIds = mappedCategories.map(cat => cat.id);
-            // For unauthenticated users, select ALL types by default
-            const defaultTypeIds = mappedTypes.map(t => t.id);
+            // Anonymous user with no cache: apply admin-configured anonymous
+            // defaults if set, otherwise fall back to "all selected".
+            let defaultCategoryIds = mappedCategories.map(cat => cat.id);
+            let defaultTypeIds = mappedTypes.map(t => t.id);
+            let defaultSort: string[] = ['extPick'];
 
-            const defaultSort = ['extPick'];
+            if (anonDefaults) {
+              if (Array.isArray(anonDefaults.selected_categories) && anonDefaults.selected_categories.length > 0) {
+                const valid = new Set(mappedCategories.map(c => c.id));
+                const filtered = anonDefaults.selected_categories.filter(id => valid.has(id));
+                if (filtered.length > 0) defaultCategoryIds = filtered;
+              }
+              if (Array.isArray(anonDefaults.selected_types) && anonDefaults.selected_types.length > 0) {
+                const valid = new Set(mappedTypes.map(t => t.id));
+                const filtered = anonDefaults.selected_types.filter(id => valid.has(id));
+                if (filtered.length > 0) defaultTypeIds = filtered;
+              }
+              if (Array.isArray(anonDefaults.selected_sort_options) && anonDefaults.selected_sort_options.length > 0) {
+                const fieldNames = anonDefaults.selected_sort_options
+                  .map(sortId => {
+                    const option = sortOptionsData.find(opt => opt.id === sortId);
+                    return option ? option.field_name : null;
+                  })
+                  .filter(Boolean) as string[];
+                if (fieldNames.length > 0) {
+                  defaultSort = Array.from(new Set([...fieldNames, ...requiredSortFields]));
+                }
+              }
+            }
 
             onFilterChange({
               categories: defaultCategoryIds,
               types: defaultTypeIds,
               sort: defaultSort,
+              imagesOnly: resolvedImagesOnly,
             });
           } else if (!initialLoadComplete.current && user && !userPreferences) {
             // User is logged in but has no preferences - apply defaults
@@ -342,6 +417,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
               categories: defaultCategoryIds,
               types: defaultTypeIds,
               sort: defaultSort,
+              imagesOnly: resolvedImagesOnly,
             });
           }
         }
@@ -433,6 +509,9 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
 
     // Save to sessionStorage as fast cache for navigation restoration
     try {
+      const mergedImagesOnly = typeof newFilters.imagesOnly === 'boolean'
+        ? newFilters.imagesOnly
+        : (typeof currentFilters.imagesOnly === 'boolean' ? currentFilters.imagesOnly : imagesOnly);
       const mergedFilters = {
         categories: newFilters.categories || currentFilters.categories || [],
         types: newFilters.types || currentFilters.types || [],
@@ -440,12 +519,13 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         search: newFilters.search !== undefined ? newFilters.search : currentFilters.search || '',
         viewMode,
         groupMode,
+        imagesOnly: mergedImagesOnly,
       };
       sessionStorage.setItem(`catalog-filters-${countryName}`, JSON.stringify(mergedFilters));
     } catch (e) {
       // sessionStorage may be full or unavailable
     }
-  }, [onFilterChange, sortOptions, user, countryId, countryName, currentFilters, groupMode, viewMode]);
+  }, [onFilterChange, sortOptions, user, countryId, countryName, currentFilters, groupMode, viewMode, imagesOnly]);
 
   const handleViewModeChange = React.useCallback((mode: 'grid' | 'list') => {
     // If we're set to ignore the next change and still in initial load, skip this call
@@ -567,6 +647,50 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
     }
   }, [onGroupModeChange, user, countryId, currentFilters.categories, currentFilters.sort, currentFilters.types, sortOptions]);
 
+  const handleImagesOnlyChange = React.useCallback((value: boolean) => {
+    setImagesOnlyState(value);
+    onFilterChange({ imagesOnly: value });
+
+    // Persist: per-user/per-country for logged users, global localStorage for guests.
+    if (user?.id) {
+      const sortOptionIds = currentFilters.sort
+        .map(fieldName => {
+          const option = sortOptions.find(opt => opt.fieldName === fieldName);
+          return option ? option.id : null;
+        })
+        .filter(Boolean) as string[];
+
+      saveUserFilterPreferences(user.id, countryId, {
+        selected_categories: currentFilters.categories || [],
+        selected_types: currentFilters.types || [],
+        selected_sort_options: sortOptionIds,
+        group_mode: groupMode || false,
+        view_mode: viewMode,
+        images_only: value,
+      }).catch(err => {
+        console.error("Error saving images-only preference:", err);
+      });
+    } else {
+      try {
+        localStorage.setItem('imagesOnly', String(value));
+      } catch {
+        // localStorage may be disabled
+      }
+    }
+
+    // Update the navigation cache so a page revisit keeps the choice.
+    try {
+      const cached = sessionStorage.getItem(`catalog-filters-${countryName}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        parsed.imagesOnly = value;
+        sessionStorage.setItem(`catalog-filters-${countryName}`, JSON.stringify(parsed));
+      }
+    } catch {
+      // sessionStorage may be unavailable
+    }
+  }, [onFilterChange, user, countryId, countryName, currentFilters.categories, currentFilters.sort, currentFilters.types, sortOptions, groupMode, viewMode]);
+
   return (
     <div className={cn(
       "w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 p-1.5",
@@ -585,6 +709,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         onViewModeChange={handleViewModeChange}
         groupMode={groupMode}
         onGroupModeChange={handleGroupModeChange}
+        imagesOnly={imagesOnly}
+        onImagesOnlyChange={handleImagesOnlyChange}
         countryName={countryName}
         countryNameAr={countryNameAr}
         countryNameTr={countryNameTr}

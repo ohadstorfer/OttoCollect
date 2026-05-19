@@ -780,6 +780,56 @@ export type Database = {
         }
         Relationships: []
       }
+      country_default_preferences: {
+        Row: {
+          audience: "anonymous" | "new_user"
+          country_id: string
+          group_mode: boolean
+          id: string
+          images_only: boolean
+          selected_categories: string[]
+          selected_sort_options: string[]
+          selected_types: string[]
+          updated_at: string
+          updated_by: string | null
+          view_mode: string
+        }
+        Insert: {
+          audience: "anonymous" | "new_user"
+          country_id: string
+          group_mode?: boolean
+          id?: string
+          images_only?: boolean
+          selected_categories?: string[]
+          selected_sort_options?: string[]
+          selected_types?: string[]
+          updated_at?: string
+          updated_by?: string | null
+          view_mode?: string
+        }
+        Update: {
+          audience?: "anonymous" | "new_user"
+          country_id?: string
+          group_mode?: boolean
+          id?: string
+          images_only?: boolean
+          selected_categories?: string[]
+          selected_sort_options?: string[]
+          selected_types?: string[]
+          updated_at?: string
+          updated_by?: string | null
+          view_mode?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "country_default_preferences_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       currencies: {
         Row: {
           country_id: string
@@ -2348,6 +2398,7 @@ export type Database = {
           created_at: string
           group_mode: boolean
           id: string
+          images_only: boolean
           selected_categories: string[] | null
           selected_sort_options: string[] | null
           selected_types: string[] | null
@@ -2360,6 +2411,7 @@ export type Database = {
           created_at?: string
           group_mode?: boolean
           id?: string
+          images_only?: boolean
           selected_categories?: string[] | null
           selected_sort_options?: string[] | null
           selected_types?: string[] | null
@@ -2372,6 +2424,7 @@ export type Database = {
           created_at?: string
           group_mode?: boolean
           id?: string
+          images_only?: boolean
           selected_categories?: string[] | null
           selected_sort_options?: string[] | null
           selected_types?: string[] | null

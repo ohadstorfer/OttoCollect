@@ -66,6 +66,12 @@
     "toggleOn": "Toggle group mode on",
     "toggleOff": "Toggle group mode off"
   },
+
+  "imagesOnly": {
+    "toggle": "Show only banknotes that have images",
+    "toggleOn": "on",
+    "toggleOff": "off"
+  },
   
   "country": {
     "catalogue": "catalogue",

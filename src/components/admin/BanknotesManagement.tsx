@@ -208,15 +208,15 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
       setFilteredBanknotes(allBanknotes);
     } else {
       const searchLower = searchQuery.toLowerCase();
-      
+
       const filtered = allBanknotes.filter(banknote => {
         const extPick = banknote.extendedPickNumber?.toLowerCase() || '';
-        
+
         // Check if extendedPickNumber contains the search query
         if (extPick.includes(searchLower)) {
           return true;
         }
-        
+
         // Check other fields for matches
         return (
           banknote.country?.toLowerCase().includes(searchLower) ||
@@ -225,13 +225,16 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
           banknote.description?.toLowerCase().includes(searchLower)
         );
       });
-      
+
       setFilteredBanknotes(filtered);
     }
-    
-    // Reset to first page when search changes
-    setCurrentPage(1);
   }, [searchQuery, allBanknotes]);
+
+  // Reset to first page only when the search query changes, so editing a
+  // banknote (which mutates allBanknotes) keeps the admin on the same page.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   const fetchCurrencies = async () => {
     if (!selectedCountryId) return;

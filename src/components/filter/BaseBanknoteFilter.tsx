@@ -4,16 +4,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate } from "react-router-dom";
-import { 
-  Search, 
-  Filter, 
-  LayoutGrid, 
-  LayoutList, 
+import {
+  Search,
+  Filter,
+  LayoutGrid,
+  LayoutList,
   Save,
   Layers,
   ArrowLeft,
   ArrowUpDown,
-  ArrowRight
+  ArrowRight,
+  Images
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash";
@@ -54,6 +55,8 @@ export type BaseBanknoteFilterProps = {
   onViewModeChange?: (mode: 'grid' | 'list') => void;
   groupMode?: boolean;
   onGroupModeChange?: (mode: boolean) => void;
+  imagesOnly?: boolean;
+  onImagesOnlyChange?: (value: boolean) => void;
   countryName?: string;
   countryNameAr?: string;
   countryNameTr?: string;
@@ -74,6 +77,8 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   onViewModeChange,
   groupMode = false,
   onGroupModeChange,
+  imagesOnly = false,
+  onImagesOnlyChange,
   countryName,
   countryNameAr,
   countryNameTr,
@@ -155,6 +160,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   // Local state for immediate UI updates
   const [localViewMode, setLocalViewMode] = useState(viewMode);
   const [localGroupMode, setLocalGroupMode] = useState(groupMode);
+  const [localImagesOnly, setLocalImagesOnly] = useState(imagesOnly);
   
   const [search, setSearch] = useState(currentFilters.search || "");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(currentFilters.categories || []);
@@ -173,6 +179,10 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   useEffect(() => {
     setLocalGroupMode(groupMode);
   }, [groupMode]);
+
+  useEffect(() => {
+    setLocalImagesOnly(imagesOnly);
+  }, [imagesOnly]);
 
 
   useEffect(() => {
@@ -459,17 +469,25 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   const toggleGroupMode = () => {
     if (onGroupModeChange) {
       const newGroupMode = !localGroupMode;
-      
+
       // Force immediate local state update
       setLocalGroupMode(newGroupMode);
-      
+
       // Call parent callback immediately
       onGroupModeChange(newGroupMode);
-      
+
       // Dispatch custom event for group mode change
-      window.dispatchEvent(new CustomEvent('groupModeChange', { 
-        detail: { mode: newGroupMode } 
+      window.dispatchEvent(new CustomEvent('groupModeChange', {
+        detail: { mode: newGroupMode }
       }));
+    }
+  };
+
+  const toggleImagesOnly = () => {
+    if (onImagesOnlyChange) {
+      const newValue = !localImagesOnly;
+      setLocalImagesOnly(newValue);
+      onImagesOnlyChange(newValue);
     }
   };
 
@@ -545,7 +563,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
         />
           </div>
 
-          {/* View and Group buttons */}
+          {/* View, Images-only, and Group buttons */}
           <div className="flex gap-2">
             {onViewModeChange && (
               <Button
@@ -563,7 +581,21 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
                 )}
               </Button>
             )}
-            
+
+            {onImagesOnlyChange && (
+              <Button
+                variant={localImagesOnly ? "default" : "outline"}
+                size="icon"
+                onClick={toggleImagesOnly}
+                disabled={isLoading}
+                aria-label={`${tWithFallback('imagesOnly.toggle', 'Show only banknotes that have images')} ${localImagesOnly ? tWithFallback('imagesOnly.toggleOff', 'off') : tWithFallback('imagesOnly.toggleOn', 'on')}`}
+                title={tWithFallback('imagesOnly.toggle', 'Show only banknotes that have images')}
+                className="touch-manipulation active:scale-95 transition-transform"
+              >
+                <Images className="h-4 w-4" />
+              </Button>
+            )}
+
             {onGroupModeChange && (
               <Button
                 variant={localGroupMode ? "default" : "outline"}

@@ -1,4 +1,8 @@
 {
+  "viewCount": {
+    "viewed": "görüntülendi",
+    "tooltip": "Toplam koleksiyon görüntülenmeleri"
+  },
   "sidebar": {
     "catalogues": "Kataloglar",
     "myCollection": "Koleksiyonum",

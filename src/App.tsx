@@ -31,6 +31,7 @@ import Admin from "@/pages/Admin";
 import Community from "@/pages/Community";
 import Settings from "@/pages/Settings";
 import DeleteProcessedImages from "@/pages/DeleteProcessedImages";
+import WatermarkPreview from "@/pages/WatermarkPreview";
 import { PageBackground } from "./components/ui/page-background";
 import { useTheme } from "./context/ThemeContext";
 import { useAuth } from "./context/AuthContext";
@@ -132,7 +133,8 @@ function App() {
                       <Route path="/admin" element={<Admin />} />
                       <Route path="/community" element={<Community />} />
                       <Route path="/settings" element={<Settings />} />
-                      {/* <Route path="/delete-processed-images" element={<DeleteProcessedImages />} /> */}
+                      <Route path="/delete-processed-images" element={<DeleteProcessedImages />} />
+                      <Route path="/admin/watermark-preview" element={<WatermarkPreview />} />
                       <Route path="/about" element={<AboutUs />} />
                       <Route path="/blog" element={<Blog />} />
                       <Route path="/blog-post/:id" element={<BlogPost />} />

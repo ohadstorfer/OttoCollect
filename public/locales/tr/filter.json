@@ -64,6 +64,12 @@
     "disabled": "Devre Dışı",
     "toggleGroupMode": "Benzer banknotları grupla"
   },
+
+  "imagesOnly": {
+    "toggle": "Sadece resmi olan banknotları göster",
+    "toggleOn": "açık",
+    "toggleOff": "kapalı"
+  },
   
   "country": {
     "catalogue": "katalog",

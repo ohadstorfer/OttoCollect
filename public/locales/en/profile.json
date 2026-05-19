@@ -1,4 +1,8 @@
 {
+  "viewCount": {
+    "viewed": "viewed",
+    "tooltip": "Total collection views"
+  },
   "sidebar": {
     "catalogues": "Catalogues",
     "myCollection": "My Collection",
