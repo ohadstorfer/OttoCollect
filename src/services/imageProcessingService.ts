@@ -17,6 +17,26 @@ export const WATERMARK_PADDING_Y_RATIO_LANDSCAPE = 0.14;   // separación del bo
 export const WATERMARK_OPACITY = 0.5;                      // 0..1
 // ==================================================================================
 
+export interface WatermarkSettings {
+  widthRatioPortrait: number;
+  widthRatioLandscape: number;
+  paddingXRatioPortrait: number;
+  paddingYRatioPortrait: number;
+  paddingXRatioLandscape: number;
+  paddingYRatioLandscape: number;
+  opacity: number;
+}
+
+export const DEFAULT_WATERMARK_SETTINGS: WatermarkSettings = {
+  widthRatioPortrait: WATERMARK_WIDTH_RATIO_PORTRAIT,
+  widthRatioLandscape: WATERMARK_WIDTH_RATIO_LANDSCAPE,
+  paddingXRatioPortrait: WATERMARK_PADDING_X_RATIO_PORTRAIT,
+  paddingYRatioPortrait: WATERMARK_PADDING_Y_RATIO_PORTRAIT,
+  paddingXRatioLandscape: WATERMARK_PADDING_X_RATIO_LANDSCAPE,
+  paddingYRatioLandscape: WATERMARK_PADDING_Y_RATIO_LANDSCAPE,
+  opacity: WATERMARK_OPACITY,
+};
+
 export interface WatermarkParamsApplied {
   isLandscape: boolean;
   widthRatio: number;
@@ -34,7 +54,8 @@ export interface WatermarkParamsApplied {
  * Pure: does not touch Supabase. Reused by both the upload pipeline and the preview page.
  */
 export async function generateWatermarkedCanvas(
-  originalImage: ImageBitmap
+  originalImage: ImageBitmap,
+  settings: WatermarkSettings = DEFAULT_WATERMARK_SETTINGS
 ): Promise<{ canvas: HTMLCanvasElement; params: WatermarkParamsApplied }> {
   const canvas = document.createElement('canvas');
   canvas.width = originalImage.width;
@@ -60,14 +81,14 @@ export async function generateWatermarkedCanvas(
 
   const isLandscape = originalImage.width > originalImage.height;
   const widthRatio = isLandscape
-    ? WATERMARK_WIDTH_RATIO_LANDSCAPE
-    : WATERMARK_WIDTH_RATIO_PORTRAIT;
+    ? settings.widthRatioLandscape
+    : settings.widthRatioPortrait;
   const paddingXRatio = isLandscape
-    ? WATERMARK_PADDING_X_RATIO_LANDSCAPE
-    : WATERMARK_PADDING_X_RATIO_PORTRAIT;
+    ? settings.paddingXRatioLandscape
+    : settings.paddingXRatioPortrait;
   const paddingYRatio = isLandscape
-    ? WATERMARK_PADDING_Y_RATIO_LANDSCAPE
-    : WATERMARK_PADDING_Y_RATIO_PORTRAIT;
+    ? settings.paddingYRatioLandscape
+    : settings.paddingYRatioPortrait;
 
   const paddingX = originalImage.width * paddingXRatio;
   const paddingY = originalImage.height * paddingYRatio;
@@ -77,7 +98,7 @@ export async function generateWatermarkedCanvas(
   const watermarkX = originalImage.width - watermarkWidth - paddingX;
   const watermarkY = originalImage.height - watermarkHeight - paddingY;
 
-  ctx.globalAlpha = WATERMARK_OPACITY;
+  ctx.globalAlpha = settings.opacity;
   ctx.drawImage(watermarkImage, watermarkX, watermarkY, watermarkWidth, watermarkHeight);
   ctx.globalAlpha = 1;
 
@@ -90,7 +111,7 @@ export async function generateWatermarkedCanvas(
       paddingYRatio,
       paddingX,
       paddingY,
-      opacity: WATERMARK_OPACITY,
+      opacity: settings.opacity,
       watermarkWidth,
       watermarkHeight,
     },
