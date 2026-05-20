@@ -282,6 +282,19 @@ export async function saveCountryDefaultPreferences(
   }
 }
 
+// Overwrites the catalog preferences of ALL existing users for this country
+// with its 'new_user' default. Returns the number of affected rows.
+export async function applyCountryDefaultToAllUsers(countryId: string): Promise<number> {
+  const { data, error } = await (supabase.rpc as any)('apply_country_default_to_all_users', {
+    target_country_id: countryId,
+  });
+  if (error) {
+    console.error("Error applying country default to all users:", error);
+    throw error;
+  }
+  return (data as number) ?? 0;
+}
+
 export async function createCategory(
   countryId: string,
   name: string,

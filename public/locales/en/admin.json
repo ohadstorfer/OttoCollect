@@ -266,7 +266,7 @@
       "anonymous": "Anonymous visitors",
       "newUser": "New registered users",
       "anonymousHelp": "Applied to visitors without an account.",
-      "newUserHelp": "Applied at signup. Does not affect users who already have saved preferences."
+      "newUserHelp": "Applied at signup. On save you can choose to also overwrite existing users."
     },
     "fields": {
       "viewMode": "Default view",
@@ -297,11 +297,12 @@
       "saveTitle": "Could not save defaults",
       "saveDescription": "Please try again."
     },
-    "confirmCascade": {
-      "title": "Overwrite all users?",
-      "description": "Saving will overwrite the catalog preferences of every registered user for this country, including those who customized their filters. This cannot be undone.",
+    "applyScope": {
+      "title": "Apply to which users?",
+      "description": "This default always applies to future signups. You can also overwrite the preferences of all existing users for this country — including those who customized their filters. That cannot be undone.",
       "cancel": "Cancel",
-      "confirm": "Overwrite and save"
+      "newOnly": "New users only",
+      "all": "All users (overwrite)"
     }
   },
   "imageCleanupTool": {

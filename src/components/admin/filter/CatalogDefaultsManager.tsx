@@ -7,7 +7,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -23,6 +22,7 @@ import {
   fetchSortOptionsByCountryId,
   fetchAllCountryDefaultPreferences,
   saveCountryDefaultPreferences,
+  applyCountryDefaultToAllUsers,
 } from '@/services/countryService';
 import type {
   CategoryDefinition,
@@ -80,7 +80,7 @@ const CatalogDefaultsManager: React.FC<CatalogDefaultsManagerProps> = ({ country
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [scopeOpen, setScopeOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -149,10 +149,13 @@ const CatalogDefaultsManager: React.FC<CatalogDefaultsManagerProps> = ({ country
     update({ [field]: [] } as Partial<DefaultsDraft>);
   };
 
-  const persist = async () => {
+  const persist = async (applyToAll: boolean) => {
     setSaving(true);
     try {
       await saveCountryDefaultPreferences(countryId, audience, current);
+      if (applyToAll && audience === 'new_user') {
+        await applyCountryDefaultToAllUsers(countryId);
+      }
       toast({
         title: t('catalogDefaults.saved', 'Defaults saved'),
       });
@@ -164,15 +167,17 @@ const CatalogDefaultsManager: React.FC<CatalogDefaultsManagerProps> = ({ country
       });
     } finally {
       setSaving(false);
-      setConfirmOpen(false);
+      setScopeOpen(false);
     }
   };
 
   const handleSave = () => {
+    // For new_user, let the admin choose whether to also overwrite existing
+    // users. Anonymous has no per-user rows, so it just saves.
     if (audience === 'new_user') {
-      setConfirmOpen(true);
+      setScopeOpen(true);
     } else {
-      persist();
+      persist(false);
     }
   };
 
@@ -302,34 +307,31 @@ const CatalogDefaultsManager: React.FC<CatalogDefaultsManagerProps> = ({ country
         </Button>
       </div>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialog open={scopeOpen} onOpenChange={(open) => !saving && setScopeOpen(open)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {t('catalogDefaults.confirmCascade.title', 'Overwrite all users?')}
+              {t('catalogDefaults.applyScope.title', 'Apply to which users?')}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {t(
-                'catalogDefaults.confirmCascade.description',
-                'Saving will overwrite the catalog preferences of every registered user for this country, including those who customized their filters. This cannot be undone.'
+                'catalogDefaults.applyScope.description',
+                'This default always applies to future signups. You can also overwrite the preferences of all existing users for this country — including those who customized their filters. That cannot be undone.'
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
             <AlertDialogCancel disabled={saving}>
-              {t('catalogDefaults.confirmCascade.cancel', 'Cancel')}
+              {t('catalogDefaults.applyScope.cancel', 'Cancel')}
             </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                persist();
-              }}
-              disabled={saving}
-            >
+            <Button variant="outline" onClick={() => persist(false)} disabled={saving}>
+              {t('catalogDefaults.applyScope.newOnly', 'New users only')}
+            </Button>
+            <Button onClick={() => persist(true)} disabled={saving}>
               {saving
                 ? t('catalogDefaults.saving', 'Saving...')
-                : t('catalogDefaults.confirmCascade.confirm', 'Overwrite and save')}
-            </AlertDialogAction>
+                : t('catalogDefaults.applyScope.all', 'All users (overwrite)')}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

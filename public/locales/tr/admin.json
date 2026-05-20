@@ -266,7 +266,7 @@
       "anonymous": "Anonim ziyaretçiler",
       "newUser": "Yeni kayıtlı kullanıcılar",
       "anonymousHelp": "Hesabı olmayan ziyaretçilere uygulanır.",
-      "newUserHelp": "Kayıt sırasında uygulanır. Halihazırda kaydedilmiş tercihleri olan kullanıcıları etkilemez."
+      "newUserHelp": "Kayıt sırasında uygulanır. Kaydederken mevcut kullanıcıların üzerine yazmayı da seçebilirsiniz."
     },
     "fields": {
       "viewMode": "Varsayılan görünüm",
@@ -297,11 +297,12 @@
       "saveTitle": "Varsayılanlar kaydedilemedi",
       "saveDescription": "Lütfen tekrar deneyin."
     },
-    "confirmCascade": {
-      "title": "Tüm kullanıcıların üzerine yazılsın mı?",
-      "description": "Kaydetmek, bu ülke için kayıtlı tüm kullanıcıların katalog tercihlerinin (filtrelerini özelleştirmiş olanlar dahil) üzerine yazar. Bu işlem geri alınamaz.",
+    "applyScope": {
+      "title": "Hangi kullanıcılara uygulansın?",
+      "description": "Bu varsayılan her zaman gelecekteki kayıtlara uygulanır. Ayrıca bu ülke için mevcut tüm kullanıcıların (filtrelerini özelleştirmiş olanlar dahil) tercihlerinin üzerine yazabilirsiniz. Bu işlem geri alınamaz.",
       "cancel": "İptal",
-      "confirm": "Üzerine yaz ve kaydet"
+      "newOnly": "Yalnızca yeni kullanıcılar",
+      "all": "Tüm kullanıcılar (üzerine yaz)"
     }
   },
   "imageCleanupTool": {
