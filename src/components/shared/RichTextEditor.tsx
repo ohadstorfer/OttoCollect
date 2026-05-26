@@ -14,6 +14,7 @@ import {
   List, ListOrdered, Quote, Minus,
   AlignLeft, AlignCenter, AlignRight,
   Link2, Link2Off, Image as ImageIcon, Loader2,
+  Undo2, Redo2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -111,6 +112,15 @@ function Toolbar({
 
   return (
     <div className="flex flex-wrap items-center gap-0.5 border-b bg-muted/30 p-1.5">
+      <ToolbarButton title="Undo" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
+        <Undo2 className="h-4 w-4" />
+      </ToolbarButton>
+      <ToolbarButton title="Redo" onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()}>
+        <Redo2 className="h-4 w-4" />
+      </ToolbarButton>
+
+      <Divider />
+
       <ToolbarButton title="Bold" onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')}>
         <Bold className="h-4 w-4" />
       </ToolbarButton>
