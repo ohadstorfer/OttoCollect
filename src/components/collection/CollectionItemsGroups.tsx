@@ -13,6 +13,7 @@ import { useScrollRestoration } from '@/hooks/use-scroll-restoration';
 import { BanknoteGroupData } from '@/utils/banknoteGrouping';
 import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
 import { useLanguage } from '@/context/LanguageContext';
+import { FitOneLineHeading } from '@/components/shared/FitOneLineHeading';
 
 interface CollectionGroupItem {
   type: 'single' | 'group';
@@ -357,7 +358,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
       {groups.map((group, groupIndex) => (
         <div key={`group-${groupIndex}`} className={cn("space-y-4 w-full", direction === 'rtl' ? 'text-right' : 'text-left')}>
           <div className="sticky top-[245px] sm:top-[150px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-full md:mx-0 px-6 md:px-0">
-            <h2 className="text-xl font-bold"><span>{getTranslatedCategoryName(group)}</span></h2>
+            <FitOneLineHeading text={getTranslatedCategoryName(group)} />
           </div>
 
           <div className="space-y-6 w-full">

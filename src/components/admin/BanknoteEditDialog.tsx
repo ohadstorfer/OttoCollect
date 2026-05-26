@@ -24,6 +24,7 @@ import { StampPicture, StampType } from '@/types/stamps';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import MultiSelect from '@/components/ui/multiselect';
 import { processAndUploadImage } from '@/services/imageProcessingService';
+import BanknoteWatermarkPanel from '@/components/admin/BanknoteWatermarkPanel';
 import { useAuth } from '@/context/AuthContext';
 import { banknoteTranslationService } from '@/services/banknoteTranslationService';
 
@@ -849,10 +850,11 @@ const BanknoteEditDialog = ({
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-3 mb-4">
+            <TabsList className="grid grid-cols-4 mb-4">
               <TabsTrigger value="basic">Basic Information</TabsTrigger>
               <TabsTrigger value="details">Additional Details</TabsTrigger>
               <TabsTrigger value="images">Images</TabsTrigger>
+              <TabsTrigger value="watermark">Watermark</TabsTrigger>
             </TabsList>
             
             <TabsContent value="basic" className="space-y-4">
@@ -1275,8 +1277,18 @@ const BanknoteEditDialog = ({
                 />
               </div>
             </TabsContent>
+
+            <TabsContent value="watermark" className="space-y-6">
+              <BanknoteWatermarkPanel
+                frontOriginalUrl={formData.front_picture}
+                backOriginalUrl={formData.back_picture}
+                frontWatermarkedUrl={formData.front_picture_watermarked}
+                backWatermarkedUrl={formData.back_picture_watermarked}
+                countryId={countryIdForStamps}
+              />
+            </TabsContent>
           </Tabs>
-          
+
           <DialogFooter className="pt-4 border-t">
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel

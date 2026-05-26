@@ -9,6 +9,7 @@ import { getInitials } from '@/lib/utils';
 import { useDateLocale, DATE_FORMATS } from '@/lib/dateUtils';
 import { BlogTranslationButton } from '@/components/blog/BlogTranslationButton';
 import { useLanguage } from '@/context/LanguageContext';
+import { buildExcerpt, htmlToPlainText, getFirstImageSrc } from '@/lib/htmlContent';
 
 interface BlogPostCardProps {
   post: BlogPost;
@@ -41,9 +42,12 @@ const BlogPostCard = ({ post }: BlogPostCardProps) => {
   const displayTitle = showTranslated && translatedTitle ? translatedTitle : post.title;
   
   // Display excerpt/content (original or translated)
-  const displayExcerpt = showTranslated && translatedContent ? 
-    (translatedContent.length > 150 ? translatedContent.substring(0, 150) + '...' : translatedContent) :
-    (post.excerpt || (post.content.length > 150 ? post.content.substring(0, 150) + '...' : post.content));
+  const displayExcerpt = showTranslated && translatedContent
+    ? buildExcerpt(translatedContent, 150)
+    : (htmlToPlainText(post.excerpt) || buildExcerpt(post.content, 150));
+
+  // Thumbnail: explicit main image, otherwise the first image in the content.
+  const thumbnailUrl = post.main_image_url || getFirstImageSrc(post.content);
 
   return (
     <Card 
@@ -51,11 +55,11 @@ const BlogPostCard = ({ post }: BlogPostCardProps) => {
       onClick={handlePostClick}
     >
       {/* Main Image */}
-      {post.main_image_url && (
+      {thumbnailUrl && (
         <div className="relative aspect-video w-full overflow-hidden">
-          <img 
-            src={post.main_image_url} 
-            alt={displayTitle} 
+          <img
+            src={thumbnailUrl}
+            alt={displayTitle}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         </div>

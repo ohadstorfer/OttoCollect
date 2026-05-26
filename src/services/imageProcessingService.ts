@@ -273,4 +273,68 @@ export async function processAndUploadImage(
   }
 }
 
+const STORAGE_PUBLIC_PREFIX = `${supabase.supabaseUrl}/storage/v1/object/public/banknote_images/`;
+
+/**
+ * Extracts the storage path inside the `banknote_images` bucket from a public URL.
+ * Returns null when the URL does not belong to our bucket.
+ */
+export function storagePathFromPublicUrl(url: string): string | null {
+  if (!url || !url.startsWith(STORAGE_PUBLIC_PREFIX)) return null;
+  // Strip any query string (e.g. cache-busting ?t=...) before returning the path.
+  return url.replace(STORAGE_PUBLIC_PREFIX, '').split('?')[0];
+}
+
+/**
+ * Regenerates the watermarked version of an image and overwrites the existing
+ * watermarked file IN PLACE, keeping the same URL (no DB change needed).
+ *
+ * Fetches the original, re-applies the watermark with the given settings, and
+ * uploads to the existing watermarked path with `upsert`. Uses a short
+ * cacheControl so the CDN refreshes the new overlay quickly.
+ *
+ * @param originalUrl           Public URL of the original (un-watermarked) image.
+ * @param existingWatermarkedUrl Public URL of the watermarked file to overwrite.
+ * @param settings              Optional per-country watermark settings.
+ */
+export async function regenerateWatermarkedInPlace(
+  originalUrl: string,
+  existingWatermarkedUrl: string,
+  settings?: WatermarkSettings
+): Promise<void> {
+  const watermarkedPath = storagePathFromPublicUrl(existingWatermarkedUrl);
+  if (!watermarkedPath) {
+    throw new Error(`Watermarked URL is not from our storage: ${existingWatermarkedUrl}`);
+  }
+
+  // Fetch the original image and decode it into a bitmap.
+  const response = await fetch(originalUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch original image (${response.status}): ${originalUrl}`);
+  }
+  const blob = await response.blob();
+  const bitmap = await createImageBitmap(blob, {
+    imageOrientation: 'from-image',
+    premultiplyAlpha: 'premultiply',
+    colorSpaceConversion: 'default',
+  });
+
+  // Re-apply the watermark with the requested settings.
+  const { canvas } = await generateWatermarkedCanvas(bitmap, settings);
+  const watermarkedBlob = await new Promise<Blob>((resolve) =>
+    canvas.toBlob((b) => resolve(b!), 'image/jpeg', 1.0)
+  );
+
+  // Overwrite the existing file → same URL.
+  const { error } = await supabase.storage
+    .from('banknote_images')
+    .upload(watermarkedPath, watermarkedBlob, {
+      upsert: true,
+      cacheControl: '60',
+      contentType: 'image/jpeg',
+    });
+
+  if (error) throw error;
+}
+
 

@@ -4,15 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { ImageUploader } from '@/components/blog/ImageUploader';
-import { createBlogPost, checkUserDailyBlogLimit } from '@/services/blogService';
+import { RichTextEditor } from '@/components/shared/RichTextEditor';
+import { createBlogPost, checkUserDailyBlogLimit, uploadBlogImage } from '@/services/blogService';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@/context/LanguageContext';
 import { blogTranslationService } from '@/services/blogTranslationService';
+import { buildExcerpt, isContentEmpty, getFirstImageSrc } from '@/lib/htmlContent';
 
 export function CreatePostForm() {
   const navigate = useNavigate();
@@ -22,7 +22,6 @@ export function CreatePostForm() {
   const { direction } = useLanguage();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [mainImage, setMainImage] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasReachedLimit, setHasReachedLimit] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
@@ -57,7 +56,7 @@ export function CreatePostForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !title.trim() || !content.trim()) {
+    if (!user || !title.trim() || isContentEmpty(content)) {
       return;
     }
 
@@ -76,9 +75,11 @@ export function CreatePostForm() {
 
     setIsSubmitting(true);
     try {
-      // Generate excerpt from content (first 150 characters)
-      const excerpt = content.length > 150 ? content.substring(0, 150) + '...' : content;
-      const newPost = await createBlogPost(title, content, excerpt, mainImage || '', user.id);
+      // Generate a plain-text excerpt from the rich-text content (first 150 chars)
+      const excerpt = buildExcerpt(content, 150);
+      // Use the first image embedded in the content as the post's main image.
+      const mainImage = getFirstImageSrc(content) || '';
+      const newPost = await createBlogPost(title, content, excerpt, mainImage, user.id);
       
       if (newPost) {
         // Detect and save original language
@@ -148,24 +149,13 @@ export function CreatePostForm() {
           
           <div className="space-y-2">
             <Label htmlFor="content" className={`block w-full ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>{tWithFallback('forms.contentLabel', 'Content')}</Label>
-            <Textarea
-              id="content"
+            <RichTextEditor
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={setContent}
               placeholder={tWithFallback('forms.contentPlaceholder', 'Write your blog post content...')}
-              required
-              className="min-h-[200px]"
               disabled={hasReachedLimit}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label className= {`block w-full ${direction === 'rtl' ? 'text-right' : 'text-left'}`}    >{tWithFallback('forms.imagesLabel', 'Images (Optional)')}</Label>
-            <ImageUploader 
-              image={mainImage} 
-              onChange={setMainImage}
-              disabled={hasReachedLimit}
-              required={false}
+              dir={direction === 'rtl' ? 'rtl' : 'ltr'}
+              onImageUpload={uploadBlogImage}
             />
           </div>
         </CardContent>
@@ -181,7 +171,7 @@ export function CreatePostForm() {
           </Button>
           <Button 
             type="submit"
-            disabled={isSubmitting || !title.trim() || !content.trim() || hasReachedLimit}
+            disabled={isSubmitting || !title.trim() || isContentEmpty(content) || hasReachedLimit}
           >
                           {isSubmitting ? (
                 <>

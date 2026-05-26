@@ -20,6 +20,8 @@ import { useDateLocale, DATE_FORMATS } from '@/lib/dateUtils';
 import { useLanguage } from '@/context/LanguageContext';
 import { BlogTranslationButton } from '@/components/blog/BlogTranslationButton';
 import BlogCommentWithTranslation from '@/components/blog/BlogCommentWithTranslation';
+import { RichTextContent } from '@/components/shared/RichTextContent';
+import { getFirstImageSrc } from '@/lib/htmlContent';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -496,9 +498,10 @@ const BlogPostPage = () => {
               
               
               
-              <div className={`whitespace-pre-line mb-4 break-words overflow-wrap-anywhere ${currentLanguage === 'ar' ? 'text-right' : ''}`}>
-                {renderTextWithLinks(displayedContent)}
-              </div>
+              <RichTextContent
+                content={displayedContent}
+                className={`mb-4 overflow-wrap-anywhere ${currentLanguage === 'ar' ? 'text-right' : ''}`}
+              />
               
 
               {/* Translation Button */}
@@ -516,7 +519,9 @@ const BlogPostPage = () => {
               </div>
 
 
-              {post.main_image_url && (
+              {/* Legacy posts: show the uploaded main image only when the content
+                  has no embedded images (new posts render images inline). */}
+              {post.main_image_url && !getFirstImageSrc(post.content) && (
                <div className="mb-3">
                   <ImageGallery images={[post.main_image_url]} />
                 </div>

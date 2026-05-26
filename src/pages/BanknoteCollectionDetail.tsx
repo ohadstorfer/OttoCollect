@@ -214,9 +214,9 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
             )}
             {collectionItem.publicNote && (
               <div className="flex items-start gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32 flex-shrink-0">{t('details.notes')}</span>
+                <span className="text-sm font-bold text-muted-foreground w-32 flex-shrink-0">{t('details.notes')}</span>
                 <div className="flex-1 min-w-0">
-                  <span className="text-base block">
+                  <span className="text-lg font-semibold block">
                     {showTranslatedPublicNote && translatedPublicNote ? translatedPublicNote : collectionItem.publicNote}
                   </span>
                   <div className="mt-1">

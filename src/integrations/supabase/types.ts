@@ -2519,6 +2519,56 @@ export type Database = {
           },
         ]
       }
+      watermark_settings: {
+        Row: {
+          country_id: string
+          id: string
+          opacity: number
+          padding_x_ratio_landscape: number
+          padding_x_ratio_portrait: number
+          padding_y_ratio_landscape: number
+          padding_y_ratio_portrait: number
+          updated_at: string
+          updated_by: string | null
+          width_ratio_landscape: number
+          width_ratio_portrait: number
+        }
+        Insert: {
+          country_id: string
+          id?: string
+          opacity: number
+          padding_x_ratio_landscape: number
+          padding_x_ratio_portrait: number
+          padding_y_ratio_landscape: number
+          padding_y_ratio_portrait: number
+          updated_at?: string
+          updated_by?: string | null
+          width_ratio_landscape: number
+          width_ratio_portrait: number
+        }
+        Update: {
+          country_id?: string
+          id?: string
+          opacity?: number
+          padding_x_ratio_landscape?: number
+          padding_x_ratio_portrait?: number
+          padding_y_ratio_landscape?: number
+          padding_y_ratio_portrait?: number
+          updated_at?: string
+          updated_by?: string | null
+          width_ratio_landscape?: number
+          width_ratio_portrait?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watermark_settings_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: true
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wishlist_items: {
         Row: {
           banknote_id: string

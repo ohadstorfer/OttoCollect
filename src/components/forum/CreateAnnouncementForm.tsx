@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from '@/components/shared/RichTextEditor';
 import { ImageUploader } from '@/components/forum/ImageUploader';
-import { createForumAnnouncement, checkUserDailyForumLimit } from '@/services/forumService';
+import { createForumAnnouncement, checkUserDailyForumLimit, uploadForumImage } from '@/services/forumService';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { forumTranslationService } from '@/services/forumTranslationService';
+import { isContentEmpty } from '@/lib/htmlContent';
 
 export function CreateAnnouncementForm() {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ export function CreateAnnouncementForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !title.trim() || !content.trim()) {
+    if (!user || !title.trim() || isContentEmpty(content)) {
       return;
     }
 
@@ -133,15 +134,13 @@ export function CreateAnnouncementForm() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="content">Announcement Content</Label> 
-            <Textarea
-              id="content"
+            <Label htmlFor="content">Announcement Content</Label>
+            <RichTextEditor
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={setContent}
               placeholder="Share important information with the community..."
-              required
-              className="min-h-[200px]"
               disabled={hasReachedLimit}
+              onImageUpload={uploadForumImage}
             />
           </div>
           
@@ -162,7 +161,7 @@ export function CreateAnnouncementForm() {
           </Button>
           <Button 
             type="submit"
-            disabled={isSubmitting || !title.trim() || !content.trim() || hasReachedLimit}
+            disabled={isSubmitting || !title.trim() || isContentEmpty(content) || hasReachedLimit}
           >
             {isSubmitting ? (
               <>

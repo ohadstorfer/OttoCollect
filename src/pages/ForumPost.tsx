@@ -33,6 +33,7 @@ import { TranslationButton } from '@/components/forum/TranslationButton';
 import { CommentTranslationButton } from '@/components/forum/CommentTranslationButton';
 import { forumTranslationService } from '@/services/forumTranslationService';
 import CommentWithTranslation from '@/components/forum/CommentWithTranslation';
+import { RichTextContent } from '@/components/shared/RichTextContent';
 
 
 // Simple function to detect and render links
@@ -812,9 +813,10 @@ const ForumPostPage = () => {
               </h1>
 
               {/* Post Content */}
-              <div className={`text-sm leading-relaxed mb-4 text-foreground break-words whitespace-pre-wrap overflow-hidden ${direction === 'rtl' ? 'text-right' : ''}`}>
-                {renderTextWithLinks(showTranslated && translatedContent ? translatedContent : post.content)}
-              </div>
+              <RichTextContent
+                content={showTranslated && translatedContent ? translatedContent : post.content}
+                className={`text-sm leading-relaxed mb-4 text-foreground overflow-hidden ${direction === 'rtl' ? 'text-right' : ''}`}
+              />
 
                {/* Translation Button */}
                <div className={`mb-3 ${direction === 'rtl' ? 'text-right' : ''}`}>

@@ -5,6 +5,7 @@ import { Calendar, MessageSquare, User } from "lucide-react";
 import { format, isValid, parseISO } from 'date-fns';
 import { ForumPost } from '@/types/forum';
 import { cn } from '@/lib/utils';
+import { htmlToPlainText } from '@/lib/htmlContent';
 
 interface LatestForumPostsProps {
   posts: ForumPost[];
@@ -120,7 +121,7 @@ const LatestForumPosts = ({ posts, loading = false }: LatestForumPostsProps) => 
                 </div>
                 
                 <p className="text-sm text-ottoman-200 line-clamp-2 break-words overflow-hidden text-left">
-                  {post.content}
+                  {htmlToPlainText(post.content)}
                 </p>
                 
                 {post.author && (

@@ -32,6 +32,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { RichTextContent } from '@/components/shared/RichTextContent';
 
 
 // Simple function to detect and render links
@@ -830,9 +831,10 @@ const ForumPostAnnouncementsPage = () => {
               </h1>
 
               {/* Post Content */}
-              <div className={`text-sm leading-relaxed mb-4 text-foreground ${direction === 'rtl' ? 'text-right' : ''}`}>
-                {renderTextWithLinks(showTranslated && translatedContent ? translatedContent : post.content)}
-              </div>
+              <RichTextContent
+                content={showTranslated && translatedContent ? translatedContent : post.content}
+                className={`text-sm leading-relaxed mb-4 text-foreground ${direction === 'rtl' ? 'text-right' : ''}`}
+              />
 
                {/* Translation Button */}
                <div className={`mb-3 ${direction === 'rtl' ? 'text-right' : ''}`}>

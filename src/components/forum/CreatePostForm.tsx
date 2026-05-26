@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from '@/components/shared/RichTextEditor';
 import { ImageUploader } from '@/components/forum/ImageUploader';
-import { createForumPost, checkUserDailyForumLimit } from '@/services/forumService';
+import { createForumPost, checkUserDailyForumLimit, uploadForumImage } from '@/services/forumService';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { forumTranslationService } from '@/services/forumTranslationService';
+import { isContentEmpty } from '@/lib/htmlContent';
 
 export function CreatePostForm() {
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ export function CreatePostForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !title.trim() || !content.trim()) {
+    if (!user || !title.trim() || isContentEmpty(content)) {
       return;
     }
 
@@ -135,14 +136,12 @@ export function CreatePostForm() {
           
           <div className="space-y-2">
             <Label htmlFor="content">Content</Label>
-            <Textarea
-              id="content"
+            <RichTextEditor
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={setContent}
               placeholder="Share your thoughts, questions, or insights..."
-              required
-              className="min-h-[200px]"
               disabled={hasReachedLimit}
+              onImageUpload={uploadForumImage}
             />
           </div>
           
@@ -163,7 +162,7 @@ export function CreatePostForm() {
           </Button>
           <Button 
             type="submit"
-            disabled={isSubmitting || !title.trim() || !content.trim() || hasReachedLimit}
+            disabled={isSubmitting || !title.trim() || isContentEmpty(content) || hasReachedLimit}
           >
             {isSubmitting ? (
               <>

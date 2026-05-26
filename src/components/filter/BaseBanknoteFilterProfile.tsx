@@ -629,13 +629,13 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
       <div className="w-full">
         {/* Profile Header Row */}
         {profileUser && (
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center w-full mb-4 px-2 sm:px-4 text-sm sm:text-base gap-2">
+          <div className="grid grid-cols-[1fr_auto] items-center w-full mb-1 px-2 sm:px-4 text-sm sm:text-base gap-2">
             <div className="flex items-center gap-1 sm:gap-2 justify-self-start min-w-0">
               {onBackToCountries && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 sm:h-8 sm:w-8 mr-1 sm:mr-2"
+                  className="h-6 w-6 sm:h-8 sm:w-8 mr-1 sm:mr-2 shrink-0"
                   onClick={onBackToCountries}
                 >
                   {direction === 'rtl' ? <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" /> : <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />}
@@ -645,25 +645,25 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
                 <img
                   src={profileUser.avatarUrl}
                   alt={profileUser.username}
-                  className="w-6 h-6 sm:w-8 sm:h-8 rounded-full"
+                  className="w-6 h-6 sm:w-8 sm:h-8 rounded-full shrink-0"
                 />
               ) : (
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-ottoman-600 to-ottoman-800 flex items-center justify-center text-parchment-100 text-sm sm:text-xl font-semibold uppercase">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-ottoman-600 to-ottoman-800 flex items-center justify-center text-parchment-100 text-sm sm:text-xl font-semibold uppercase shrink-0">
                   {profileUser?.username?.charAt(0) || "?"}
                 </div>
               )}
-              <span className="font-medium min-w-0 shrink">{profileUser.username}</span>
-              {!isMobile && profileUser.rank && (
-                <Badge variant="user" rank={profileUser.rank} role={profileUser.role} showIcon className="shrink-0 ml-1 sm:ml-2" />
-              )}
-            </div>
-
-            {translatedCountryName && activeTab ? (
-              <div className="flex items-center min-w-0 justify-self-center">
-                <span className="text-muted-foreground px-1 sm:px-3">/</span>
-                <span className="font-medium min-w-0 truncate">{translatedCountryName} {getTranslatedTabLabel(activeTab)}</span>
+              <div className="flex flex-col min-w-0 leading-tight">
+                <div className="flex items-center min-w-0">
+                  <span className="font-medium min-w-0 truncate text-sm">{profileUser.username}</span>
+                  {!isMobile && profileUser.rank && (
+                    <Badge variant="user" rank={profileUser.rank} role={profileUser.role} showIcon className="shrink-0 ml-1 sm:ml-2" />
+                  )}
+                </div>
+                {translatedCountryName && activeTab && (
+                  <span className="font-medium min-w-0 truncate text-xs text-muted-foreground">{translatedCountryName}</span>
+                )}
               </div>
-            ) : <div />}
+            </div>
 
             <div className="justify-self-end">
               <CollectionViewCount userId={profileUser.id} countryId={countryId} />

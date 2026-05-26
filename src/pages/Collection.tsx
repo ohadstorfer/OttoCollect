@@ -22,6 +22,7 @@ import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterColl
 import SEOHead from '@/components/seo/SEOHead';
 import { SEO_CONFIG } from '@/config/seoConfig';
 import { useTranslation } from 'react-i18next';
+import { FitOneLineHeading } from '@/components/shared/FitOneLineHeading';
 
 const Collection = () => {
   const { user } = useAuth();
@@ -370,7 +371,7 @@ const Collection = () => {
               {groupedItems.map((group, groupIndex) => (
                 <div key={`group-${groupIndex}`} className="space-y-4">
                   <div className="sticky top-[100px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 border-b w-full md:w-auto -mx-6 md:mx-0 px-6 md:px-0">
-                    <h2 className="text-xl font-bold"><span>{group.category}</span></h2>
+                    <FitOneLineHeading text={group.category} />
                   </div>
                   
                   {group.sultanGroups ? (
