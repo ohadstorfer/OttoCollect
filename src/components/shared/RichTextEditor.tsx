@@ -8,16 +8,25 @@ import TextAlign from '@tiptap/extension-text-align';
 import TextStyle from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import Placeholder from '@tiptap/extension-placeholder';
+import { LineHeight } from '@/components/shared/editor/LineHeight';
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   Heading1, Heading2, Heading3,
   List, ListOrdered, Quote, Minus,
   AlignLeft, AlignCenter, AlignRight,
   Link2, Link2Off, Image as ImageIcon, Loader2,
-  Undo2, Redo2,
+  Undo2, Redo2, AlignVerticalSpaceAround, ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+const LINE_HEIGHTS = ['0.5', '0.75', '1', '1.15', '1.5', '2', '2.5', '3'];
 
 interface RichTextEditorProps {
   /** Current HTML value. */
@@ -77,6 +86,9 @@ function Toolbar({
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = React.useState(false);
+  const currentLineHeight =
+    (editor.getAttributes('paragraph').lineHeight as string | undefined) ||
+    (editor.getAttributes('heading').lineHeight as string | undefined);
 
   const setLink = useCallback(() => {
     const previousUrl = editor.getAttributes('link').href as string | undefined;
@@ -173,6 +185,33 @@ function Toolbar({
         <AlignRight className="h-4 w-4" />
       </ToolbarButton>
 
+      {/* Line height */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            title="Line spacing"
+            aria-label="Line spacing"
+            onMouseDown={(e) => e.preventDefault()}
+            className="inline-flex h-8 items-center gap-0.5 rounded-md px-1.5 text-foreground transition-colors hover:bg-muted"
+          >
+            <AlignVerticalSpaceAround className="h-4 w-4" />
+            <ChevronDown className="h-3 w-3" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="min-w-[7rem]">
+          {LINE_HEIGHTS.map((h) => (
+            <DropdownMenuItem
+              key={h}
+              onSelect={() => editor.chain().focus().setLineHeight(h).run()}
+              className={cn(currentLineHeight === h && 'bg-muted font-medium')}
+            >
+              {h}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       <Divider />
 
       <ToolbarButton title="Add link" onClick={setLink} active={editor.isActive('link')}>
@@ -234,12 +273,31 @@ export function RichTextEditor({
   dir = 'ltr',
   onImageUpload,
 }: RichTextEditorProps) {
+  const { toast } = useToast();
+
+  // Upload an image file (from paste/drop) and insert it at the current selection.
+  const uploadAndInsertImage = useCallback(
+    async (file: File) => {
+      if (!onImageUpload || !file.type.startsWith('image/')) return;
+      try {
+        const url = await onImageUpload(file);
+        editor?.chain().focus().setImage({ src: url }).run();
+      } catch (error) {
+        console.error('Error uploading pasted image:', error);
+        toast({ variant: 'destructive', title: 'Upload failed', description: 'Could not upload the image.' });
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [onImageUpload, toast]
+  );
+
   const editor = useEditor({
     extensions: [
       StarterKit,
       Underline,
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer nofollow', target: '_blank' } }),
       ResizableImage.configure({ inline: false, HTMLAttributes: { class: 'rounded-md' } }),
+      LineHeight.configure({ heights: LINE_HEIGHTS }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       TextStyle,
       Color,
@@ -250,7 +308,25 @@ export function RichTextEditor({
     editorProps: {
       attributes: {
         dir,
-        class: 'prose prose-sm dark:prose-invert max-w-none min-h-[200px] px-3 py-2 focus:outline-none',
+        class: 'prose prose-sm dark:prose-invert max-w-none min-h-[200px] px-3 py-2 focus:outline-none prose-h1:text-[1.5em] prose-h2:text-[1.25em] prose-h3:text-[1.1em] prose-h1:font-bold prose-h2:font-bold prose-h3:font-bold',
+      },
+      // Paste images directly with Ctrl/Cmd+V.
+      handlePaste: (_view, event) => {
+        if (!onImageUpload) return false;
+        const files = Array.from(event.clipboardData?.files ?? []).filter((f) => f.type.startsWith('image/'));
+        if (files.length === 0) return false;
+        event.preventDefault();
+        files.forEach((file) => void uploadAndInsertImage(file));
+        return true;
+      },
+      // Also support drag-and-drop of image files.
+      handleDrop: (_view, event) => {
+        if (!onImageUpload) return false;
+        const files = Array.from((event as DragEvent).dataTransfer?.files ?? []).filter((f) => f.type.startsWith('image/'));
+        if (files.length === 0) return false;
+        event.preventDefault();
+        files.forEach((file) => void uploadAndInsertImage(file));
+        return true;
       },
     },
     onUpdate: ({ editor }) => onChange(editor.getHTML()),

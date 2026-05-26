@@ -127,68 +127,68 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
       <div className="space-y-6">
         <div className={direction === 'rtl' ? 'text-right' : 'text-left'}>
           <h3 className={`text-lg font-medium mb-4 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}> <span> {t('details.publicDetails')} </span> </h3>
-          <div className="space-y-2">
+          <div className="space-y-1">
             {collectionItem.banknote?.extendedPickNumber && (
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.extendedPickNumber')}</span>
-                <span className="text-base">{collectionItem.banknote.extendedPickNumber}</span>
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.extendedPickNumber')}</span>
+                <span className="text-base leading-tight">{collectionItem.banknote.extendedPickNumber}</span>
               </div>
             )}
             {collectionItem.banknote?.pickNumber && (
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.pickNumber')}</span>
-                <span className="text-base">{collectionItem.banknote.pickNumber} </span>
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.pickNumber')}</span>
+                <span className="text-base leading-tight">{collectionItem.banknote.pickNumber} </span>
               </div>
             )}
             {collectionItem.banknote?.turkCatalogNumber && (
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{getLocalizedTurkCatalogLabel(collectionItem.banknote)}</span>
-                <span className="text-base">{collectionItem.banknote.turkCatalogNumber}</span>
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{getLocalizedTurkCatalogLabel(collectionItem.banknote)}</span>
+                <span className="text-base leading-tight">{collectionItem.banknote.turkCatalogNumber}</span>
               </div>
             )}
             {collectionItem.banknote?.denomination && (
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.denomination')}</span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.denomination, 'denomination')}</span>
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.denomination')}</span>
+                <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.denomination, 'denomination')}</span>
               </div>
             )}
             {collectionItem.banknote?.country && (
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.country')}</span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.country, 'country')}</span>
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.country')}</span>
+                <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.country, 'country')}</span>
               </div>
             )}
             {collectionItem.banknote?.category && (
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.category')}</span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.category, 'category')}</span>
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.category')}</span>
+                <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.category, 'category')}</span>
               </div>
             )}
             {collectionItem.banknote?.sultanName && (
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">
                   {getLocalizedAuthorityName(collectionItem.banknote)}
                 </span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.sultanName, 'sultan_name')}</span>
+                <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.sultanName, 'sultan_name')}</span>
               </div>
             )}
             {!collectionItem.type && collectionItem.banknote?.type && ( 
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.type')}</span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.type, 'type')}</span>
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.type')}</span>
+                <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.type, 'type')}</span>
               </div>
             )}
             {collectionItem.banknote?.serialNumbering && (
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.prefixRange')}</span>
-                <span className="text-base">{collectionItem.banknote.serialNumbering}</span>
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.prefixRange')}</span>
+                <span className="text-base leading-tight">{collectionItem.banknote.serialNumbering}</span>
               </div>
             )}
 
             {isUnlisted && collectionItem.banknote?.description && (
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.description')}</span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.description, 'banknote_description')}</span>
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.description')}</span>
+                <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.description, 'banknote_description')}</span>
               </div>
             )}
           </div>
@@ -197,26 +197,26 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
 
         {/* Collection Item Details */}
         <div className={direction === 'rtl' ? 'text-right' : 'text-left'}>
-          <div className="space-y-2 ${direction === 'rtl' ? 'text-right' : 'text-left'}">
+          <div className="space-y-1 ${direction === 'rtl' ? 'text-right' : 'text-left'}">
             {collectionItem.condition && !collectionItem.grade && (
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.condition')}</span>
-                <span className="text-base">{collectionItem.condition}</span>
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.condition')}</span>
+                <span className="text-base leading-tight">{collectionItem.condition}</span>
               </div>
             )}
             {collectionItem.grade && (
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.grading')}</span>
-                <span className="text-base">
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.grading')}</span>
+                <span className="text-base leading-tight">
                   {collectionItem.grade_by && `${collectionItem.grade_by} `}{collectionItem.grade}{collectionItem.grade_condition_description && ` - ${collectionItem.grade_condition_description}`}
                 </span>
               </div>
             )}
             {collectionItem.publicNote && (
-              <div className="flex items-start gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-bold text-muted-foreground w-32 flex-shrink-0">{t('details.notes')}</span>
+              <div className="flex items-start gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-bold text-muted-foreground w-32 flex-shrink-0 leading-tight">{t('details.notes')}</span>
                 <div className="flex-1 min-w-0">
-                  <span className="text-lg font-semibold block">
+                  <span className="text-lg font-semibold block leading-tight">
                     {showTranslatedPublicNote && translatedPublicNote ? translatedPublicNote : collectionItem.publicNote}
                   </span>
                   <div className="mt-1">
@@ -243,108 +243,108 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
               </div>
             )}
             {collectionItem.isForSale && (
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.forSale')}</span>
-                <span className="text-base">${collectionItem.salePrice}</span>
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.forSale')}</span>
+                <span className="text-base leading-tight">${collectionItem.salePrice}</span>
               </div>
             )}
           </div>
         </div>
         <div className="w-full h-px bg-muted my-6" />
 
-        <div className={`space-y-2 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+        <div className={`space-y-1 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
           {collectionItem.type && (
-            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">{t('details.type')}</span>
-              <span className="text-base">{collectionItem.type}</span>
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+              <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.type')}</span>
+              <span className="text-base leading-tight">{collectionItem.type}</span>
             </div>
           )}
           {collectionItem.prefix && (
-            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">{t('details.prefix')}</span>
-              <span className="text-base">{collectionItem.prefix}</span>
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+              <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.prefix')}</span>
+              <span className="text-base leading-tight">{collectionItem.prefix}</span>
             </div>
           )}
           {collectionItem.banknote?.islamicYear && (
-            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">{t('details.islamicYear')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.islamicYear, 'islamic_year')}</span>
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+              <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.islamicYear')}</span>
+              <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.islamicYear, 'islamic_year')}</span>
             </div>
           )}
           {collectionItem.banknote?.gregorianYear && (
-            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">{t('details.gregorianYear')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.gregorianYear, 'gregorian_year')}</span>
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+              <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.gregorianYear')}</span>
+              <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.gregorianYear, 'gregorian_year')}</span>
             </div>
           )}
                       {collectionItem.banknote?.description && (
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.banknoteDescription')}</span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.description, 'banknote_description')}</span>
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.banknoteDescription')}</span>
+                <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.description, 'banknote_description')}</span>
               </div>
             )}
           {collectionItem.banknote?.historicalDescription && (
-            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">{t('details.historicalDescription')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.historicalDescription, 'historical_description')}</span>
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+              <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.historicalDescription')}</span>
+              <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.historicalDescription, 'historical_description')}</span>
             </div>
           )}
           {collectionItem.banknote?.securityElement && (
-            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">{t('details.securityElement')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.securityElement, 'security_element')}</span>
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+              <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.securityElement')}</span>
+              <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.securityElement, 'security_element')}</span>
             </div>
           )}
           {collectionItem.banknote?.colors && (
-            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">{t('details.colors')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.colors, 'colors')}</span>
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+              <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.colors')}</span>
+              <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.colors, 'colors')}</span>
             </div>
           )}
           {collectionItem.banknote?.dimensions && (
-        <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-          <span className="text-sm font-medium text-muted-foreground w-32">{t('details.dimensions')}</span>
-          <span className="text-base">{getLocalizedField(collectionItem.banknote.dimensions, 'dimensions')}</span>
+        <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+          <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.dimensions')}</span>
+          <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.dimensions, 'dimensions')}</span>
         </div>
       )}
           {collectionItem.banknote?.printer && (
-            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">{t('details.printer')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.printer, 'printer')}</span>
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+              <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.printer')}</span>
+              <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.printer, 'printer')}</span>
             </div>
           )}
           {collectionItem.banknote?.rarity && (
-            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">{t('details.rarity')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.rarity, 'rarity')}</span>
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+              <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.rarity')}</span>
+              <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.rarity, 'rarity')}</span>
             </div>
           )}
           {collectionItem.banknote?.sealNames &&
             (!collectionItem.banknote.sealPictureUrls ||
               collectionItem.banknote.sealPictureUrls.length === 0) && (
-              <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                <span className="text-sm font-medium text-muted-foreground w-32">{t('details.sealNames')}</span>
-                <span className="text-base">{getLocalizedField(collectionItem.banknote.sealNames, 'seal_names')}</span>
+              <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.sealNames')}</span>
+                <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.sealNames, 'seal_names')}</span>
               </div>
             )}
           {collectionItem.banknote?.signaturesFront && (
-            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">{t('details.frontSignatures')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.signaturesFront, 'signatures_front')}</span>
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+              <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.frontSignatures')}</span>
+              <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.signaturesFront, 'signatures_front')}</span>
             </div>
           )}
 
           {collectionItem.banknote?.signaturesBack && (
-            <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-              <span className="text-sm font-medium text-muted-foreground w-32">{t('details.backSignatures')}</span>
-              <span className="text-base">{getLocalizedField(collectionItem.banknote.signaturesBack, 'signatures_back')}</span>
+            <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+              <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.backSignatures')}</span>
+              <span className="text-base leading-tight">{getLocalizedField(collectionItem.banknote.signaturesBack, 'signatures_back')}</span>
             </div>
           )}
 
          {/* Display resolved signature picture URLs from enhanced view */}
       {collectionItem.banknote?.signaturesFrontUrls && collectionItem.banknote.signaturesFrontUrls.length > 0 && (
         <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.frontSignaturePictures')}</span>
+          <span className="text-sm font-medium text-muted-foreground w-32 leading-tight mt-1">{t('details.frontSignaturePictures')}</span>
           <div className="flex flex-wrap gap-2">
                          {collectionItem.banknote.signaturesFrontUrls.map((url, index) => (
                <img
@@ -363,7 +363,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
       {/* Display resolved signature picture URLs from enhanced view */}
       {collectionItem.banknote?.signaturesBackUrls && collectionItem.banknote.signaturesBackUrls.length > 0 && (
         <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-          <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.backSignaturePictures')}</span>
+          <span className="text-sm font-medium text-muted-foreground w-32 leading-tight mt-1">{t('details.backSignaturePictures')}</span>
           <div className="flex flex-wrap gap-2">
                          {collectionItem.banknote.signaturesBackUrls.map((url, index) => (
                <img
@@ -382,7 +382,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
           {/* Display resolved seal picture URLs from enhanced view */}
           {collectionItem.banknote?.sealPictureUrls && collectionItem.banknote.sealPictureUrls.length > 0 && (
             <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.sealPictures')}</span>
+              <span className="text-sm font-medium text-muted-foreground w-32 leading-tight mt-1">{t('details.sealPictures')}</span>
               <div className="flex flex-wrap gap-2">
                 {collectionItem.banknote.sealPictureUrls.map((url, index) => (
                   <img
@@ -401,7 +401,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
           {/* Display resolved watermark picture URL from enhanced view */}
           {collectionItem.banknote?.watermarkUrl && (
             <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.watermarkPicture')}</span>
+              <span className="text-sm font-medium text-muted-foreground w-32 leading-tight mt-1">{t('details.watermarkPicture')}</span>
               <img
                 src={collectionItem.banknote.watermarkUrl}
                 alt={t('details.watermarkImage')}
@@ -415,7 +415,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
           {/* Display resolved tughra picture URL from enhanced view */}
           {collectionItem.banknote?.tughraUrl && (
             <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.tughraPicture')}</span>
+              <span className="text-sm font-medium text-muted-foreground w-32 leading-tight mt-1">{t('details.tughraPicture')}</span>
               <img
                 src={collectionItem.banknote.tughraUrl}
                 alt={t('details.tughraImage')}
@@ -429,7 +429,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
           {/* Display resolved other element picture URLs from enhanced view */}
           {collectionItem.banknote?.otherElementPictures && collectionItem.banknote.otherElementPictures.length > 0 && (
             <div className="flex items-start gap-x-2 border-b border-gray-100 py-3">
-              <span className="text-sm font-medium text-muted-foreground w-32 mt-1">{t('details.otherPictures')}</span>
+              <span className="text-sm font-medium text-muted-foreground w-32 leading-tight mt-1">{t('details.otherPictures')}</span>
               <div className="flex flex-wrap gap-2">
                 {collectionItem.banknote.otherElementPictures.map((url, index) => (
                   <img
@@ -454,24 +454,24 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
               <h3 className="text-lg font-medium"> <span> {t('details.privateDetails')} </span> </h3>
               <span className="text-sm text-muted-foreground">{t('details.onlyVisibleToYou')}</span>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {collectionItem.privateNote && (
-                <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                  <span className="text-sm font-medium text-muted-foreground w-32">{t('details.privateNotes')}</span>
-                  <span className="text-base">{collectionItem.privateNote}</span>
+                <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                  <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.privateNotes')}</span>
+                  <span className="text-base leading-tight">{collectionItem.privateNote}</span>
                 </div>
               )}
               {collectionItem.location && (
-                <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                  <span className="text-sm font-medium text-muted-foreground w-32">{t('details.itemStatus')}</span>
-                  <span className="text-base">{collectionItem.location}</span>
+                <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                  <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.itemStatus')}</span>
+                  <span className="text-base leading-tight">{collectionItem.location}</span>
                 </div>
               )}
              
               {collectionItem.purchaseDate && (
-                <div className="flex items-center gap-x-2 border-b border-gray-100 py-1">
-                  <span className="text-sm font-medium text-muted-foreground w-32">{t('details.purchaseDate')}</span>
-                  <span className="text-base">{formatDate(collectionItem.purchaseDate)}</span>
+                <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
+                  <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.purchaseDate')}</span>
+                  <span className="text-base leading-tight">{formatDate(collectionItem.purchaseDate)}</span>
                 </div>
               )}
             </div>

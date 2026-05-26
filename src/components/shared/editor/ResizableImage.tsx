@@ -12,6 +12,9 @@ import { cn } from '@/lib/utils';
 type Align = 'left' | 'center' | 'right';
 
 const MIN_WIDTH = 40; // px
+// Cap the height of freshly inserted images so large/tall photos don't dominate.
+// Applies only while no explicit width is set — resizing overrides it.
+const MAX_INITIAL_HEIGHT = 400; // px
 
 // Block-level margin style that positions the image left / center / right.
 function alignmentStyle(align: Align): string {
@@ -65,7 +68,11 @@ function ResizableImageComponent({ node, updateAttributes, selected, editor }: N
           alt={alt || ''}
           title={title || ''}
           draggable={false}
-          className="block h-auto w-full rounded-md"
+          className={cn(
+            'block rounded-md m-0',
+            width ? 'h-auto w-full' : 'h-auto w-auto max-w-full'
+          )}
+          style={width ? undefined : { maxHeight: MAX_INITIAL_HEIGHT }}
         />
 
         {editable && selected && (
@@ -126,7 +133,9 @@ export const ResizableImage = Image.extend({
         parseHTML: (element) =>
           element.style.width || element.getAttribute('width') || null,
         renderHTML: (attributes) =>
-          attributes.width ? { style: `width: ${attributes.width}; height: auto` } : {},
+          attributes.width
+            ? { style: `width: ${attributes.width}; height: auto` }
+            : { style: `max-height: ${MAX_INITIAL_HEIGHT}px; max-width: 100%` },
       },
       align: {
         default: 'left',
