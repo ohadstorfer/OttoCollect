@@ -296,7 +296,7 @@ export function RichTextEditor({
       StarterKit,
       Underline,
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer nofollow', target: '_blank' } }),
-      ResizableImage.configure({ inline: false, HTMLAttributes: { class: 'rounded-md' } }),
+      ResizableImage.configure({ inline: true, HTMLAttributes: { class: 'rounded-md' } }),
       LineHeight.configure({ heights: LINE_HEIGHTS }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       TextStyle,

@@ -9,26 +9,20 @@ import {
 import { AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type Align = 'left' | 'center' | 'right';
-
 const MIN_WIDTH = 40; // px
 // Cap the height of freshly inserted images so large/tall photos don't dominate.
 // Applies only while no explicit width is set — resizing overrides it.
 const MAX_INITIAL_HEIGHT = 400; // px
 
-// Block-level margin style that positions the image left / center / right.
-function alignmentStyle(align: Align): string {
-  if (align === 'center') return 'display: block; margin-left: auto; margin-right: auto';
-  if (align === 'right') return 'display: block; margin-left: auto; margin-right: 0';
-  return 'display: block; margin-left: 0; margin-right: auto';
-}
-
-/** React node view: renders the image with a resize handle and align controls. */
+/**
+ * React node view: renders the image inline (so images can sit side by side and
+ * flow with text) with a resize handle. Left/center/right buttons align the
+ * parent paragraph, which positions the whole line of images.
+ */
 function ResizableImageComponent({ node, updateAttributes, selected, editor }: NodeViewProps) {
   const { src, alt, title } = node.attrs;
   const width = node.attrs.width as string | null;
-  const align = (node.attrs.align as Align) || 'left';
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLSpanElement>(null);
   const editable = editor.isEditable;
 
   const startResize = (e: React.PointerEvent) => {
@@ -50,15 +44,11 @@ function ResizableImageComponent({ node, updateAttributes, selected, editor }: N
   };
 
   return (
-    <NodeViewWrapper
-      className="rt-image-node"
-      style={{ textAlign: align }}
-      data-align={align}
-    >
-      <div
+    <NodeViewWrapper as="span" className="rt-image-node mr-1 inline-block align-middle">
+      <span
         ref={containerRef}
         className={cn(
-          'relative inline-block max-w-full align-top',
+          'relative inline-block max-w-full align-middle',
           selected && 'outline outline-2 outline-primary outline-offset-2 rounded-sm'
         )}
         style={{ width: width || 'auto' }}
@@ -77,8 +67,8 @@ function ResizableImageComponent({ node, updateAttributes, selected, editor }: N
 
         {editable && selected && (
           <>
-            {/* Alignment toolbar */}
-            <div
+            {/* Alignment toolbar — aligns the parent line/paragraph. */}
+            <span
               className="absolute -top-9 left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 rounded-md border bg-popover p-0.5 shadow-md"
               contentEditable={false}
             >
@@ -93,16 +83,16 @@ function ResizableImageComponent({ node, updateAttributes, selected, editor }: N
                   title={`Align ${value}`}
                   aria-label={`Align ${value}`}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => updateAttributes({ align: value })}
+                  onClick={() => editor.chain().focus().setTextAlign(value).run()}
                   className={cn(
                     'inline-flex h-7 w-7 items-center justify-center rounded hover:bg-muted',
-                    align === value && 'bg-muted text-primary'
+                    editor.isActive({ textAlign: value }) && 'bg-muted text-primary'
                   )}
                 >
                   <Icon className="h-4 w-4" />
                 </button>
               ))}
-            </div>
+            </span>
 
             {/* Resize handle (bottom-right corner) */}
             <span
@@ -112,17 +102,19 @@ function ResizableImageComponent({ node, updateAttributes, selected, editor }: N
             />
           </>
         )}
-      </div>
+      </span>
     </NodeViewWrapper>
   );
 }
 
 /**
- * Image extension with resizable size and left/center/right positioning.
- * Persists `width` (inline style) and `align` (block margins + data-align) so
- * the rendered post matches the editor exactly.
+ * Inline image extension: images flow with text and can be placed side by side
+ * on the same line. Resizable (persisted as a `width` inline style). Horizontal
+ * positioning is handled by the parent paragraph's text-align.
  */
 export const ResizableImage = Image.extend({
+  inline: true,
+  group: 'inline',
   draggable: true,
 
   addAttributes() {
@@ -134,16 +126,8 @@ export const ResizableImage = Image.extend({
           element.style.width || element.getAttribute('width') || null,
         renderHTML: (attributes) =>
           attributes.width
-            ? { style: `width: ${attributes.width}; height: auto` }
-            : { style: `max-height: ${MAX_INITIAL_HEIGHT}px; max-width: 100%` },
-      },
-      align: {
-        default: 'left',
-        parseHTML: (element) => element.getAttribute('data-align') || 'left',
-        renderHTML: (attributes) => ({
-          'data-align': attributes.align || 'left',
-          style: alignmentStyle((attributes.align as Align) || 'left'),
-        }),
+            ? { style: `width: ${attributes.width}; height: auto; vertical-align: middle` }
+            : { style: `max-height: ${MAX_INITIAL_HEIGHT}px; max-width: 100%; vertical-align: middle` },
       },
     };
   },
