@@ -33,8 +33,8 @@ import {
   WatermarkTarget,
 } from '@/services/watermarkSettingsService';
 
-const DEFAULT_TEST_USER_ID = '3f1ca54e-7951-4219-af60-8dccb00d5255';
-const TEST_USERNAME = 'balagan';
+const DEFAULT_TEST_USER_ID = '64681131-4747-4036-9c32-fe60a560bf78';
+const TEST_USERNAME = 'Dror K.';
 
 interface CountryOption {
   id: string;
@@ -610,14 +610,14 @@ const WatermarkPreview: React.FC = () => {
         <CardHeader>
           <CardTitle><span>Test: regenerate one user's collection</span></CardTitle>
           <p className="text-muted-foreground text-sm mt-1">
-            Regenerates the watermarks of the collection of the user "balagan" — a small, safe scope to verify the pipeline.
+            Regenerates the watermarks of the collection of the user "{TEST_USERNAME}" — a small, safe scope to verify the pipeline.
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm">
-                The user name: <strong>"balagan"</strong>
+                The user name: <strong>"{TEST_USERNAME}"</strong>
               </p>
               <Button
                 onClick={() => navigate(`/profile/${encodeURIComponent(TEST_USERNAME)}`)}
