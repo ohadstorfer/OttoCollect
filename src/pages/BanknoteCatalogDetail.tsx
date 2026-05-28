@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useLayoutEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -66,6 +66,82 @@ interface LabelValuePairProps {
 interface BanknoteCatalogDetailProps {
   id?: string; // Make id optional so it can be provided as a prop
 }
+
+interface BanknoteImageFrameProps {
+  url: string;
+  alt: string;
+  metaName: string;
+  metaDescription: string;
+  metaCaption: string;
+  orientation?: 'vertical' | 'horizontal';
+  onClick?: () => void;
+  errorLabel: string;
+}
+
+/**
+ * Image frame with a reserved aspect ratio (so the layout never jumps as the
+ * picture loads), a shimmering skeleton while it downloads, a smooth fade-in
+ * on load, and a graceful fallback when the image is unavailable.
+ */
+const BanknoteImageFrame: React.FC<BanknoteImageFrameProps> = ({
+  url,
+  alt,
+  metaName,
+  metaDescription,
+  metaCaption,
+  orientation,
+  onClick,
+  errorLabel,
+}) => {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  // Reserve space matching the detected orientation; default to the typical
+  // horizontal banknote ratio until orientation is known.
+  const aspectClass = orientation === 'vertical' ? 'aspect-[2/3]' : 'aspect-[3/2]';
+
+  return (
+    <div
+      className={cn(
+        "group relative w-full overflow-hidden rounded-md border bg-muted/40",
+        aspectClass,
+        onClick && "cursor-pointer"
+      )}
+      onClick={onClick}
+      itemProp="image"
+      itemScope
+      itemType="https://schema.org/ImageObject"
+    >
+      {!loaded && !error && (
+        <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-muted via-muted/50 to-muted" />
+      )}
+
+      {error ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+          <Image className="h-8 w-8 opacity-50" />
+          <span className="text-xs">{errorLabel}</span>
+        </div>
+      ) : (
+        <img
+          src={url}
+          alt={alt}
+          loading="eager"
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+          className={cn(
+            "absolute inset-0 h-full w-full object-contain transition-all duration-500 group-hover:scale-[1.02]",
+            loaded ? "opacity-100" : "opacity-0"
+          )}
+        />
+      )}
+
+      <meta itemProp="url" content={url} />
+      <meta itemProp="name" content={metaName} />
+      <meta itemProp="description" content={metaDescription} />
+      <meta itemProp="caption" content={metaCaption} />
+    </div>
+  );
+};
 
 const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, iconClassNames }) => {
   if (!value) return null;
@@ -183,9 +259,11 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
     }
   }, [imageUrls]);
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  // Jump to the top synchronously, before the first paint, so the page never
+  // flashes at the previous (deep) scroll position and then animates upward.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
 
   // Styling class for Check button
   const checkButtonClass =
@@ -731,55 +809,22 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                           const secondOrientation = imageOrientations[1];
                           
                           // If both images are vertical, display side by side
-                          if (firstOrientation === 'vertical' && secondOrientation === 'vertical') {
-                            return (
-                              <div className="grid grid-cols-2 gap-3">
-                                {imageUrls.map((url, index) => (
-                                  <div
-                                    key={index}
-                                    className="w-full cursor-pointer hover:opacity-90 transition-opacity"
-                                    onClick={() => openImageViewer(url)}
-                                    itemProp="image" itemScope itemType="https://schema.org/ImageObject"
-                                  >
-                                    <div className="w-full overflow-hidden border">
-                                      <img
-                                        src={url}
-                                        alt={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber} - ${banknote?.authorityName ? `Issued by ${banknote?.authorityName}` : 'Ottoman Empire currency'}`}
-                                        className="w-full h-auto object-contain"
-                                      />
-                                      <meta itemProp="url" content={url} />
-                                      <meta itemProp="name" content={`${banknote?.denomination} ${banknote?.country} Banknote ${index === 0 ? 'Front' : 'Back'}`} />
-                                      <meta itemProp="description" content={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber}`} />
-                                      <meta itemProp="caption" content={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'obverse' : 'reverse'} design`} />
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            );
-                          }
-                          
-                          // If any image is horizontal, stack them vertically
+                          const bothVertical = firstOrientation === 'vertical' && secondOrientation === 'vertical';
+
                           return (
-                            <div className="flex flex-col space-y-3">
+                            <div className={bothVertical ? "grid grid-cols-2 gap-3" : "flex flex-col space-y-3"}>
                               {imageUrls.map((url, index) => (
-                                <div
+                                <BanknoteImageFrame
                                   key={index}
-                                  className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                                  url={url}
+                                  orientation={imageOrientations[index]}
                                   onClick={() => openImageViewer(url)}
-                                  itemProp="image" itemScope itemType="https://schema.org/ImageObject"
-                                >
-                                  <div className="w-full overflow-hidden border">
-                                    <img
-                                      src={url}
-                                      alt={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber} - ${banknote?.authorityName ? `Issued by ${banknote?.authorityName}` : 'Ottoman Empire currency'}`}
-                                      className="w-full h-auto object-contain"
-                                    />
-                                    <meta itemProp="url" content={url} />
-                                    <meta itemProp="name" content={`${banknote?.denomination} ${banknote?.country} Banknote ${index === 0 ? 'Front' : 'Back'}`} />
-                                    <meta itemProp="description" content={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber}`} />
-                                    <meta itemProp="caption" content={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'obverse' : 'reverse'} design`} />
-                                  </div>
-                                </div>
+                                  errorLabel={tWithFallback('details.imageUnavailable', 'Image unavailable')}
+                                  alt={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber} - ${banknote?.authorityName ? `Issued by ${banknote?.authorityName}` : 'Ottoman Empire currency'}`}
+                                  metaName={`${banknote?.denomination} ${banknote?.country} Banknote ${index === 0 ? 'Front' : 'Back'}`}
+                                  metaDescription={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber}`}
+                                  metaCaption={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'obverse' : 'reverse'} design`}
+                                />
                               ))}
                             </div>
                           );
@@ -787,24 +832,17 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
                       ) : (
                         // For more than 2 images, stack them vertically
                     imageUrls.slice(0, 4).map((url, index) => (
-                      <div
+                      <BanknoteImageFrame
                         key={index}
-                        className="w-full cursor-pointer hover:opacity-90 transition-opacity"
+                        url={url}
+                        orientation={imageOrientations[index]}
                         onClick={() => openImageViewer(url)}
-                        itemProp="image" itemScope itemType="https://schema.org/ImageObject"
-                      >
-                        <div className="w-full overflow-hidden border">
-                          <img
-                            src={url}
-                            alt={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber} - ${banknote?.authorityName ? `Issued by ${banknote?.authorityName}` : 'Ottoman Empire currency'}`}
-                                className="w-full h-auto object-contain"
-                          />
-                          <meta itemProp="url" content={url} />
-                          <meta itemProp="name" content={`${banknote?.denomination} ${banknote?.country} Banknote ${index === 0 ? 'Front' : 'Back'}`} />
-                          <meta itemProp="description" content={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber}`} />
-                          <meta itemProp="caption" content={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'obverse' : 'reverse'} design`} />
-                        </div>
-                      </div>
+                        errorLabel={tWithFallback('details.imageUnavailable', 'Image unavailable')}
+                        alt={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber} - ${banknote?.authorityName ? `Issued by ${banknote?.authorityName}` : 'Ottoman Empire currency'}`}
+                        metaName={`${banknote?.denomination} ${banknote?.country} Banknote ${index === 0 ? 'Front' : 'Back'}`}
+                        metaDescription={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'front side' : 'back side'} from ${banknote?.gregorianYear || banknote?.year} - Pick ${banknote?.extendedPickNumber}`}
+                        metaCaption={`${banknote?.denomination} ${banknote?.country} banknote ${index === 0 ? 'obverse' : 'reverse'} design`}
+                      />
                     ))
                       )
                   ) : (

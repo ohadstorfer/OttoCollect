@@ -34,6 +34,15 @@ const Profile: React.FC = () => {
   // Properly decode the username parameter to handle special characters
   const username = routeUsername ? decodeURIComponent(routeUsername) : authUser?.username;
 
+  // Start at the top synchronously, before the first paint, so the page never
+  // flashes at the previous page's (deep) scroll position and then animates
+  // upward. Skipped for the kept-alive /profile/:username/:country view, whose
+  // scroll position is saved and restored by CachedRoutes.
+  React.useLayoutEffect(() => {
+    if (routeCountry) return;
+    window.scrollTo(0, 0);
+  }, [routeUsername, routeCountry]);
+
   // Scroll position management for smooth loading
   React.useEffect(() => {
     // Keep page at top during country loading

@@ -9,6 +9,7 @@ import { BanknoteGroupData, getMixedBanknoteItems, getMixedBanknoteItemsBySultan
 import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
 import { useLanguage } from '@/context/LanguageContext';
 import { FitOneLineHeading } from '@/components/shared/FitOneLineHeading';
+import { useKeepAliveContext } from 'keepalive-for-react';
 
 interface BanknoteGroupsProps {
   groups: {
@@ -77,6 +78,14 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
   const containerRef = useScrollRestoration(countryId, isLoading, showSultanGroups);
   const [selectedGroup, setSelectedGroup] = useState<BanknoteGroupData | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Keep-alive awareness: this page stays mounted when the user opens a banknote
+  // detail, so the group dialog (a portal to document.body) would otherwise stay
+  // visible over the detail page. Gate the dialog on this cached instance being
+  // active. Outside any <KeepAlive> (empty _cacheKey) we keep prior behavior.
+  const { active, _cacheKey } = useKeepAliveContext();
+  const inKeepAlive = _cacheKey !== '';
+  const isDialogVisible = dialogOpen && (!inKeepAlive || active);
   const [forceUpdate, setForceUpdate] = useState(0);
   const { direction } = useLanguage();
 
@@ -335,7 +344,7 @@ export const BanknoteGroups: React.FC<BanknoteGroupsProps> = ({
       
       {selectedGroup && (
         <BanknoteGroupDialog
-          isOpen={dialogOpen}
+          isOpen={isDialogVisible}
           onClose={handleCloseDialog}
           groupBaseNumber={selectedGroup.baseNumber}
           banknotes={selectedGroup.items}

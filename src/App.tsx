@@ -1,5 +1,5 @@
-import { Routes, Route, useLocation } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useLocation, type RouteObject } from "react-router-dom";
+import { CachedRoutes } from "@/CachedRoutes";
 import { Toaster } from "@/components/ui/toaster";
 import { HelmetProvider } from 'react-helmet-async';
 import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
@@ -65,14 +65,56 @@ import { statisticsService } from '@/services/statisticsService';
 import TestCleanup from "./pages/TestCleanup";
 import SEOChecker from "@/components/seo/SEOChecker";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
-    },
-  },
-});
+// Route table as config objects so <CachedRoutes> can render the active page
+// through a single <KeepAlive> boundary. Routes with props keep them here.
+const appRoutes: RouteObject[] = [
+  { path: "/", element: <Index /> },
+  { path: "/home", element: <Home /> },
+  { path: "/auth", element: <Auth /> },
+  { path: "/catalog", element: <Catalog /> },
+  { path: "/catalog/:country", element: <CountryDetail /> },
+  { path: "/banknote-details/:id", element: <BanknoteCatalogDetail /> },
+  { path: "/catalog-banknote/:id", element: <BanknoteCatalogDetail /> },
+  { path: "/profile/:username", element: <Profile /> },
+  { path: "/profile/:username/:country", element: <Profile /> },
+  { path: "/collection", element: <CountrySelection /> },
+  { path: "/collectionNew/:country", element: <CountryDetailCollection onBackToCountries={() => {}} /> },
+  { path: "/collection/:countryId", element: <Collection /> },
+  { path: "/collection-item/:id", element: <CollectionItem /> },
+  { path: "/collection-item-unlisted/:id", element: <CollectionItemUnlisted /> },
+  { path: "/banknote-collection/:id", element: <BanknoteCollectionDetail isOwner={true} /> },
+  { path: "/collection-banknote/:id", element: <BanknoteCollectionDetail isOwner={true} /> },
+  { path: "/marketplace", element: <Marketplace /> },
+  { path: "/marketplace-item/:id", element: <MarketplaceItemDetail /> },
+  { path: "/marketplace-item-unlisted/:id", element: <MarketplaceItemDetailUnlisted /> },
+  { path: "/forum", element: <Forum /> },
+  { path: "/forum-post/:id", element: <ForumPost /> },
+  { path: "/create-forum-post", element: <CreateForumPost /> },
+  { path: "/create-forum-announcement", element: <CreateForumAnnouncement /> },
+  { path: "/forum-announcements", element: <ForumPostAnnouncements /> },
+  { path: "/messaging", element: <Messaging /> },
+  { path: "/messaging/:userId", element: <Messaging /> },
+  { path: "/members", element: <Members /> },
+  { path: "/admin", element: <Admin /> },
+  { path: "/community", element: <Community /> },
+  { path: "/settings", element: <Settings /> },
+  { path: "/delete-processed-images", element: <DeleteProcessedImages /> },
+  { path: "/admin/watermark-preview", element: <WatermarkPreview /> },
+  { path: "/about", element: <AboutUs /> },
+  { path: "/blog", element: <Blog /> },
+  { path: "/blog-post/:id", element: <BlogPost /> },
+  { path: "/create-blog-post", element: <CreateBlogPost /> },
+  { path: "/contact", element: <ContactUs /> },
+  { path: "/privacy", element: <PrivacyPolicy /> },
+  { path: "/privacy-policy", element: <PrivacyPolicy /> },
+  { path: "/cookie-policy", element: <CookiePolicy /> },
+  { path: "/reset-password", element: <ResetPassword /> },
+  { path: "/terms", element: <TermsOfService /> },
+  { path: "/terms-of-service", element: <TermsOfService /> },
+  { path: "/guide", element: <Guide /> },
+  { path: "/test-cleanup", element: <TestCleanup /> },
+  { path: "*", element: <NotFound /> },
+];
 
 function App() {
   const { i18n } = useTranslation();
@@ -96,60 +138,12 @@ function App() {
     <LanguageProvider>
       <ThemeProvider>
         <AuthProvider>
-          <QueryClientProvider client={queryClient}>
-            <HelmetProvider>
+          <HelmetProvider>
               <div data-theme={theme} className="flex flex-col min-h-screen">
                 <PageBackground>
                   <Navbar />
                   <main className="flex-grow">
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/home" element={<Home />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/catalog" element={<Catalog />} />
-                      <Route path="/catalog/:country" element={<CountryDetail />} />
-                      <Route path="/banknote-details/:id" element={<BanknoteCatalogDetail />} />
-                      <Route path="/catalog-banknote/:id" element={<BanknoteCatalogDetail />} />
-                      <Route path="/profile/:username" element={<Profile />} />
-                      <Route path="/profile/:username/:country" element={<Profile />} />
-                      <Route path="/collection" element={<CountrySelection />} />
-                      <Route path="/collectionNew/:country" element={<CountryDetailCollection onBackToCountries={() => {}} />} />
-                      <Route path="/collection/:countryId" element={<Collection />} />
-                      <Route path="/collection-item/:id" element={<CollectionItem />} />
-                      <Route path="/collection-item-unlisted/:id" element={<CollectionItemUnlisted />} />
-                      <Route path="/banknote-collection/:id" element={<BanknoteCollectionDetail isOwner={true} />} />
-                      <Route path="/collection-banknote/:id" element={<BanknoteCollectionDetail isOwner={true} />} />
-                      <Route path="/marketplace" element={<Marketplace />} />
-                      <Route path="/marketplace-item/:id" element={<MarketplaceItemDetail />} />
-                      <Route path="/marketplace-item-unlisted/:id" element={<MarketplaceItemDetailUnlisted />} />
-                      <Route path="/forum" element={<Forum />} />
-                      <Route path="/forum-post/:id" element={<ForumPost />} />
-                      <Route path="/create-forum-post" element={<CreateForumPost />} />
-                      <Route path="/create-forum-announcement" element={<CreateForumAnnouncement />} />
-                      <Route path="/forum-announcements" element={<ForumPostAnnouncements />} />
-                      <Route path="/messaging" element={<Messaging />} />
-                      <Route path="/messaging/:userId" element={<Messaging />} />
-                      <Route path="/members" element={<Members />} />
-                      <Route path="/admin" element={<Admin />} />
-                      <Route path="/community" element={<Community />} />
-                      <Route path="/settings" element={<Settings />} />
-                      <Route path="/delete-processed-images" element={<DeleteProcessedImages />} />
-                      <Route path="/admin/watermark-preview" element={<WatermarkPreview />} />
-                      <Route path="/about" element={<AboutUs />} />
-                      <Route path="/blog" element={<Blog />} />
-                      <Route path="/blog-post/:id" element={<BlogPost />} />
-                      <Route path="/create-blog-post" element={<CreateBlogPost />} />
-                      <Route path="/contact" element={<ContactUs />} />
-                      <Route path="/privacy" element={<PrivacyPolicy />} />
-                      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                      <Route path="/cookie-policy" element={<CookiePolicy />} />
-                      <Route path="/reset-password" element={<ResetPassword />} />
-                      <Route path="/terms" element={<TermsOfService />} />
-                      <Route path="/terms-of-service" element={<TermsOfService />} />
-                      <Route path="/guide" element={<Guide />} />
-                      <Route path="/test-cleanup" element={<TestCleanup />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
+                    <CachedRoutes routes={appRoutes} />
                   </main>
                   <CookieConsent />
                   <Footer />
@@ -161,7 +155,6 @@ function App() {
                 </PageBackground>
               </div>
             </HelmetProvider>
-          </QueryClientProvider>
         </AuthProvider>
       </ThemeProvider>
     </LanguageProvider>

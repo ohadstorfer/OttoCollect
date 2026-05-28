@@ -14,6 +14,7 @@ import { BanknoteGroupData } from '@/utils/banknoteGrouping';
 import { useBanknoteDialogState } from '@/hooks/use-banknote-dialog-state';
 import { useLanguage } from '@/context/LanguageContext';
 import { FitOneLineHeading } from '@/components/shared/FitOneLineHeading';
+import { useKeepAliveContext } from 'keepalive-for-react';
 
 interface CollectionGroupItem {
   type: 'single' | 'group';
@@ -107,6 +108,13 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
     count: number;
   } | null>(null);
   const [wishlistDialogOpen, setWishlistDialogOpen] = useState(false);
+
+  // Keep-alive: this page stays mounted when navigating to a detail, so the
+  // group dialogs (portals to document.body) would stay visible over it. Gate
+  // them on this cached instance being active. Outside <KeepAlive>, prior behavior.
+  const { active, _cacheKey } = useKeepAliveContext();
+  const inKeepAlive = _cacheKey !== '';
+  const isActivePage = !inKeepAlive || active;
   
   const {
     dialogState,
@@ -623,7 +631,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
       
       {selectedGroup && (
         <CollectionItemGroupDialog
-          isOpen={dialogOpen}
+          isOpen={dialogOpen && isActivePage}
           onClose={handleCloseDialog}
           groupBaseNumber={selectedGroup.baseNumber}
           collectionItems={selectedGroup.items}
@@ -636,7 +644,7 @@ export const CollectionItemsGroups: React.FC<CollectionItemsGroupsProps> = ({
       
       {selectedWishlistGroup && (
         <BanknoteDetailCardGroupDialogWishList
-          isOpen={wishlistDialogOpen}
+          isOpen={wishlistDialogOpen && isActivePage}
           onClose={handleCloseWishlistDialog}
           groupBaseNumber={selectedWishlistGroup.baseNumber}
           wishlistItems={selectedWishlistGroup.items}
