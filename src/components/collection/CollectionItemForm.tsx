@@ -73,7 +73,7 @@ const CollectionItemForm: React.FC<CollectionItemFormProps> = ({ item, onCancel,
               {item.banknote.country}, {item.banknote.year}
             </div>
             <div className="mt-1 text-sm">
-              Pick: {item.banknote.pickNumber || item.banknote.extendedPickNumber}
+              Pick: {item.banknote.pickNumber || item.banknote.newExtendedPickNumber || item.banknote.extendedPickNumber}
             </div>
           </div>
           <div>

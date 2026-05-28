@@ -31,5 +31,6 @@ export interface Banknote {
   type?: string;
   sultanName?: string;
   extendedPickNumber?: string;
+  newExtendedPickNumber?: string;
   category?: string;
 }

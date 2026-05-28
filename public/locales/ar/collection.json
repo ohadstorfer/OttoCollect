@@ -376,6 +376,7 @@
   "details": {
     "publicDetails": "التفاصيل العامة",
     "extendedPickNumber": "رقم بيك الموسع",
+    "newExtendedPickNumber": "رقم بيك الموسع الجديد",
     "pickNumber": "رقم بيك",
     "turkCatalogNumber": "رقم كتالوج تورك",
     "denomination": "الفئة",

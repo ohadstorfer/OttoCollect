@@ -564,7 +564,7 @@ export default function BanknoteCatalogDetail({ id: propsId }: BanknoteCatalogDe
       title: t('details.basicInformation'),
       icon: <Info className="h-5 w-5" />,
       fields: [
-        { label: t('details.extendedPickNumber'), value: banknote?.extendedPickNumber, icon: <Hash className="h-4 w-4" /> },
+        { label: t('details.extendedPickNumber'), value: banknote?.newExtendedPickNumber || banknote?.extendedPickNumber, icon: <Hash className="h-4 w-4" /> },
         { label: t('details.pickNumber'), value: banknote?.pickNumber, icon: <Hash className="h-4 w-4" /> },
         { label: getLocalizedTurkCatalogLabel(), value: banknote?.turkCatalogNumber, icon: <Hash className="h-4 w-4" /> },
         { label: t('details.faceValue'), value: banknote?.denomination, icon: <CircleDollarSign className="h-4 w-4" /> },

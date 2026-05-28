@@ -39,6 +39,7 @@ export interface EnhancedBanknote {
   country: string;
   extended_pick_number: string;
   pick_number: string;
+  new_extended_pick_number?: string;
   turk_catalog_number?: string;
   face_value: string;
   islamic_year?: string;
@@ -95,6 +96,7 @@ export interface DetailedBanknote {
   denomination: string;
   pickNumber?: string;
   extendedPickNumber?: string;
+  newExtendedPickNumber?: string;
   turkCatalogNumber?: string;
   category?: string;
   type?: string;

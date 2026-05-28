@@ -363,7 +363,7 @@ const BanknoteDetailCardMissingItems = ({
               <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
                 {banknote.extendedPickNumber && (
                   <Badge title={"Extended Pick Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                    {banknote.extendedPickNumber}
+                    {banknote.newExtendedPickNumber || banknote.extendedPickNumber}
                   </Badge>
                 )}
                 {banknote.turkCatalogNumber && (
@@ -456,7 +456,7 @@ const BanknoteDetailCardMissingItems = ({
             <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
               {banknote.extendedPickNumber && (
                 <Badge title={"Extended Pick Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                  {banknote.extendedPickNumber}
+                  {banknote.newExtendedPickNumber || banknote.extendedPickNumber}
                 </Badge>
               )}
               {banknote.turkCatalogNumber && (

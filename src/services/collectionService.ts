@@ -7,6 +7,7 @@ import { BanknoteCondition } from "@/types";
 import type { Database } from "@/integrations/supabase/types";
 import { mapBanknoteFromDatabase } from "@/services/banknoteService";
 import { processAndUploadImage } from './imageProcessingService';
+import { buildNewExtendedPickNumber } from "@/utils/pickNumber";
 
 export { processAndUploadImage } from './imageProcessingService';
 
@@ -41,6 +42,7 @@ export function normalizeBanknoteData(data: any, source: 'detailed' | 'unlisted'
       id: data.id,
       catalogId: data.catalog_id || '',
       extendedPickNumber: data.extended_pick_number || '',
+      newExtendedPickNumber: data.new_extended_pick_number || '',
       pickNumber: data.pick_number || '',
       turkCatalogNumber: data.turk_catalog_number || '',
       country: data.country || '',
@@ -1226,6 +1228,7 @@ export async function createUnlistedBanknoteWithCollectionItem(params: {
       country: params.country,
       extended_pick_number: params.extended_pick_number,
       pick_number: params.pick_number || null,
+      new_extended_pick_number: buildNewExtendedPickNumber(params.extended_pick_number, params.pick_number),
       turk_catalog_number: params.turk_catalog_number || null,
       face_value: params.face_value,
       gregorian_year: params.gregorian_year || null,
@@ -1365,6 +1368,7 @@ export async function updateUnlistedBanknoteWithCollectionItem(
         country: params.country,
         extended_pick_number: params.extended_pick_number,
         pick_number: params.pick_number,
+        new_extended_pick_number: buildNewExtendedPickNumber(params.extended_pick_number, params.pick_number),
         turk_catalog_number: params.turk_catalog_number,
         face_value: params.face_value,
         gregorian_year: params.gregorian_year,

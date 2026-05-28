@@ -534,7 +534,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
           {currentItem?.banknote && currentItem?.banknote.extendedPickNumber && (
             <div className="mt-1 p-2 bg-muted/50 rounded-lg border flex items-center gap-2 w-max">
               <p className="text-sm font-medium text-muted-foreground">{t('item.extendedPick')}</p>
-              <p className="text-lg font-medium">{currentItem.banknote.extendedPickNumber}</p>
+              <p className="text-lg font-medium">{currentItem.banknote.newExtendedPickNumber || currentItem.banknote.extendedPickNumber}</p>
             </div>
           )}
         </div>

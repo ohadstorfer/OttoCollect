@@ -89,7 +89,7 @@ export function BanknoteCatalogDetailMinimized({ banknote, onImageClick }: Bankn
       {banknote?.extendedPickNumber && (
         <div className={`flex items-center gap-x-2 border-b border-gray-100 py-1 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
           <span className={`text-sm font-medium text-muted-foreground w-32 ${direction === 'rtl' ? 'text-right' : ''}`}>{t('details.extendedPickNumber')}</span>
-          <span className={`text-base ${direction === 'rtl' ? 'text-right' : ''}`}>{banknote.extendedPickNumber}</span>
+          <span className={`text-base ${direction === 'rtl' ? 'text-right' : ''}`}>{banknote.newExtendedPickNumber || banknote.extendedPickNumber}</span>
         </div>
       )}
       {banknote?.pickNumber && (

@@ -131,7 +131,7 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
             {collectionItem.banknote?.extendedPickNumber && (
               <div className="flex items-center gap-x-2 border-b border-gray-100 py-0.5">
                 <span className="text-sm font-medium text-muted-foreground w-32 leading-tight">{t('details.extendedPickNumber')}</span>
-                <span className="text-base leading-tight">{collectionItem.banknote.extendedPickNumber}</span>
+                <span className="text-base leading-tight">{collectionItem.banknote.newExtendedPickNumber || collectionItem.banknote.extendedPickNumber}</span>
               </div>
             )}
             {collectionItem.banknote?.pickNumber && (

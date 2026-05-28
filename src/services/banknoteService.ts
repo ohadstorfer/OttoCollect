@@ -304,6 +304,7 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
   const {
     id,
     extended_pick_number,
+    new_extended_pick_number,
     country,
     face_value,
     gregorian_year,
@@ -416,6 +417,7 @@ export function mapBanknoteFromDatabase(item: any): DetailedBanknote {
     id,
     catalogId: extended_pick_number || '',
     extendedPickNumber: extended_pick_number || '',
+    newExtendedPickNumber: new_extended_pick_number || '',
     country: country || '',
     denomination: face_value || '',
     year: gregorian_year || '',

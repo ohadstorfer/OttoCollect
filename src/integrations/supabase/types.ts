@@ -1021,6 +1021,7 @@ export type Database = {
           is_approved: boolean | null
           is_pending: boolean | null
           islamic_year: string | null
+          new_extended_pick_number: string | null
           other_element_pictures: string[] | null
           pick_number: string
           printer: string | null
@@ -1060,6 +1061,7 @@ export type Database = {
           is_approved?: boolean | null
           is_pending?: boolean | null
           islamic_year?: string | null
+          new_extended_pick_number?: string | null
           other_element_pictures?: string[] | null
           pick_number: string
           printer?: string | null
@@ -1099,6 +1101,7 @@ export type Database = {
           is_approved?: boolean | null
           is_pending?: boolean | null
           islamic_year?: string | null
+          new_extended_pick_number?: string | null
           other_element_pictures?: string[] | null
           pick_number?: string
           printer?: string | null
@@ -2182,6 +2185,7 @@ export type Database = {
           is_pending: boolean | null
           islamic_year: string | null
           name: string | null
+          new_extended_pick_number: string | null
           other_element_pictures: string[] | null
           pick_number: string | null
           printer: string | null
@@ -2223,6 +2227,7 @@ export type Database = {
           is_pending?: boolean | null
           islamic_year?: string | null
           name?: string | null
+          new_extended_pick_number?: string | null
           other_element_pictures?: string[] | null
           pick_number?: string | null
           printer?: string | null
@@ -2264,6 +2269,7 @@ export type Database = {
           is_pending?: boolean | null
           islamic_year?: string | null
           name?: string | null
+          new_extended_pick_number?: string | null
           other_element_pictures?: string[] | null
           pick_number?: string | null
           printer?: string | null

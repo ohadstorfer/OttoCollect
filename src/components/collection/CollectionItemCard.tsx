@@ -300,7 +300,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
             <div className="p-0.5 gap-0.5 sm:gap-1.5 flex flex-wrap items-center text-sm mb-1 overflow-hidden">
               {item?.banknote?.extendedPickNumber && (
                 <Badge title={tWithFallback('extendedPickNumber', 'Extended Pick Number')} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                  {item.banknote.extendedPickNumber}
+                  {item.banknote.newExtendedPickNumber || item.banknote.extendedPickNumber}
                 </Badge>
               )}
               {item?.banknote?.turkCatalogNumber && (
@@ -364,7 +364,7 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
             <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm pt-2">
               {item.banknote.extendedPickNumber && (
                 <Badge title={tWithFallback('extendedPickNumber', 'Extended Pick Number')} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                  {item.banknote.extendedPickNumber}
+                  {item.banknote.newExtendedPickNumber || item.banknote.extendedPickNumber}
                 </Badge>
               )}
               {item.banknote.turkCatalogNumber && (

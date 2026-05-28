@@ -460,7 +460,7 @@ export default function CollectionItem() {
 
                   {collectionItem.banknote?.extendedPickNumber && (
                     <p className="text-xl leading-tight">
-                      {collectionItem.banknote.extendedPickNumber}
+                      {collectionItem.banknote.newExtendedPickNumber || collectionItem.banknote.extendedPickNumber}
                     </p>
                   )}
                 </div>

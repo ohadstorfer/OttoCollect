@@ -362,7 +362,7 @@ const MarketplaceItemDetail = () => {
                   </h2>
                   {banknote.extendedPickNumber && (
                     <span className="text-xl font-bold text-black-400">
-                      ({banknote.extendedPickNumber})
+                      ({banknote.newExtendedPickNumber || banknote.extendedPickNumber})
                     </span>
                   )}
                 </div>

@@ -428,7 +428,7 @@ const BanknoteDetailCardWishList = ({
               <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
                 {banknote.extended_pick_number && (
                   <Badge title={"Extended Pick Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                    {banknote.extended_pick_number}
+                    {banknote.new_extended_pick_number || banknote.extended_pick_number}
                   </Badge>
                 )}
                 {banknote.turk_catalog_number && (
@@ -521,7 +521,7 @@ const BanknoteDetailCardWishList = ({
             <div className="gap-0.5 sm:gap-1.5 sm:px-0 flex flex-wrap items-center text-sm">
               {banknote.extended_pick_number && (
                 <Badge title={"Extended Pick Number"} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight bg-muted text-muted-foreground border border-gray-300 shrink-0">
-                  {banknote.extended_pick_number}
+                  {banknote.new_extended_pick_number || banknote.extended_pick_number}
                 </Badge>
               )}
               {banknote.turk_catalog_number && (

@@ -27,6 +27,7 @@ import { processAndUploadImage } from '@/services/imageProcessingService';
 import BanknoteWatermarkPanel from '@/components/admin/BanknoteWatermarkPanel';
 import { useAuth } from '@/context/AuthContext';
 import { banknoteTranslationService } from '@/services/banknoteTranslationService';
+import { buildNewExtendedPickNumber } from '@/utils/pickNumber';
 
 
 interface BanknoteEditDialogProps {
@@ -50,6 +51,7 @@ const BanknoteEditDialog = ({
   const [formData, setFormData] = useState<any>({
     extended_pick_number: '',
     pick_number: '',
+    new_extended_pick_number: '',
     country: '',
     face_value: '',
     gregorian_year: '',
@@ -85,6 +87,9 @@ const BanknoteEditDialog = ({
     is_pending: false
   });
   
+  // Tracks whether the admin manually edited new_extended_pick_number, so the
+  // live auto-derivation stops overwriting their override.
+  const [newPickTouched, setNewPickTouched] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('basic');
   const [signaturesFront, setSignaturesFront] = useState<StampPicture[]>([]);
@@ -125,9 +130,14 @@ const BanknoteEditDialog = ({
   
   useEffect(() => {
     if (banknote && !isNew) {
+      const derivedNewPick = buildNewExtendedPickNumber(banknote.catalogId, banknote.pickNumber);
+      const storedNewPick = banknote.newExtendedPickNumber || '';
+      // Protect a stored manual override (value that differs from the rule).
+      setNewPickTouched(!!storedNewPick && storedNewPick !== derivedNewPick);
       setFormData({
         extended_pick_number: banknote.catalogId,
         pick_number: banknote.catalogId.split('-')[0] || '',
+        new_extended_pick_number: storedNewPick || derivedNewPick,
         country: banknote.country,
         face_value: banknote.denomination,
         gregorian_year: banknote.year,
@@ -321,10 +331,20 @@ const BanknoteEditDialog = ({
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => {
+      const next = { ...prev, [name]: value };
+      // Auto-derive new_extended_pick_number from extended/base pick, unless the
+      // admin already took over the field manually.
+      if ((name === 'extended_pick_number' || name === 'pick_number') && !newPickTouched) {
+        const ext = name === 'extended_pick_number' ? value : prev.extended_pick_number;
+        const base = name === 'pick_number' ? value : prev.pick_number;
+        next.new_extended_pick_number = buildNewExtendedPickNumber(ext, base);
+      }
+      return next;
+    });
+    if (name === 'new_extended_pick_number') {
+      setNewPickTouched(true);
+    }
   };
   
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -880,7 +900,20 @@ const BanknoteEditDialog = ({
                     required
                   />
                 </div>
-                
+
+                <div className="space-y-2">
+                  <Label htmlFor="new_extended_pick_number">new_extended_pick_number</Label>
+                  <Input
+                    id="new_extended_pick_number"
+                    name="new_extended_pick_number"
+                    value={formData.new_extended_pick_number}
+                    onChange={handleChange}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Auto: <code>p</code> + pick base + <code>.</code> + variante (ej. p55b.1). Editable para excepciones.
+                  </p>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="country">country</Label>
                   <Input
