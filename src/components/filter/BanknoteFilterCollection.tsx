@@ -5,9 +5,10 @@ import { DynamicFilterState } from "@/types/filter";
 import { 
   fetchCategoriesByCountryId, 
   fetchTypesByCountryId, 
-  fetchSortOptionsByCountryId, 
-  saveUserFilterPreferences, 
-  fetchUserFilterPreferences 
+  fetchSortOptionsByCountryId,
+  saveUserFilterPreferences,
+  fetchUserFilterPreferences,
+  fetchCountryDefaultPreferences
 } from "@/services/countryService";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -97,7 +98,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   preferencesLoaded: externalPreferencesLoaded = false
 }) => {
   const { toast } = useToast();
-  const { user: authUser } = useAuth();
+  const { user: authUser, loading: authLoading } = useAuth();
   const { t } = useTranslation(['filter']);
   
   // Memoize the fallback function to prevent infinite re-renders
@@ -122,31 +123,55 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   const initialLoadComplete = useRef(false);
   const ignoreNextGroupModeChange = useRef(false);
   const ignoreNextViewModeChange = useRef(false);
-  const isFetchingFilter = useRef(false);
   const lastCountryId = useRef("");
+  const lastUserState = useRef<string | null>(null); // Track viewer auth state changes
+  // Monotonic token identifying the latest load. A stale in-flight load
+  // discards its results so a newer (country, user) load always wins.
+  const loadGeneration = useRef(0);
 
 
 
   useEffect(() => {
-    // Skip if no countryId or if we're already fetching
-    if (!countryId || isFetchingFilter.current) return;
-    
-    // Skip if we already loaded options for this country
-    if (lastCountryId.current === countryId && initialLoadComplete.current) {
+    if (!countryId) return;
+    // Wait until auth resolves so we don't apply anonymous defaults first and
+    // then re-run once the real viewer arrives (flash + lost-preferences feel).
+    if (authLoading) return;
+    const currentUserState = authUser?.id || null;
+
+    // Reset the completion flag whenever the (country, user) key changes so a
+    // fresh load runs for the new key. Previously a load that completed while
+    // anonymous was never refreshed once `authUser` resolved, leaving the
+    // viewer's saved preferences unapplied.
+    if (lastUserState.current !== currentUserState || lastCountryId.current !== countryId) {
+      initialLoadComplete.current = false;
+    }
+
+    // Already fully loaded for this exact (country, user): nothing to do.
+    if (lastCountryId.current === countryId &&
+        lastUserState.current === currentUserState &&
+        initialLoadComplete.current) {
       return;
     }
-    
+
+    // Claim this run; any previous in-flight load discards its results via the
+    // generation checks below instead of being silently dropped.
+    const myGeneration = ++loadGeneration.current;
+    lastUserState.current = currentUserState;
+    lastCountryId.current = countryId;
+
     const loadFilterOptionsAndPreferences = async () => {
       setLoading(true);
-      isFetchingFilter.current = true;
-      
+
       try {
         const [categoriesData, typesData, sortOptionsData] = await Promise.all([
           fetchCategoriesByCountryId(countryId),
           fetchTypesByCountryId(countryId),
           fetchSortOptionsByCountryId(countryId)
         ]);
-        
+
+        // A newer load started while we awaited: abandon this stale one.
+        if (myGeneration !== loadGeneration.current) return;
+
         const mappedCategories = categoriesData.map(cat => ({
           id: cat.id,
           name: cat.name,
@@ -210,37 +235,55 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         setSortOptions(mappedSortOptions);
         
         let userPreferences = null;
+        // Admin-configured defaults for brand-new users. Used as the fallback
+        // when a logged-in viewer has NO saved row yet (instead of hardcoded
+        // "all"). Never overrides an existing row.
+        let newUserDefaults: Awaited<ReturnType<typeof fetchCountryDefaultPreferences>> = null;
         if (authUser) {
           try {
             userPreferences = await fetchUserFilterPreferences(authUser.id, countryId);
-            
-            // Set group mode if it's defined in preferences, but only during initial load
-            // and only notify the parent if the value is different from current groupMode
-            if (userPreferences && 
-                typeof userPreferences.group_mode === 'boolean' && 
-                onGroupModeChange && 
-                userPreferences.group_mode !== groupMode && 
-                !initialLoadComplete.current) {
-              
-              // Set a flag to ignore the next group mode change to prevent infinite loops
-              ignoreNextGroupModeChange.current = true;
-              
-              // Call the parent's onGroupModeChange
-              onGroupModeChange(userPreferences.group_mode);
+            // Abandon if a newer (country, user) load superseded us mid-fetch.
+            if (myGeneration !== loadGeneration.current) return;
+
+            // No saved row yet: fall back to the admin 'new_user' defaults so
+            // admin-defined defaults reach users who never customized.
+            if (!userPreferences) {
+              try {
+                newUserDefaults = await fetchCountryDefaultPreferences(countryId, 'new_user');
+              } catch (err) {
+                console.error("Error loading country new_user defaults:", err);
+              }
+              if (myGeneration !== loadGeneration.current) return;
             }
 
-            // Set view mode if it's defined in preferences, but only during initial load
-            if (userPreferences && 
-                userPreferences.view_mode && 
-                onViewModeChange && 
+            // Group mode: prefer the user's row, fall back to admin defaults.
+            const resolvedGroupMode =
+              userPreferences && typeof userPreferences.group_mode === 'boolean'
+                ? userPreferences.group_mode
+                : (newUserDefaults && typeof newUserDefaults.group_mode === 'boolean'
+                    ? newUserDefaults.group_mode
+                    : undefined);
+            if (typeof resolvedGroupMode === 'boolean' &&
+                onGroupModeChange &&
+                resolvedGroupMode !== groupMode &&
                 !initialLoadComplete.current) {
-              
-              
-              // Set a flag to ignore the next view mode change to prevent infinite loops
+              ignoreNextGroupModeChange.current = true;
+              onGroupModeChange(resolvedGroupMode);
+            }
+
+            // View mode: prefer the user's row, fall back to admin defaults.
+            const resolvedViewMode =
+              (userPreferences && userPreferences.view_mode)
+                ? userPreferences.view_mode
+                : (newUserDefaults && newUserDefaults.view_mode
+                    ? newUserDefaults.view_mode
+                    : undefined);
+            if (resolvedViewMode &&
+                onViewModeChange &&
+                !initialLoadComplete.current) {
               ignoreNextViewModeChange.current = true;
-              
-              setViewMode(userPreferences.view_mode);
-              onViewModeChange(userPreferences.view_mode);
+              setViewMode(resolvedViewMode);
+              onViewModeChange(resolvedViewMode);
             }
           } catch (err) {
             console.error("Error fetching user preferences:", err);
@@ -272,21 +315,39 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         }
           
         if (userPreferences && !initialLoadComplete.current) {
-          const sortFieldNames = userPreferences.selected_sort_options
+          // Validate saved IDs against the country's CURRENT definitions.
+          // If the admin edited/recreated categories or types their UUIDs
+          // change, leaving the user's saved IDs orphaned -> the collection
+          // would filter down to nothing and render empty. Fall back to "all"
+          // when the saved selection no longer matches anything.
+          const validCategoryIds = new Set(mappedCategories.map(c => c.id));
+          const validTypeIds = new Set(mappedTypes.map(t => t.id));
+          const validUserCategories = (userPreferences.selected_categories || [])
+            .filter(id => validCategoryIds.has(id));
+          const validUserTypes = (userPreferences.selected_types || [])
+            .filter(id => validTypeIds.has(id));
+          const resolvedCategories = validUserCategories.length > 0
+            ? validUserCategories
+            : mappedCategories.map(cat => cat.id);
+          const resolvedTypes = validUserTypes.length > 0
+            ? validUserTypes
+            : mappedTypes.map(t => t.id);
+
+          const sortFieldNames = (userPreferences.selected_sort_options || [])
             .map(sortId => {
               const option = sortOptionsData.find(opt => opt.id === sortId);
               return option ? option.field_name : null;
             })
             .filter(Boolean) as string[];
-          
+
           // Ensure extPick is always included in the sort, after user choices
           const finalSortFields = Array.from(
             new Set([...sortFieldNames, ...requiredSortFields])
           );
-          
+
           onFilterChange({
-            categories: userPreferences.selected_categories,
-            types: userPreferences.selected_types,
+            categories: resolvedCategories,
+            types: resolvedTypes,
             sort: finalSortFields,
           });
 
@@ -298,14 +359,37 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
           // Mark preferences as loaded
           setInternalPreferencesLoaded(true);
         } else if (!initialLoadComplete.current) {
-          // Set default filters if no user preferences are found
-          const defaultCategoryIds = mappedCategories.map(cat => cat.id);
-          // Select ALL types by default for both authenticated and unauthenticated users
-          const defaultTypeIds = mappedTypes.map(t => t.id);
-            
-          // For new users, default to sorting by extPick only since it comes pre-sorted from the DB
-          const defaultSort = ['extPick']; // Remove faceValue from default sort
-          
+          // No saved row. For a logged-in viewer apply the admin 'new_user'
+          // defaults if set; otherwise (or for anonymous viewers) fall back to
+          // "all selected".
+          let defaultCategoryIds = mappedCategories.map(cat => cat.id);
+          let defaultTypeIds = mappedTypes.map(t => t.id);
+          let defaultSort: string[] = ['extPick'];
+
+          if (authUser && newUserDefaults) {
+            if (Array.isArray(newUserDefaults.selected_categories) && newUserDefaults.selected_categories.length > 0) {
+              const valid = new Set(mappedCategories.map(c => c.id));
+              const filtered = newUserDefaults.selected_categories.filter(id => valid.has(id));
+              if (filtered.length > 0) defaultCategoryIds = filtered;
+            }
+            if (Array.isArray(newUserDefaults.selected_types) && newUserDefaults.selected_types.length > 0) {
+              const valid = new Set(mappedTypes.map(t => t.id));
+              const filtered = newUserDefaults.selected_types.filter(id => valid.has(id));
+              if (filtered.length > 0) defaultTypeIds = filtered;
+            }
+            if (Array.isArray(newUserDefaults.selected_sort_options) && newUserDefaults.selected_sort_options.length > 0) {
+              const fieldNames = newUserDefaults.selected_sort_options
+                .map(sortId => {
+                  const option = sortOptionsData.find(opt => opt.id === sortId);
+                  return option ? option.field_name : null;
+                })
+                .filter(Boolean) as string[];
+              if (fieldNames.length > 0) {
+                defaultSort = Array.from(new Set([...fieldNames, ...requiredSortFields]));
+              }
+            }
+          }
+
           onFilterChange({
             categories: defaultCategoryIds,
             types: defaultTypeIds,
@@ -327,6 +411,8 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
         ignoreNextGroupModeChange.current = false;
         lastCountryId.current = countryId;
       } catch (error) {
+        // Ignore failures from a load that has already been superseded.
+        if (myGeneration !== loadGeneration.current) return;
         console.error("Error loading filter options:", error);
         toast({
           title: "Error",
@@ -334,14 +420,16 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
           variant: "destructive",
         });
       } finally {
-        setLoading(false);
-        isFetchingFilter.current = false;
+        // Only the current load controls the shared loading flag.
+        if (myGeneration === loadGeneration.current) {
+          setLoading(false);
+        }
       }
     };
 
     loadFilterOptionsAndPreferences();
     // groupMode is NOT included in the dependency array because it would cause infinite loops
-  }, [countryId, authUser, onFilterChange, toast, onGroupModeChange, onPreferencesLoaded]); // groupMode removed from dependencies
+  }, [countryId, authUser, authLoading, onFilterChange, toast, onGroupModeChange, onPreferencesLoaded]); // groupMode removed from dependencies
 
   const handleFilterChange = React.useCallback((newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {

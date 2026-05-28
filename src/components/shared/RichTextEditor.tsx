@@ -9,6 +9,9 @@ import TextStyle from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import Placeholder from '@tiptap/extension-placeholder';
 import { LineHeight } from '@/components/shared/editor/LineHeight';
+import { FontSize } from '@/components/shared/editor/FontSize';
+import { ParagraphSpacing } from '@/components/shared/editor/ParagraphSpacing';
+import { ColorPalette } from '@/components/shared/editor/ColorPalette';
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   Heading1, Heading2, Heading3,
@@ -16,6 +19,7 @@ import {
   AlignLeft, AlignCenter, AlignRight,
   Link2, Link2Off, Image as ImageIcon, Loader2,
   Undo2, Redo2, AlignVerticalSpaceAround, ChevronDown,
+  Type, Pilcrow,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +31,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const LINE_HEIGHTS = ['0.5', '0.75', '1', '1.15', '1.5', '2', '2.5', '3'];
+const FONT_SIZES = ['12px', '14px', '16px', '18px', '20px', '24px', '30px', '36px'];
+// Labelled space-after-paragraph options (CSS margin-bottom values).
+const PARAGRAPH_SPACINGS: { label: string; value: string }[] = [
+  { label: 'None', value: '0' },
+  { label: 'XS', value: '0.25em' },
+  { label: 'S', value: '0.5em' },
+  { label: 'M', value: '0.75em' },
+  { label: 'L', value: '1em' },
+  { label: 'XL', value: '1.5em' },
+  { label: 'XXL', value: '2em' },
+];
 
 interface RichTextEditorProps {
   /** Current HTML value. */
@@ -89,6 +104,11 @@ function Toolbar({
   const currentLineHeight =
     (editor.getAttributes('paragraph').lineHeight as string | undefined) ||
     (editor.getAttributes('heading').lineHeight as string | undefined);
+  const currentFontSize = editor.getAttributes('textStyle').fontSize as string | undefined;
+  const currentSpacing =
+    (editor.getAttributes('paragraph').marginBottom as string | undefined) ||
+    (editor.getAttributes('heading').marginBottom as string | undefined);
+  const currentColor = editor.getAttributes('textStyle').color as string | undefined;
 
   const setLink = useCallback(() => {
     const previousUrl = editor.getAttributes('link').href as string | undefined;
@@ -158,6 +178,37 @@ function Toolbar({
         <Heading3 className="h-4 w-4" />
       </ToolbarButton>
 
+      {/* Font size */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            title="Text size"
+            aria-label="Text size"
+            onMouseDown={(e) => e.preventDefault()}
+            className="inline-flex h-8 items-center gap-0.5 rounded-md px-1.5 text-foreground transition-colors hover:bg-muted"
+          >
+            <Type className="h-4 w-4" />
+            <span className="text-xs tabular-nums">{currentFontSize ? parseInt(currentFontSize, 10) : '—'}</span>
+            <ChevronDown className="h-3 w-3" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="min-w-[5rem]">
+          {FONT_SIZES.map((s) => (
+            <DropdownMenuItem
+              key={s}
+              onSelect={() => editor.chain().focus().setFontSize(s).run()}
+              className={cn(currentFontSize === s && 'bg-muted font-medium')}
+            >
+              {parseInt(s, 10)}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuItem onSelect={() => editor.chain().focus().unsetFontSize().run()}>
+            Default
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       <Divider />
 
       <ToolbarButton title="Bullet list" onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')}>
@@ -185,12 +236,12 @@ function Toolbar({
         <AlignRight className="h-4 w-4" />
       </ToolbarButton>
 
-      {/* Line height */}
+      {/* Line spacing (within a paragraph) */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            title="Line spacing"
+            title="Line spacing (within a paragraph)"
             aria-label="Line spacing"
             onMouseDown={(e) => e.preventDefault()}
             className="inline-flex h-8 items-center gap-0.5 rounded-md px-1.5 text-foreground transition-colors hover:bg-muted"
@@ -212,6 +263,36 @@ function Toolbar({
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Paragraph spacing (gap after the paragraph) */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            title="Paragraph spacing (space between paragraphs)"
+            aria-label="Paragraph spacing"
+            onMouseDown={(e) => e.preventDefault()}
+            className="inline-flex h-8 items-center gap-0.5 rounded-md px-1.5 text-foreground transition-colors hover:bg-muted"
+          >
+            <Pilcrow className="h-4 w-4" />
+            <ChevronDown className="h-3 w-3" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="min-w-[7rem]">
+          {PARAGRAPH_SPACINGS.map((s) => (
+            <DropdownMenuItem
+              key={s.value}
+              onSelect={() => editor.chain().focus().setParagraphSpacing(s.value).run()}
+              className={cn(currentSpacing === s.value && 'bg-muted font-medium')}
+            >
+              {s.label}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuItem onSelect={() => editor.chain().focus().unsetParagraphSpacing().run()}>
+            Default
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       <Divider />
 
       <ToolbarButton title="Add link" onClick={setLink} active={editor.isActive('link')}>
@@ -222,21 +303,11 @@ function Toolbar({
       </ToolbarButton>
 
       {/* Text color */}
-      <label
-        className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-md hover:bg-muted"
-        title="Text color"
-      >
-        <span
-          className="h-4 w-4 rounded-sm border"
-          style={{ backgroundColor: (editor.getAttributes('textStyle').color as string) || '#000000' }}
-        />
-        <input
-          type="color"
-          className="sr-only"
-          value={(editor.getAttributes('textStyle').color as string) || '#000000'}
-          onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
-        />
-      </label>
+      <ColorPalette
+        value={currentColor}
+        onSelect={(color) => editor.chain().focus().setColor(color).run()}
+        onClear={() => editor.chain().focus().unsetColor().run()}
+      />
 
       {onImageUpload && (
         <>
@@ -298,8 +369,10 @@ export function RichTextEditor({
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer nofollow', target: '_blank' } }),
       ResizableImage.configure({ inline: true, HTMLAttributes: { class: 'rounded-md' } }),
       LineHeight.configure({ heights: LINE_HEIGHTS }),
+      ParagraphSpacing.configure({ spacings: PARAGRAPH_SPACINGS.map((s) => s.value) }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       TextStyle,
+      FontSize.configure({ sizes: FONT_SIZES }),
       Color,
       Placeholder.configure({ placeholder: placeholder || 'Write your content...' }),
     ],
@@ -308,7 +381,7 @@ export function RichTextEditor({
     editorProps: {
       attributes: {
         dir,
-        class: 'prose prose-sm dark:prose-invert max-w-none min-h-[200px] px-3 py-2 focus:outline-none prose-h1:text-[1.5em] prose-h2:text-[1.25em] prose-h3:text-[1.1em] prose-h1:font-bold prose-h2:font-bold prose-h3:font-bold',
+        class: 'rte-content prose prose-sm dark:prose-invert max-w-none min-h-[200px] px-3 py-2 focus:outline-none prose-h1:text-[1.5em] prose-h2:text-[1.25em] prose-h3:text-[1.1em] prose-h1:font-bold prose-h2:font-bold prose-h3:font-bold',
       },
       // Paste images directly with Ctrl/Cmd+V.
       handlePaste: (_view, event) => {

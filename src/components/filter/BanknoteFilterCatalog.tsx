@@ -67,8 +67,16 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
 
   
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { t } = useTranslation(['filter']);
+
+  // Per-country key for the filter snapshot in sessionStorage. The cached
+  // payload also stores the owner's user id; on restore we discard a snapshot
+  // that belongs to a different account (or to a logged-in user when viewing
+  // anonymously), which is how one account's saved view is kept from leaking
+  // to another sharing the same browser session.
+  const filtersCacheKey = `catalog-filters-${countryName}`;
+  const currentUserId = user?.id ?? null;
   
   // Memoize the fallback function to prevent infinite re-renders
   const tWithFallback = useMemo(() => {
@@ -91,41 +99,57 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
   const initialLoadComplete = useRef(false);
   const ignoreNextGroupModeChange = useRef(false);
   const ignoreNextViewModeChange = useRef(false);
-  const isFetchingFilter = useRef(false);
   const lastCountryId = useRef("");
   const lastUserState = useRef<string | null>(null); // Track user state changes
+  // Monotonic token identifying the latest load. An in-flight load whose token
+  // is no longer current discards its results, so a newer (country, user) load
+  // always wins instead of an older one silently dropping or overwriting it.
+  const loadGeneration = useRef(0);
 
   useEffect(() => {
+    if (!countryId) return;
+    // Wait until auth has resolved. Running while `user` is still null (auth is
+    // async on a hard refresh) would prematurely apply the anonymous defaults
+    // and then have to re-run once the real user arrives, causing a flash and
+    // the lost-preferences symptom.
+    if (authLoading) return;
     const currentUserState = user?.id || null;
-    
-    // Skip if no countryId or if we're already fetching
-    if (!countryId || isFetchingFilter.current) {
-      return;
-    }
-    
-    // Reset state if user changed (from null to user or vice versa)
-    if (lastUserState.current !== currentUserState) {
+
+    // Reset the completion flag whenever the (country, user) key changes so a
+    // fresh load runs for the new key.
+    if (lastUserState.current !== currentUserState || lastCountryId.current !== countryId) {
       initialLoadComplete.current = false;
-      lastCountryId.current = "";
-      lastUserState.current = currentUserState;
     }
-    
-    // Skip if we already loaded options for this country
-    if (lastCountryId.current === countryId && initialLoadComplete.current) {
+
+    // Already fully loaded for this exact (country, user): nothing to do.
+    if (lastCountryId.current === countryId &&
+        lastUserState.current === currentUserState &&
+        initialLoadComplete.current) {
       return;
     }
-    
+
+    // Claim this run. Any previous in-flight load is now stale and will discard
+    // its results via the generation checks below. This replaces the old
+    // `isFetchingFilter` early-return, which could DROP a load entirely - e.g.
+    // when `user` resolved while an anonymous load was still in flight, the
+    // user's real preferences were never fetched.
+    const myGeneration = ++loadGeneration.current;
+    lastUserState.current = currentUserState;
+    lastCountryId.current = countryId;
+
     const loadFilterOptionsAndPreferences = async () => {
       setLoading(true);
-      isFetchingFilter.current = true;
-      
+
       try {
         const [categoriesData, typesData, sortOptionsData] = await Promise.all([
           fetchCategoriesByCountryId(countryId),
           fetchTypesByCountryId(countryId),
           fetchSortOptionsByCountryId(countryId)
         ]);
-        
+
+        // A newer load started while we awaited: abandon this stale one.
+        if (myGeneration !== loadGeneration.current) return;
+
         const mappedCategories = categoriesData
           .filter(cat => cat.name !== tWithFallback('categories.unlistedBanknotes', 'Unlisted Banknotes'))
           .map(cat => ({
@@ -206,7 +230,7 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         let restoredFromCache = false;
         if (!initialLoadComplete.current) {
           try {
-            const cached = sessionStorage.getItem(`catalog-filters-${countryName}`);
+            const cached = sessionStorage.getItem(filtersCacheKey);
             if (cached) {
               const parsed = JSON.parse(cached) as {
                 categories?: string[];
@@ -216,15 +240,22 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
                 viewMode?: 'grid' | 'list';
                 groupMode?: boolean;
                 imagesOnly?: boolean;
+                userId?: string | null;
               };
+
+              // Owner of the cached snapshot. Discard it if it belongs to a
+              // different account, or to a logged-in user while viewing
+              // anonymously, so one account never restores another's view.
+              const cacheOwner = parsed.userId ?? null;
 
               // Validate cached IDs against current definitions
               const cachedCategories = (parsed.categories || []).filter(id => validCategoryIds.has(id));
               const cachedTypes = (parsed.types || []).filter(id => validTypeIds.has(id));
               const cachedSort = (parsed.sort || []).filter(f => validSortFieldNames.has(f));
 
-              // Only use cache if we have valid categories and types
-              if (cachedCategories.length > 0 && cachedTypes.length > 0) {
+              // Only use cache if it belongs to the current user and has valid
+              // categories and types.
+              if (cacheOwner === currentUserId && cachedCategories.length > 0 && cachedTypes.length > 0) {
                 // Ensure required sort fields are included
                 const finalSortFields = Array.from(
                   new Set([...cachedSort, ...requiredSortFields])
@@ -266,37 +297,66 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         if (!restoredFromCache) {
           let userPreferences = null;
           let anonDefaults: Awaited<ReturnType<typeof fetchCountryDefaultPreferences>> = null;
+          // Admin-configured defaults for brand-new users. Used as the fallback
+          // for a logged-in user who has NO saved preferences row yet (instead
+          // of the hardcoded "all"). Never overrides an existing row.
+          let newUserDefaults: Awaited<ReturnType<typeof fetchCountryDefaultPreferences>> = null;
           // Resolve the images-only preference per auth state. Default ON
           // for new users (no row) and anonymous users (no localStorage entry).
           let resolvedImagesOnly = true;
           if (user) {
             try {
               userPreferences = await fetchUserFilterPreferences(user.id, countryId);
+              // Abandon if a newer (country, user) load superseded us mid-fetch.
+              if (myGeneration !== loadGeneration.current) return;
+
+              // No saved row yet: fall back to the admin 'new_user' defaults so
+              // admin-defined defaults reach users who never customized.
+              if (!userPreferences) {
+                try {
+                  newUserDefaults = await fetchCountryDefaultPreferences(countryId, 'new_user');
+                } catch (err) {
+                  console.error("Error loading country new_user defaults:", err);
+                }
+                if (myGeneration !== loadGeneration.current) return;
+              }
+
+              // images-only: user row wins, else admin new_user default, else ON.
               if (userPreferences && typeof userPreferences.images_only === 'boolean') {
                 resolvedImagesOnly = userPreferences.images_only;
+              } else if (newUserDefaults && typeof newUserDefaults.images_only === 'boolean') {
+                resolvedImagesOnly = newUserDefaults.images_only;
               }
-              // Set group mode if it's defined in preferences, but only during initial load
-              if (userPreferences &&
-                  typeof userPreferences.group_mode === 'boolean' &&
+
+              // Group mode: prefer the user's row, fall back to admin defaults.
+              const resolvedGroupMode =
+                userPreferences && typeof userPreferences.group_mode === 'boolean'
+                  ? userPreferences.group_mode
+                  : (newUserDefaults && typeof newUserDefaults.group_mode === 'boolean'
+                      ? newUserDefaults.group_mode
+                      : undefined);
+              if (typeof resolvedGroupMode === 'boolean' &&
                   onGroupModeChange &&
-                  userPreferences.group_mode !== groupMode &&
+                  resolvedGroupMode !== groupMode &&
                   !initialLoadComplete.current) {
-
                 ignoreNextGroupModeChange.current = true;
-                onGroupModeChange(userPreferences.group_mode);
+                onGroupModeChange(resolvedGroupMode);
               }
 
-              // Set view mode if it's defined in preferences, but only during initial load
-              if (userPreferences &&
-                  userPreferences.view_mode &&
+              // View mode: prefer the user's row, fall back to admin defaults.
+              const resolvedViewMode =
+                (userPreferences && userPreferences.view_mode)
+                  ? userPreferences.view_mode
+                  : (newUserDefaults && newUserDefaults.view_mode
+                      ? newUserDefaults.view_mode
+                      : undefined);
+              if (resolvedViewMode &&
                   onViewModeChange &&
                   !initialLoadComplete.current) {
-
                 // Set a flag to ignore the next view mode change to prevent infinite loops
                 ignoreNextViewModeChange.current = true;
-
-                setViewMode(userPreferences.view_mode);
-                onViewModeChange(userPreferences.view_mode);
+                setViewMode(resolvedViewMode);
+                onViewModeChange(resolvedViewMode);
               }
             } catch (err) {
               console.error("Error fetching user preferences:", err);
@@ -323,6 +383,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
             } catch (err) {
               console.error("Error loading country anonymous defaults:", err);
             }
+            // Abandon if a newer (country, user) load superseded us mid-fetch.
+            if (myGeneration !== loadGeneration.current) return;
             if (anonDefaults && !imagesOnlyOverridden && typeof anonDefaults.images_only === 'boolean') {
               resolvedImagesOnly = anonDefaults.images_only;
             }
@@ -351,7 +413,23 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
           setImagesOnlyState(resolvedImagesOnly);
 
           if (userPreferences && !initialLoadComplete.current) {
-            const sortFieldNames = userPreferences.selected_sort_options
+            // Validate saved IDs against the country's CURRENT definitions.
+            // If the admin edited/recreated categories or types their UUIDs
+            // change, leaving the user's saved IDs orphaned -> the query would
+            // filter down to nothing and the catalog would render empty.
+            // Fall back to "all" when the saved selection no longer matches.
+            const validUserCategories = (userPreferences.selected_categories || [])
+              .filter(id => validCategoryIds.has(id));
+            const validUserTypes = (userPreferences.selected_types || [])
+              .filter(id => validTypeIds.has(id));
+            const resolvedCategories = validUserCategories.length > 0
+              ? validUserCategories
+              : mappedCategories.map(cat => cat.id);
+            const resolvedTypes = validUserTypes.length > 0
+              ? validUserTypes
+              : mappedTypes.map(t => t.id);
+
+            const sortFieldNames = (userPreferences.selected_sort_options || [])
               .map(sortId => {
                 const option = sortOptionsData.find(opt => opt.id === sortId);
                 return option ? option.field_name : null;
@@ -363,8 +441,8 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
             );
 
             onFilterChange({
-              categories: userPreferences.selected_categories,
-              types: userPreferences.selected_types,
+              categories: resolvedCategories,
+              types: resolvedTypes,
               sort: finalSortFields,
               imagesOnly: resolvedImagesOnly,
             });
@@ -406,12 +484,35 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
               imagesOnly: resolvedImagesOnly,
             });
           } else if (!initialLoadComplete.current && user && !userPreferences) {
-            // User is logged in but has no preferences - apply defaults
-            const defaultCategoryIds = mappedCategories.map(cat => cat.id);
-            // For authenticated users with no preferences, select ALL types by default
-            const defaultTypeIds = mappedTypes.map(t => t.id);
+            // Logged-in user with no saved row: apply the admin-configured
+            // 'new_user' defaults if set, otherwise fall back to "all selected".
+            let defaultCategoryIds = mappedCategories.map(cat => cat.id);
+            let defaultTypeIds = mappedTypes.map(t => t.id);
+            let defaultSort: string[] = ['extPick'];
 
-            const defaultSort = ['extPick'];
+            if (newUserDefaults) {
+              if (Array.isArray(newUserDefaults.selected_categories) && newUserDefaults.selected_categories.length > 0) {
+                const valid = new Set(mappedCategories.map(c => c.id));
+                const filtered = newUserDefaults.selected_categories.filter(id => valid.has(id));
+                if (filtered.length > 0) defaultCategoryIds = filtered;
+              }
+              if (Array.isArray(newUserDefaults.selected_types) && newUserDefaults.selected_types.length > 0) {
+                const valid = new Set(mappedTypes.map(t => t.id));
+                const filtered = newUserDefaults.selected_types.filter(id => valid.has(id));
+                if (filtered.length > 0) defaultTypeIds = filtered;
+              }
+              if (Array.isArray(newUserDefaults.selected_sort_options) && newUserDefaults.selected_sort_options.length > 0) {
+                const fieldNames = newUserDefaults.selected_sort_options
+                  .map(sortId => {
+                    const option = sortOptionsData.find(opt => opt.id === sortId);
+                    return option ? option.field_name : null;
+                  })
+                  .filter(Boolean) as string[];
+                if (fieldNames.length > 0) {
+                  defaultSort = Array.from(new Set([...fieldNames, ...requiredSortFields]));
+                }
+              }
+            }
 
             onFilterChange({
               categories: defaultCategoryIds,
@@ -433,26 +534,30 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
           onPreferencesLoaded();
         }
       } catch (error) {
+        // Ignore failures from a load that has already been superseded.
+        if (myGeneration !== loadGeneration.current) return;
         console.error("Error loading filter options:", error);
         toast({
           title: tWithFallback('errors.failedToLoadPreferences', 'Error'),
           description: tWithFallback('errors.failedToLoadPreferences', 'Failed to load filter options.'),
           variant: "destructive",
         });
-        
+
         // Even on error, call onPreferencesLoaded to prevent hanging
         if (onPreferencesLoaded) {
           onPreferencesLoaded();
         }
       } finally {
-        setLoading(false);
-        isFetchingFilter.current = false;
+        // Only the current load controls the shared loading flag.
+        if (myGeneration === loadGeneration.current) {
+          setLoading(false);
+        }
       }
     };
 
     loadFilterOptionsAndPreferences();
     // groupMode is NOT included in the dependency array because it would cause infinite loops
-  }, [countryId, user, onFilterChange, toast, onGroupModeChange]); // Removed onPreferencesLoaded from dependencies to prevent re-runs
+  }, [countryId, user, authLoading, onFilterChange, toast, onGroupModeChange]); // Removed onPreferencesLoaded from dependencies to prevent re-runs
 
   const handleFilterChange = React.useCallback((newFilters: Partial<DynamicFilterState>) => {
     if (newFilters.sort) {
@@ -520,8 +625,9 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
         viewMode,
         groupMode,
         imagesOnly: mergedImagesOnly,
+        userId: currentUserId,
       };
-      sessionStorage.setItem(`catalog-filters-${countryName}`, JSON.stringify(mergedFilters));
+      sessionStorage.setItem(filtersCacheKey, JSON.stringify(mergedFilters));
     } catch (e) {
       // sessionStorage may be full or unavailable
     }
@@ -551,11 +657,11 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
     try {
       sessionStorage.setItem(`viewMode-${countryId}`, JSON.stringify(mode));
       // Also update the full filter cache
-      const cached = sessionStorage.getItem(`catalog-filters-${countryName}`);
+      const cached = sessionStorage.getItem(filtersCacheKey);
       if (cached) {
         const parsed = JSON.parse(cached);
         parsed.viewMode = mode;
-        sessionStorage.setItem(`catalog-filters-${countryName}`, JSON.stringify(parsed));
+        sessionStorage.setItem(filtersCacheKey, JSON.stringify(parsed));
       }
     } catch (e) {
       // sessionStorage may be full or unavailable
@@ -604,11 +710,11 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
     try {
       sessionStorage.setItem(`groupMode-${countryId}`, JSON.stringify(mode));
       // Also update the full filter cache
-      const cached = sessionStorage.getItem(`catalog-filters-${countryName}`);
+      const cached = sessionStorage.getItem(filtersCacheKey);
       if (cached) {
         const parsed = JSON.parse(cached);
         parsed.groupMode = mode;
-        sessionStorage.setItem(`catalog-filters-${countryName}`, JSON.stringify(parsed));
+        sessionStorage.setItem(filtersCacheKey, JSON.stringify(parsed));
       }
     } catch (e) {
       // sessionStorage may be full or unavailable
@@ -680,11 +786,11 @@ export const BanknoteFilterCatalog: React.FC<BanknoteFilterCatalogProps> = memo(
 
     // Update the navigation cache so a page revisit keeps the choice.
     try {
-      const cached = sessionStorage.getItem(`catalog-filters-${countryName}`);
+      const cached = sessionStorage.getItem(filtersCacheKey);
       if (cached) {
         const parsed = JSON.parse(cached);
         parsed.imagesOnly = value;
-        sessionStorage.setItem(`catalog-filters-${countryName}`, JSON.stringify(parsed));
+        sessionStorage.setItem(filtersCacheKey, JSON.stringify(parsed));
       }
     } catch {
       // sessionStorage may be unavailable

@@ -155,16 +155,93 @@ serve(async (req)=>{
     console.log(`Found ${blogPosts.length} blog posts to process`);
     const generatedPages = [];
     const errors = [];
-    // Fetch marketplace items
+    // Fetch ALL available marketplace listings (listed + unlisted) with the
+    // collection item and its banknote source joined, mirroring the app's
+    // fetchMarketplaceItems. The service-role key bypasses RLS so these embeds read.
     console.log('Fetching marketplace items...');
-    const { data: marketplaceItems, error: marketplaceError } = await supabase.from('marketplace_items').select('*').order('created_at', {
-      ascending: false
-    }).limit(6);
+    const { data: marketplaceItemsRaw, error: marketplaceError } = await supabase
+      .from('marketplace_items')
+      .select(`
+        id, collection_item_id, seller_id, status, created_at, updated_at,
+        collection_items!inner (
+          id, user_id, banknote_id, unlisted_banknotes_id, is_unlisted_banknote,
+          condition, grade, grade_by, grade_condition_description,
+          sale_price, is_for_sale, public_note, obverse_image, reverse_image,
+          enhanced_banknotes_with_translations:banknote_id (*),
+          unlisted_banknotes:unlisted_banknotes_id (*)
+        )
+      `)
+      .eq('status', 'Available')
+      .order('created_at', { ascending: false });
     if (marketplaceError) {
       console.error('Error fetching marketplace items:', marketplaceError);
-    } else {
-      console.log(`Found ${marketplaceItems?.length || 0} marketplace items to process`);
     }
+    // Normalise into the nested shape the marketplace generators consume. The
+    // banknote object carries both camelCase (denomination/year/...) and
+    // snake_case (face_value/gregorian_year/...) keys so the existing HTML reads
+    // work for items sourced from either detailed or unlisted banknotes.
+    const sellerCache = new Map();
+    const marketplaceItems = [];
+    for (const mItem of (marketplaceItemsRaw || []) as any[]) {
+      // PostgREST returns a single object for this to-one embed at runtime even
+      // though the generated type widens it to an array — cast to read it.
+      const ci: any = mItem.collection_items;
+      if (!ci || !ci.is_for_sale) continue;
+      const src: any = ci.is_unlisted_banknote ? ci.unlisted_banknotes : ci.enhanced_banknotes_with_translations;
+      if (!src) continue;
+      const banknote = {
+        id: src.id,
+        denomination: src.face_value,
+        face_value: src.face_value,
+        country: src.country,
+        year: src.gregorian_year || src.islamic_year || '',
+        gregorian_year: src.gregorian_year,
+        islamic_year: src.islamic_year,
+        extendedPickNumber: src.extended_pick_number,
+        sultan: src.sultan_name,
+        printer: src.printer,
+        type: src.type,
+        category: src.category,
+        rarity: src.rarity,
+        security_element: src.security_element,
+        colors: src.colors,
+        dimensions: src.dimensions,
+        description: src.banknote_description,
+        historical_context: src.historical_description,
+        imageUrls: [
+          src.front_picture_watermarked || src.front_picture_thumbnail,
+          src.back_picture_watermarked || src.back_picture_thumbnail
+        ].filter(Boolean)
+      };
+      let seller = sellerCache.get(mItem.seller_id);
+      if (seller === undefined) {
+        const { data: sellerData } = await supabase
+          .from('profiles')
+          .select('id, username, rank, avatar_url')
+          .eq('id', mItem.seller_id)
+          .maybeSingle();
+        seller = sellerData || { id: mItem.seller_id, username: 'Unknown User', rank: 'Newbie Collector', avatar_url: null };
+        sellerCache.set(mItem.seller_id, seller);
+      }
+      marketplaceItems.push({
+        id: mItem.id,
+        status: mItem.status,
+        seller,
+        collectionItem: {
+          banknote,
+          condition: ci.condition,
+          salePrice: ci.sale_price,
+          publicNote: ci.public_note,
+          grade: ci.grade,
+          grade_by: ci.grade_by,
+          grade_condition_description: ci.grade_condition_description,
+          obverseImage: ci.obverse_image,
+          reverseImage: ci.reverse_image,
+          is_unlisted_banknote: ci.is_unlisted_banknote
+        }
+      });
+    }
+    console.log(`Found ${marketplaceItems.length} marketplace items to process`);
     // Fetch countries data (visible-only in incremental mode)
     console.log('Fetching countries...');
     let countryQuery = supabase.from('countries').select('*');
@@ -242,8 +319,11 @@ serve(async (req)=>{
     // Generate HTML for each marketplace item (skipped in incremental mode)
     if (!incremental) for (const item of marketplaceItems || []){
       try {
-        const html = generateMarketplaceItemHTML(item);
-        const fileName = `marketplace-item-${item.id}.html`;
+        const html = generateMarketplaceItemHTML(item, marketplaceItems);
+        const slug = item.collectionItem?.is_unlisted_banknote
+          ? `marketplace-item-unlisted-${item.id}`
+          : `marketplace-item-${item.id}`;
+        const fileName = `${slug}.html`;
         // Upload to storage bucket
         const { error: uploadError } = await supabase.storage.from('static-pages').upload(fileName, html, {
           contentType: 'text/html',
@@ -257,7 +337,7 @@ serve(async (req)=>{
             error: uploadError.message
           });
         } else {
-          generatedPages.push(`marketplace-item-${item.id}`);
+          generatedPages.push(slug);
         }
       } catch (itemError) {
         console.error(`Error processing marketplace item ${item.id}:`, itemError);
@@ -303,7 +383,7 @@ serve(async (req)=>{
     // Generate HTML for each forum post (skipped in incremental mode)
     if (!incremental) for (const post of forumPosts || []){
       try {
-        const html = generateForumPostHTML(post);
+        const html = generateForumPostHTML(post, [], forumPosts);
         const fileName = `forum-post-${post.id}.html`;
         // Upload to storage bucket
         const { error: uploadError } = await supabase.storage.from('static-pages').upload(fileName, html, {
@@ -519,7 +599,7 @@ serve(async (req)=>{
     // Generate HTML for each blog post (skipped in incremental mode)
     if (!incremental) for (const post of blogPosts || []){
       try {
-        const html = generateBlogPostHTML(post);
+        const html = generateBlogPostHTML(post, [], blogPosts);
         const fileName = `blog-post-${post.id}.html`;
         // Upload to storage bucket
         const { error: uploadError } = await supabase.storage.from('static-pages').upload(fileName, html, {
@@ -1494,7 +1574,7 @@ function generateForumPageHTML(forumPosts: any[] = [], announcements: any[] = []
       `;
     }
     return forumPosts.map((post: any)=>{
-      const postUrl = `/forum/post/${post.id}`;
+      const postUrl = `/forum-post/${post.id}`;
       const authorName = post.author?.username || post.author?.name || 'Unknown User';
       const authorAvatar = post.author?.avatar_url || post.author?.avatarUrl || '';
       const commentCount = post.commentCount || post.comment_count || post.reply_count || 0;
@@ -1557,7 +1637,7 @@ function generateForumPageHTML(forumPosts: any[] = [], announcements: any[] = []
       return '';
     }
     return announcements.map((announcement: any)=>{
-      const announcementUrl = `/forum/post/${announcement.id}`;
+      const announcementUrl = `/forum-post/${announcement.id}`;
       // Handle both direct foreign key relationship and transformed author object
       const authorData = announcement.author || (announcement.author_id ? announcement.author_id : null);
       const authorName = authorData?.username || authorData?.name || 'Admin';
@@ -1672,7 +1752,7 @@ function generateForumPageHTML(forumPosts: any[] = [], announcements: any[] = []
                 "name": announcement.author?.username || announcement.author?.name || 'Admin'
               },
               "datePublished": announcement.created_at,
-              "url": `https://ottocollect.com/forum/post/${announcement.id}`,
+              "url": `https://ottocollect.com/forum-post/${announcement.id}`,
               "interactionStatistic": {
                 "@type": "InteractionCounter",
                 "interactionType": "https://schema.org/ReplyAction",
@@ -1693,7 +1773,7 @@ function generateForumPageHTML(forumPosts: any[] = [], announcements: any[] = []
                 "name": post.author?.username || post.author?.name || 'Unknown User'
               },
               "datePublished": post.created_at,
-              "url": `https://ottocollect.com/forum/post/${post.id}`,
+              "url": `https://ottocollect.com/forum-post/${post.id}`,
               "interactionStatistic": {
                 "@type": "InteractionCounter",
                 "interactionType": "https://schema.org/ReplyAction",
@@ -3024,7 +3104,7 @@ function generateBlogPageHTML(blogPosts: any[] = []) {
       `;
     }
     return blogPosts.map((post: any) => {
-      const postUrl = `/blog/post/${post.id}`;
+      const postUrl = `/blog-post/${post.id}`;
       const authorName = post.author?.username || post.author?.name || 'Anonymous';
       const authorAvatar = post.author?.avatar_url || post.author?.avatarUrl || '';
       const commentCount = post.commentCount || post.comment_count || 0;
@@ -3116,11 +3196,11 @@ function generateBlogPageHTML(blogPosts: any[] = []) {
         },
         "datePublished": post.created_at,
         "dateModified": post.updated_at || post.created_at,
-        "url": `https://ottocollect.com/blog/post/${post.id}`,
+        "url": `https://ottocollect.com/blog-post/${post.id}`,
         "image": post.featured_image || post.main_image_url || post.image_url || imageUrl,
         "mainEntityOfPage": {
           "@type": "WebPage",
-          "@id": `https://ottocollect.com/blog/post/${post.id}`
+          "@id": `https://ottocollect.com/blog-post/${post.id}`
         },
         "interactionStatistic": {
           "@type": "InteractionCounter",
@@ -3147,7 +3227,7 @@ function generateBlogPageHTML(blogPosts: any[] = []) {
             },
             "datePublished": post.created_at,
             "dateModified": post.updated_at || post.created_at,
-            "url": `https://ottocollect.com/blog/post/${post.id}`,
+            "url": `https://ottocollect.com/blog-post/${post.id}`,
             "image": post.featured_image || post.main_image_url || post.image_url || imageUrl
           }
         })) : []
@@ -3573,7 +3653,7 @@ function generateBlogPageHTML(blogPosts: any[] = []) {
 </body>
 </html>`;
 }
-function generateForumPostHTML(post, comments = []) {
+function generateForumPostHTML(post, comments = [], allPosts: any[] = []) {
   const imageUrl = post.image_url || 'https://ottocollect.com/web-app-manifest-512x512.png';
   const title = `${post.title} - OttoCollect Forum`;
   const description = post.content ? post.content.substring(0, 160) + '...' : `Forum discussion: ${post.title}`;
@@ -3644,7 +3724,7 @@ function generateForumPostHTML(post, comments = []) {
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="article">
-  <meta property="og:url" content="https://ottocollect.com/forum/post/${post.id}">
+  <meta property="og:url" content="https://ottocollect.com/forum-post/${post.id}">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
@@ -3654,14 +3734,14 @@ function generateForumPostHTML(post, comments = []) {
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://ottocollect.com/forum/post/${post.id}">
+  <meta name="twitter:url" content="https://ottocollect.com/forum-post/${post.id}">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
   <meta name="twitter:creator" content="@OttoCollect">
   
   <!-- Canonical URL -->
-  <link rel="canonical" href="https://ottocollect.com/forum/post/${post.id}">
+  <link rel="canonical" href="https://ottocollect.com/forum-post/${post.id}">
   
   <!-- CSS matching the exact layout from ForumPost.tsx -->
   <style>
@@ -4116,17 +4196,31 @@ function generateForumPostHTML(post, comments = []) {
         ${generateComments(comments)}
       </div>
     </div>
+
+    <!-- Related discussions: internal links so every forum post is reachable from others (SEO) -->
+    ${(() => {
+      const related = (allPosts || []).filter((p: any) => p && p.id !== post.id).slice(0, 6);
+      if (related.length === 0) return '';
+      return `
+    <nav class="related-posts" style="max-width:800px;margin:32px auto 0;padding:0;">
+      <h2 style="font-size:1.1rem;margin-bottom:12px;"><span>More discussions</span></h2>
+      <ul style="list-style:none;padding:0;margin:0;display:grid;gap:8px;">
+        ${related.map((p: any) => `<li><a href="/forum-post/${p.id}" rel="related">${p.title}</a></li>`).join('')}
+      </ul>
+      <p style="margin-top:12px;"><a href="/forum">Browse all forum discussions</a></p>
+    </nav>`;
+    })()}
   </div>
-  
+
   <div class="redirect-notice">
-    <p>If you are not redirected automatically, <a href="/forum/post/${post.id}">click here to view the interactive version</a>.</p>
+    <p>If you are not redirected automatically, <a href="/forum-post/${post.id}">click here to view the interactive version</a>.</p>
   </div>
 
   <!-- No redirects for crawlers -->
   <script>
     if (!navigator.userAgent.match(/bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i)) {
       setTimeout(() => {
-        window.location.replace('/forum/post/${post.id}');
+        window.location.replace('/forum-post/${post.id}');
       }, 100);
     }
   </script>
@@ -5085,7 +5179,7 @@ function generateCountryPageHTML(countryData, banknotes) {
 </body>
 </html>`;
 }
-function generateBlogPostHTML(post, comments = []) {
+function generateBlogPostHTML(post, comments = [], allPosts: any[] = []) {
   const imageUrl = post.featured_image || post.main_image_url || 'https://ottocollect.com/web-app-manifest-512x512.png';
   const title = `${post.title} - OttoCollect Blog`;
   const description = post.excerpt || (post.content ? post.content.substring(0, 160) + '...' : `Blog post: ${post.title}`);
@@ -5147,7 +5241,7 @@ function generateBlogPostHTML(post, comments = []) {
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="article">
-  <meta property="og:url" content="https://ottocollect.com/blog/post/${post.id}">
+  <meta property="og:url" content="https://ottocollect.com/blog-post/${post.id}">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
@@ -5157,14 +5251,14 @@ function generateBlogPostHTML(post, comments = []) {
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://ottocollect.com/blog/post/${post.id}">
+  <meta name="twitter:url" content="https://ottocollect.com/blog-post/${post.id}">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
   <meta name="twitter:creator" content="@OttoCollect">
   
   <!-- Canonical URL -->
-  <link rel="canonical" href="https://ottocollect.com/blog/post/${post.id}">
+  <link rel="canonical" href="https://ottocollect.com/blog-post/${post.id}">
   
   <!-- CSS matching the exact layout from BlogPost.tsx -->
   <style>
@@ -5649,17 +5743,31 @@ function generateBlogPostHTML(post, comments = []) {
         </div>
       </div>
     </div>
+
+    <!-- Related articles: internal links so every blog post is reachable from others (SEO) -->
+    ${(() => {
+      const related = (allPosts || []).filter((p: any) => p && p.id !== post.id).slice(0, 6);
+      if (related.length === 0) return '';
+      return `
+    <nav class="related-posts" style="max-width:800px;margin:32px auto 0;padding:0;">
+      <h2 style="font-size:1.1rem;margin-bottom:12px;"><span>More articles</span></h2>
+      <ul style="list-style:none;padding:0;margin:0;display:grid;gap:8px;">
+        ${related.map((p: any) => `<li><a href="/blog-post/${p.id}" rel="related">${p.title}</a></li>`).join('')}
+      </ul>
+      <p style="margin-top:12px;"><a href="/blog">Browse all blog articles</a></p>
+    </nav>`;
+    })()}
   </div>
-  
+
   <div class="redirect-notice">
-    <p>If you are not redirected automatically, <a href="/blog/post/${post.id}">click here to view the interactive version</a>.</p>
+    <p>If you are not redirected automatically, <a href="/blog-post/${post.id}">click here to view the interactive version</a>.</p>
   </div>
 
   <!-- No redirects for crawlers -->
   <script>
     if (!navigator.userAgent.match(/bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i)) {
       setTimeout(() => {
-        window.location.replace('/blog/post/${post.id}');
+        window.location.replace('/blog-post/${post.id}');
       }, 100);
     }
   </script>
@@ -5698,7 +5806,7 @@ function generateHomePageHTML(forumPosts, marketplaceItems1, countries) {
         <div class="post-stats">
           <span class="post-replies">${post.commentCount || post.reply_count || 0} replies</span>
         </div>
-        <a href="/forum/post/${post.id}" itemprop="url" class="post-link">Read full discussion</a>
+        <a href="/forum-post/${post.id}" itemprop="url" class="post-link">Read full discussion</a>
       </div>
     `;
     }).join('');
@@ -5713,24 +5821,29 @@ function generateHomePageHTML(forumPosts, marketplaceItems1, countries) {
       `;
     }
     return marketplaceItems1.slice(0, 6).map((item)=>{
-      const itemDescription = item.description || item.banknote_description || `${item.title} - Authentic Ottoman Empire banknote`;
+      const ci = item.collectionItem;
+      if (!ci || !ci.banknote) return '';
+      const bn = ci.banknote;
+      const itemTitle = `${bn.denomination || ''} ${bn.country || ''}${bn.year ? `, ${bn.year}` : ''}`.trim() || 'Marketplace Item';
+      const itemDescription = bn.description || `${itemTitle} - Authentic Ottoman Empire banknote`;
+      const itemImage = ci.obverseImage || bn.imageUrls?.[0] || 'https://ottocollect.com/OttoCollectIcon.PNG';
       return `
       <div class="marketplace-item-card" itemscope itemtype="https://schema.org/Product">
         <div class="item-image">
-          <img src="${item.image_url || item.banknote_image || 'https://ottocollect.com/OttoCollectIcon.PNG'}" alt="${item.title || 'Marketplace Item'}" itemprop="image">
+          <img src="${itemImage}" alt="${itemTitle}" itemprop="image">
         </div>
         <div class="item-info">
-          <h3 class="item-title" itemprop="name">${item.title || 'Untitled Item'}</h3>
+          <h3 class="item-title" itemprop="name"><span>${itemTitle}</span></h3>
           <p class="item-description" itemprop="description">${itemDescription.length > 100 ? itemDescription.substring(0, 100) + '...' : itemDescription}</p>
           <p class="item-price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
-            <span itemprop="price">${item.price || 'Price on request'}</span>
-            <span itemprop="priceCurrency">${item.currency || 'USD'}</span>
+            <span itemprop="price">${ci.salePrice || 'Price on request'}</span>
+            <span itemprop="priceCurrency">USD</span>
           </p>
           <p class="item-seller" itemprop="seller" itemscope itemtype="https://schema.org/Person">
-            Seller: <span itemprop="name">${item.seller_name || item.seller?.username || 'Anonymous'}</span>
+            Seller: <span itemprop="name">${item.seller?.username || 'Anonymous'}</span>
           </p>
-          ${item.condition ? `<p class="item-condition" itemprop="itemCondition">Condition: ${item.condition}</p>` : ''}
-          <a href="/marketplace-item/${item.id}" itemprop="url" class="item-link">View item details</a>
+          ${ci.condition ? `<p class="item-condition" itemprop="itemCondition">Condition: ${ci.condition}</p>` : ''}
+          <a href="${marketplaceItemPath(item)}" itemprop="url" class="item-link">View item details</a>
         </div>
       </div>
     `;
@@ -5804,7 +5917,7 @@ function generateHomePageHTML(forumPosts, marketplaceItems1, countries) {
           "name": post.author?.username || post.author_name || 'Anonymous'
         },
         "datePublished": post.created_at,
-        "url": `https://ottocollect.com/forum/post/${post.id}`,
+        "url": `https://ottocollect.com/forum-post/${post.id}`,
         "interactionStatistic": {
           "@type": "InteractionCounter",
           "interactionType": "https://schema.org/ReplyAction",
@@ -5814,28 +5927,33 @@ function generateHomePageHTML(forumPosts, marketplaceItems1, countries) {
     })) : [];
 
     // Marketplace items structured data
-    const marketplaceItemsList = marketplaceItems1 && marketplaceItems1.length > 0 ? marketplaceItems1.slice(0, 6).map((item, index) => ({
+    const marketplaceItemsList = marketplaceItems1 && marketplaceItems1.length > 0 ? marketplaceItems1.slice(0, 6).map((item, index) => {
+      const ci = item.collectionItem || {};
+      const bn = ci.banknote || {};
+      const itemTitle = `${bn.denomination || ''} ${bn.country || ''}${bn.year ? `, ${bn.year}` : ''}`.trim() || 'Marketplace Item';
+      return {
       "@type": "ListItem",
       "position": index + 1,
       "item": {
         "@type": "Product",
-        "name": item.title || 'Marketplace Item',
-        "description": item.description || item.banknote_description || `${item.title} - Authentic Ottoman Empire banknote`,
-        "image": item.image_url || item.banknote_image || 'https://ottocollect.com/OttoCollectIcon.PNG',
+        "name": itemTitle,
+        "description": bn.description || `${itemTitle} - Authentic Ottoman Empire banknote`,
+        "image": ci.obverseImage || bn.imageUrls?.[0] || 'https://ottocollect.com/OttoCollectIcon.PNG',
         "offers": {
           "@type": "Offer",
-          "price": item.price || '0',
-          "priceCurrency": item.currency || 'USD',
+          "price": ci.salePrice || '0',
+          "priceCurrency": 'USD',
           "availability": item.status === 'sold' ? "https://schema.org/SoldOut" : "https://schema.org/InStock"
         },
         "seller": {
           "@type": "Person",
-          "name": item.seller_name || item.seller?.username || 'Anonymous'
+          "name": item.seller?.username || 'Anonymous'
         },
-        "itemCondition": item.condition ? `https://schema.org/${item.condition}` : undefined,
-        "url": `https://ottocollect.com/marketplace-item/${item.id}`
+        "itemCondition": ci.condition ? `https://schema.org/${ci.condition}` : undefined,
+        "url": `https://ottocollect.com${marketplaceItemPath(item)}`
       }
-    })) : [];
+    };
+    }) : [];
 
     // Countries structured data
     const countriesList = countries && countries.length > 0 ? countries.map((country, index) => ({
@@ -6719,6 +6837,7 @@ function generateHomePageHTML(forumPosts, marketplaceItems1, countries) {
               <a href="/contact" class="footer-link">Contact Us</a>
               <a href="/privacy" class="footer-link">Privacy Policy</a>
               <a href="/terms" class="footer-link">Terms of Service</a>
+              <a href="/cookie-policy" class="footer-link">Cookie Policy</a>
               <a href="/about" class="footer-link">About Us</a>
             </nav>
           </div>
@@ -7603,6 +7722,13 @@ function generateContactPageHTML() {
 </body>
 </html>`;
 }
+// Marketplace items live at two route shapes depending on whether the underlying
+// banknote is unlisted. Every link to an item must pick the matching path.
+function marketplaceItemPath(item) {
+  return item?.collectionItem?.is_unlisted_banknote
+    ? `/marketplace-item-unlisted/${item.id}`
+    : `/marketplace-item/${item.id}`;
+}
 function generateMarketplaceHTML(marketplaceItems) {
   const title = 'OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform';
   const description = 'Buy and sell authentic Ottoman Empire banknotes, rare Turkish currency, and historical paper money. Secure marketplace for serious collectors.';
@@ -7634,7 +7760,7 @@ function generateMarketplaceHTML(marketplaceItems) {
       const sellerName = seller?.username || 'Unknown';
       const sellerRank = seller?.rank || 'Newbie Collector';
       return `
-        <div class="marketplace-item" onclick="window.location.href='/marketplace-item/${item.id}'">
+        <div class="marketplace-item" onclick="window.location.href='${marketplaceItemPath(item)}'">
           <div class="item-image-container">
             <img src="${displayImage}" alt="${banknote.country} ${banknote.denomination} (${banknote.year})" class="item-image">
             <div class="price-badge">$${salePrice}</div>
@@ -8182,10 +8308,11 @@ function generateMarketplaceHTML(marketplaceItems) {
 </body>
 </html>`;
 }
-function generateMarketplaceItemHTML(marketplaceItem) {
+function generateMarketplaceItemHTML(marketplaceItem, allItems: any[] = []) {
   const { collectionItem, seller, status } = marketplaceItem;
   if (!collectionItem || !collectionItem.banknote) return '';
   const { banknote, condition, salePrice, publicNote, grade, grade_by, grade_condition_description, obverseImage, reverseImage } = collectionItem;
+  const selfPath = marketplaceItemPath(marketplaceItem);
   const sellerName = seller?.username || 'Unknown';
   const sellerAvatar = seller?.avatar_url || '';
   const sellerRank = seller?.rank || 'Newbie Collector';
@@ -8302,7 +8429,7 @@ function generateMarketplaceItemHTML(marketplaceItem) {
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="product">
-  <meta property="og:url" content="https://ottocollect.com/marketplace-item/${marketplaceItem.id}">
+  <meta property="og:url" content="https://ottocollect.com${selfPath}">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
@@ -8312,14 +8439,14 @@ function generateMarketplaceItemHTML(marketplaceItem) {
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://ottocollect.com/marketplace-item/${marketplaceItem.id}">
+  <meta name="twitter:url" content="https://ottocollect.com${selfPath}">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
   <meta name="twitter:creator" content="@OttoCollect">
   
   <!-- Canonical URL -->
-  <link rel="canonical" href="https://ottocollect.com/marketplace-item/${marketplaceItem.id}">
+  <link rel="canonical" href="https://ottocollect.com${selfPath}">
   
   <!-- CSS matching the exact layout from MarketplaceItemDetail.tsx -->
   <style>
@@ -8712,17 +8839,39 @@ function generateMarketplaceItemHTML(marketplaceItem) {
         </div>
       </div>
     </div>
+
+    <!-- Cross-links: keep marketplace items, catalogue & country pages mutually reachable (SEO) -->
+    ${(() => {
+      const country = banknote.country;
+      const sameCountry = (allItems || []).filter((it: any) => it && it.id !== marketplaceItem.id && it.collectionItem?.banknote?.country === country).slice(0, 6);
+      const links = [];
+      if (banknote.id) links.push(`<li><a href="/catalog-banknote/${banknote.id}">View this banknote in the catalogue</a></li>`);
+      if (country) links.push(`<li><a href="/catalog/${encodeURIComponent(country)}">Browse all ${country} banknotes</a></li>`);
+      const similar = sameCountry.map((it: any) => {
+        const b = it.collectionItem.banknote;
+        const label = `${b.denomination || ''} ${b.country || ''}${b.year ? `, ${b.year}` : ''}`.trim();
+        return `<li><a href="${marketplaceItemPath(it)}" rel="related">${label}</a></li>`;
+      });
+      if (links.length === 0 && similar.length === 0) return '';
+      return `
+    <nav class="related-items" style="max-width:1200px;margin:24px auto 0;padding:0;">
+      ${links.length ? `<ul style="list-style:none;padding:0;margin:0 0 16px;display:grid;gap:8px;">${links.join('')}</ul>` : ''}
+      ${similar.length ? `<h2 style="font-size:1.1rem;margin-bottom:12px;"><span>Similar items for sale</span></h2>
+      <ul style="list-style:none;padding:0;margin:0;display:grid;gap:8px;">${similar.join('')}</ul>` : ''}
+      <p style="margin-top:12px;"><a href="/marketplace">Browse the full marketplace</a></p>
+    </nav>`;
+    })()}
   </div>
-  
+
   <div class="redirect-notice">
-    <p>If you are not redirected automatically, <a href="/marketplace-item/${marketplaceItem.id}">click here to view the interactive version</a>.</p>
+    <p>If you are not redirected automatically, <a href="${selfPath}">click here to view the interactive version</a>.</p>
   </div>
 
   <!-- No redirects for crawlers -->
   <script>
     if (!navigator.userAgent.match(/bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i)) {
       setTimeout(() => {
-        window.location.replace('/marketplace-item/${marketplaceItem.id}');
+        window.location.replace('${selfPath}');
       }, 100);
     }
   </script>

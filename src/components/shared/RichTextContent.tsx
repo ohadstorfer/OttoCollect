@@ -44,7 +44,7 @@ export function RichTextContent({ content, className }: RichTextContentProps) {
     return (
       <div
         className={cn(
-          'prose prose-sm dark:prose-invert max-w-none break-words prose-h1:text-[1.5em] prose-h2:text-[1.25em] prose-h3:text-[1.1em] prose-h1:font-bold prose-h2:font-bold prose-h3:font-bold prose-img:inline-block prose-img:align-middle prose-img:my-0 prose-img:mr-1',
+          'rte-content prose prose-sm dark:prose-invert max-w-none break-words prose-h1:text-[1.5em] prose-h2:text-[1.25em] prose-h3:text-[1.1em] prose-h1:font-bold prose-h2:font-bold prose-h3:font-bold prose-img:inline-block prose-img:align-middle prose-img:my-0 prose-img:mr-1',
           className
         )}
         dangerouslySetInnerHTML={{ __html: sanitizeHtml(value) }}

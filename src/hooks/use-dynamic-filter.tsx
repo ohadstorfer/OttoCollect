@@ -141,17 +141,27 @@ export const useDynamicFilter = <T extends FilterableItem>({
               new Set([...sortFieldNames, ...requiredSortFields])
             );
             
+            // Validate saved IDs against the CURRENT definitions before applying.
+            // Orphaned IDs (admin edited/recreated categories or types) would
+            // otherwise filter everything out and render an empty list.
+            const validCategoryIds = new Set(effectiveCategories.map(c => c.id));
+            const validTypeIds = new Set(effectiveTypes.map(t => t.id));
+            const validPrefCategories = (preferences.selected_categories || [])
+              .filter(id => validCategoryIds.has(id));
+            const validPrefTypes = (preferences.selected_types || [])
+              .filter(id => validTypeIds.has(id));
+
             // Set filters based on preferences
             setFiltersState({
               search: filters.search,
-              categories: preferences.selected_categories.length > 0 ? 
-                preferences.selected_categories : 
+              categories: validPrefCategories.length > 0 ?
+                validPrefCategories :
                 effectiveCategories.map(c => c.id),
-              types: preferences.selected_types.length > 0 ? 
-                preferences.selected_types : 
+              types: validPrefTypes.length > 0 ?
+                validPrefTypes :
                 effectiveTypes.filter(t => t.name.toLowerCase().includes('issued')).map(t => t.id),
-              sort: finalSortFields.length > 0 ? 
-                finalSortFields : 
+              sort: finalSortFields.length > 0 ?
+                finalSortFields :
                 defaultSortFields,
               country_id: countryId
             });

@@ -258,19 +258,24 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch marketplace items (listed)
-    const { data: marketplaceItems } = await supabase
-      .from('collection_items')
-      .select('id, updated_at')
-      .eq('is_for_sale', true)
-      .eq('is_unlisted_banknote', false)
+    // Fetch available marketplace listings keyed by marketplace_items.id — the id
+    // the app routes and fetches by (getMarketplaceItemById). Split listed vs
+    // unlisted via the joined collection item flag; is_for_sale guards stale rows.
+    const { data: mpItems } = await supabase
+      .from('marketplace_items')
+      .select('id, updated_at, collection_items!inner(is_unlisted_banknote, is_for_sale)')
+      .eq('status', 'Available')
       .order('created_at', { ascending: false });
 
-    if (marketplaceItems) {
+    const forSale = (mpItems || []).filter((i: any) => i.collection_items?.is_for_sale);
+    const listedItems = forSale.filter((i: any) => !i.collection_items?.is_unlisted_banknote);
+    const unlistedItems = forSale.filter((i: any) => i.collection_items?.is_unlisted_banknote);
+
+    if (listedItems.length) {
       sitemap += '\n  <!-- Marketplace listed items -->\n';
-      marketplaceItems.forEach(item => {
-        const lastmod = item.updated_at 
-          ? new Date(item.updated_at).toISOString().split('T')[0] 
+      listedItems.forEach(item => {
+        const lastmod = item.updated_at
+          ? new Date(item.updated_at).toISOString().split('T')[0]
           : currentDate;
         sitemap += `  <url>
     <loc>${baseUrl}/marketplace-item/${item.id}</loc>
@@ -282,19 +287,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch marketplace items (unlisted)
-    const { data: unlistedItems } = await supabase
-      .from('collection_items')
-      .select('id, updated_at')
-      .eq('is_for_sale', true)
-      .eq('is_unlisted_banknote', true)
-      .order('created_at', { ascending: false });
-
-    if (unlistedItems) {
+    if (unlistedItems.length) {
       sitemap += '\n  <!-- Marketplace unlisted items -->\n';
       unlistedItems.forEach(item => {
-        const lastmod = item.updated_at 
-          ? new Date(item.updated_at).toISOString().split('T')[0] 
+        const lastmod = item.updated_at
+          ? new Date(item.updated_at).toISOString().split('T')[0]
           : currentDate;
         sitemap += `  <url>
     <loc>${baseUrl}/marketplace-item-unlisted/${item.id}</loc>

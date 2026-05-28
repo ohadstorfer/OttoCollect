@@ -431,15 +431,16 @@ app.get('/marketplace', async (req, res) => {
 // Marketplace item detail pages (listed)
 app.get('/marketplace-item/:id', (req, res) => serveEntityPage(req, res, {
   staticFileName: `marketplace-item-${req.params.id}.html`,
-  dbTable: 'collection_items',
+  dbTable: 'marketplace_items',
   dbColumn: 'id',
   dbValue: req.params.id,
   missingMessage: 'The marketplace listing you are looking for does not exist or has been removed.',
 }));
 
-// Marketplace item detail pages (unlisted — no static HTML yet, but still validate)
+// Marketplace item detail pages (unlisted banknotes — own static file)
 app.get('/marketplace-item-unlisted/:id', (req, res) => serveEntityPage(req, res, {
-  dbTable: 'collection_items',
+  staticFileName: `marketplace-item-unlisted-${req.params.id}.html`,
+  dbTable: 'marketplace_items',
   dbColumn: 'id',
   dbValue: req.params.id,
   missingMessage: 'The marketplace listing you are looking for does not exist or has been removed.',

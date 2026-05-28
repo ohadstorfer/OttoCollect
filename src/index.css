@@ -593,3 +593,34 @@ html {
 /* RTL-aware positioning */
 .start-0 { inset-inline-start: 0; }
 .end-0 { inset-inline-end: 0; }
+
+/* ---------------------------------------------------------------------------
+ * Rich-text content (.rte-content)
+ * Shared by the editor (RichTextEditor) and the rendered output
+ * (RichTextContent) so what you type matches what gets published.
+ * Rules are intentionally unlayered so they win over @tailwindcss/typography's
+ * `prose` defaults; margin-bottom is left without !important so the editor's
+ * per-paragraph spacing control can override it inline.
+ * ------------------------------------------------------------------------- */
+
+/* Lists: ensure visible bullets/numbers with room for the marker. */
+.rte-content ul,
+.rte-content ol { padding-inline-start: 1.5em; }
+.rte-content ul { list-style-type: disc; }
+.rte-content ol { list-style-type: decimal; }
+
+/* Bullets were too small and too faint — make them larger and use the text
+ * color (adapts to light/dark via the --foreground token). */
+.rte-content ul > li::marker,
+.rte-content ol > li::marker {
+  color: hsl(var(--foreground));
+  font-size: 1.15em;
+}
+
+/* Keep turning a line into a heading from introducing large, inconsistent
+ * gaps above/below: normalise heading margins to a predictable rhythm. */
+.rte-content :where(h1, h2, h3, h4, h5, h6) {
+  margin-top: 0.6em;
+  margin-bottom: 0.3em;
+}
+.rte-content > :where(h1, h2, h3, h4, h5, h6):first-child { margin-top: 0; }

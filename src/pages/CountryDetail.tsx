@@ -20,9 +20,16 @@ import SEOHead from "@/components/seo/SEOHead";
 const CountryDetail = () => {
   const { country } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  // Per-country key for the fast navigation cache. NOT scoped to the user id
+  // because auth resolves asynchronously and is still null here on a hard
+  // refresh - scoping it by user would miss the cache and lose the restore.
+  // Cross-user safety is handled in BanknoteFilterCatalog, which stamps the
+  // owner's id into the payload and discards a snapshot owned by someone else.
+  const filtersCacheKey = `catalog-filters-${country ? decodeURIComponent(country) : ''}`;
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
     try {
-      const cached = sessionStorage.getItem(`catalog-filters-${country ? decodeURIComponent(country) : ''}`);
+      const cached = sessionStorage.getItem(filtersCacheKey);
       if (cached) {
         const parsed = JSON.parse(cached);
         if (parsed.viewMode) return parsed.viewMode;
@@ -32,7 +39,7 @@ const CountryDetail = () => {
   });
   const [filters, setFilters] = useState<DynamicFilterState>(() => {
     try {
-      const cached = sessionStorage.getItem(`catalog-filters-${country ? decodeURIComponent(country) : ''}`);
+      const cached = sessionStorage.getItem(filtersCacheKey);
       if (cached) {
         const parsed = JSON.parse(cached);
         if (parsed.categories?.length > 0 && parsed.types?.length > 0) {
@@ -49,8 +56,7 @@ const CountryDetail = () => {
     return { search: "", categories: [], types: [], sort: [], imagesOnly: true };
   });
 
-  // New: user + collection loading
-  const { user } = useAuth();
+  // New: collection loading
   const [userCollection, setUserCollection] = useState<CollectionItem[]>([]);
   
   // Add preferences loading state - skip waiting if we have cached filters
