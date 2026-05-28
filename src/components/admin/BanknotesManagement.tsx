@@ -125,9 +125,10 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
       
       filteredBanknotes.forEach(banknote => {
         const extPick = banknote.extendedPickNumber?.toLowerCase() || '';
+        const newExtPick = (banknote as any).newExtendedPickNumber?.toLowerCase?.() || '';
         
         // Check if extendedPickNumber contains the search query
-        if (extPick.includes(searchLower)) {
+        if (extPick.includes(searchLower) || newExtPick.includes(searchLower)) {
           extPickMatches.push(banknote);
         } else {
           otherMatches.push(banknote);
@@ -211,9 +212,10 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
 
       const filtered = allBanknotes.filter(banknote => {
         const extPick = banknote.extendedPickNumber?.toLowerCase() || '';
+        const newExtPick = (banknote as any).newExtendedPickNumber?.toLowerCase?.() || '';
 
         // Check if extendedPickNumber contains the search query
-        if (extPick.includes(searchLower)) {
+        if (extPick.includes(searchLower) || newExtPick.includes(searchLower)) {
           return true;
         }
 

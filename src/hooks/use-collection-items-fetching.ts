@@ -82,6 +82,7 @@ export const useCollectionItemsFetching = ({
               banknote.year?.toLowerCase().includes(searchTerm) ||
               // Use optional chaining for properties that might not exist on Banknote type
               banknote.extendedPickNumber?.toLowerCase().includes(searchTerm) ||
+              (banknote as any).newExtendedPickNumber?.toLowerCase?.().includes(searchTerm) ||
               banknote.type?.toLowerCase().includes(searchTerm) ||
               banknote.category?.toLowerCase().includes(searchTerm) ||
               // Fixed: Use optional chaining for properties that might not be on basic Banknote

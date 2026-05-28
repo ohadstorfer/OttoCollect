@@ -43,7 +43,8 @@ export async function fetchBanknotesWithMetadata(
       const searchTerm = filters.search.toLowerCase();
       query = query.or(
         `extended_pick_number.ilike.%${searchTerm}%,` +
-        `face_value.ilike.%${searchTerm}%,` + 
+        `new_extended_pick_number.ilike.%${searchTerm}%,` +
+        `face_value.ilike.%${searchTerm}%,` +
         `banknote_description.ilike.%${searchTerm}%,` +
         `sultan_name.ilike.%${searchTerm}%`
       );

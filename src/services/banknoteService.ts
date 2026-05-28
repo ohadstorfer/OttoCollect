@@ -23,7 +23,7 @@ export async function fetchBanknotes(filters?: BanknoteFilters): Promise<Detaile
     }
     
     if (filters?.search) {
-      query = query.or(`extended_pick_number.ilike.%${filters.search}%,face_value.ilike.%${filters.search}%,banknote_description.ilike.%${filters.search}%`);
+      query = query.or(`extended_pick_number.ilike.%${filters.search}%,new_extended_pick_number.ilike.%${filters.search}%,face_value.ilike.%${filters.search}%,banknote_description.ilike.%${filters.search}%`);
     }
     
     const { data, error } = await query;
@@ -94,6 +94,7 @@ export async function fetchBanknotesByCountryId(
       const searchTerm = filters.search.toLowerCase();
       query = query.or(
         `extended_pick_number.ilike.%${searchTerm}%,` +
+        `new_extended_pick_number.ilike.%${searchTerm}%,` +
         `face_value.ilike.%${searchTerm}%,` +
         `banknote_description.ilike.%${searchTerm}%,` +
         `sultan_name.ilike.%${searchTerm}%`
@@ -253,7 +254,7 @@ export async function searchBanknotes(searchTerm: string): Promise<DetailedBankn
     const { data, error } = await supabase
       .from('enhanced_banknotes_with_translations')
       .select('*')
-      .or(`extended_pick_number.ilike.%${searchTerm}%,face_value.ilike.%${searchTerm}%,banknote_description.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%`)
+      .or(`extended_pick_number.ilike.%${searchTerm}%,new_extended_pick_number.ilike.%${searchTerm}%,face_value.ilike.%${searchTerm}%,banknote_description.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%`)
       .limit(20);
     
     if (error) {

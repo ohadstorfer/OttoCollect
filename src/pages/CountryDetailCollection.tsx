@@ -246,6 +246,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           (item.banknote.denomination && item.banknote.denomination.toLowerCase().includes(searchLower)) ||
           (item.banknote.sultanName && item.banknote.sultanName.toLowerCase().includes(searchLower)) ||
           (item.banknote.extendedPickNumber && item.banknote.extendedPickNumber.toLowerCase().includes(searchLower)) ||
+          (item.banknote.newExtendedPickNumber && item.banknote.newExtendedPickNumber.toLowerCase().includes(searchLower)) ||
           (item.banknote.category && item.banknote.category.toLowerCase().includes(searchLower)) ||
           (item.banknote.type && item.banknote.type.toLowerCase().includes(searchLower));
         
@@ -643,6 +644,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           (item.denomination && item.denomination.toLowerCase().includes(searchLower)) ||
           (item.sultanName && item.sultanName.toLowerCase().includes(searchLower)) ||
           (item.extendedPickNumber && item.extendedPickNumber.toLowerCase().includes(searchLower)) ||
+          (item.newExtendedPickNumber && item.newExtendedPickNumber.toLowerCase().includes(searchLower)) ||
           (item.category && item.category.toLowerCase().includes(searchLower)) ||
           (item.type && item.type.toLowerCase().includes(searchLower));
         
@@ -910,6 +912,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           (item.denomination && item.denomination.toLowerCase().includes(searchLower)) ||
           (item.sultanName && item.sultanName.toLowerCase().includes(searchLower)) ||
           (item.extendedPickNumber && item.extendedPickNumber.toLowerCase().includes(searchLower)) ||
+          (item.newExtendedPickNumber && item.newExtendedPickNumber.toLowerCase().includes(searchLower)) ||
           (item.category && item.category.toLowerCase().includes(searchLower)) ||
           (item.type && item.type.toLowerCase().includes(searchLower));
         if (!matches) return false;

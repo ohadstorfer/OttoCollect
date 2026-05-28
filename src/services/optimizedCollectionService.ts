@@ -205,13 +205,15 @@ export async function fetchFilteredUserCollection(
       detailedQuery = detailedQuery.or(`
         enhanced_banknotes_with_translations.denomination.ilike.${searchTerm},
         enhanced_banknotes_with_translations.extended_pick_number.ilike.${searchTerm},
+        enhanced_banknotes_with_translations.new_extended_pick_number.ilike.${searchTerm},
         enhanced_banknotes_with_translations.series.ilike.${searchTerm},
         enhanced_banknotes_with_translations.type.ilike.${searchTerm}
       `);
-      
+
       unlistedQuery = unlistedQuery.or(`
         unlisted_banknotes.face_value.ilike.${searchTerm},
         unlisted_banknotes.extended_pick_number.ilike.${searchTerm},
+        unlisted_banknotes.new_extended_pick_number.ilike.${searchTerm},
         unlisted_banknotes.category.ilike.${searchTerm},
         unlisted_banknotes.type.ilike.${searchTerm}
       `);

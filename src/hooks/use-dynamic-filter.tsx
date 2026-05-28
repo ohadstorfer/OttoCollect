@@ -230,6 +230,7 @@ export const useDynamicFilter = <T extends FilterableItem>({
           banknote.year?.toLowerCase().includes(searchTerm) ||
           banknote.series?.toLowerCase().includes(searchTerm) ||
           banknote.extendedPickNumber?.toLowerCase().includes(searchTerm) ||
+          banknote.newExtendedPickNumber?.toLowerCase().includes(searchTerm) ||
           banknote.description?.toLowerCase().includes(searchTerm) ||
           (banknote.type as string)?.toLowerCase().includes(searchTerm) ||
           (banknote.category as string)?.toLowerCase().includes(searchTerm);
