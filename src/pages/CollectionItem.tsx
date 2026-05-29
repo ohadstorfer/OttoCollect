@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchCollectionItem } from "@/services/collectionService";
 import { useAuth } from "@/context/AuthContext";
 import type { CollectionItem as CollectionItemType } from "@/types";
@@ -57,6 +57,7 @@ export default function CollectionItem() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSubmittingImages, setIsSubmittingImages] = useState(false);
@@ -289,10 +290,17 @@ export default function CollectionItem() {
       setImageChangedAfterApproval(suggestionStatus === 'approved');
     }
 
-    // Refetch the data to get the latest updates, then hand the fresh item
-    // to the (kept-alive) collection page so it can patch its state in place
-    // instantly when the user returns — no waiting for a background refetch.
+    // Refetch the data to get the latest updates. Also invalidate the
+    // ['collectionItem', id] key as a PREFIX so the BanknoteCollectionDetail
+    // sub-view (which uses ['collectionItem', id, 'with-translations']) also
+    // refetches — otherwise its visible content stays stale until reload.
     const { data: fresh } = await refetch();
+    if (id) {
+      void queryClient.invalidateQueries({ queryKey: ['collectionItem', id] });
+    }
+    // Hand the fresh item to the (kept-alive) collection page so it can
+    // patch its state in place instantly when the user returns — no waiting
+    // for a background refetch.
     if (user?.id) {
       if (fresh) pushCollectionPatch(user.id, { kind: 'update', item: fresh });
       else markCollectionDirty(user.id);
@@ -369,6 +377,9 @@ export default function CollectionItem() {
 
       toast.success(t('item.imageDeletedSuccess'));
       const { data: fresh } = await refetch();
+      if (collectionItem.id) {
+        void queryClient.invalidateQueries({ queryKey: ['collectionItem', collectionItem.id] });
+      }
       if (user?.id) {
         if (fresh) pushCollectionPatch(user.id, { kind: 'update', item: fresh });
         else markCollectionDirty(user.id);
@@ -404,6 +415,9 @@ export default function CollectionItem() {
 
       // Force refetch to update the UI, then patch the cached collection page.
       const { data: fresh } = await refetch();
+      if (collectionItem.id) {
+        void queryClient.invalidateQueries({ queryKey: ['collectionItem', collectionItem.id] });
+      }
       if (user?.id) {
         if (fresh) pushCollectionPatch(user.id, { kind: 'update', item: fresh });
         else markCollectionDirty(user.id);
