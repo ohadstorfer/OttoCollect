@@ -1,7 +1,24 @@
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { useLocation, useRoutes, type RouteObject } from "react-router-dom";
-import { KeepAlive } from "keepalive-for-react";
+import { KeepAlive, useLayoutEffectOnCreate } from "keepalive-for-react";
 import { KEEP_ALIVE_PATTERNS, isKeepAlivePath, resolveCacheKey } from "@/config/keepAlive";
+
+/**
+ * Scrolls the window to top once, when this cached node is first created.
+ *
+ * The hook is provided by keepalive-for-react and fires inside the library's
+ * mount layout effect — i.e. AFTER the lib has attached the new cache div to
+ * the DOM but BEFORE the browser paints. We can't do this scroll in
+ * CachedRoutes' own useLayoutEffect because the lib defers its cache-list
+ * update with `startTransition`, which lets a paint happen in between — that
+ * is what caused the brief flash of the previous page's top.
+ */
+function FirstMountScrollTop({ children }: { children: ReactNode }) {
+  useLayoutEffectOnCreate(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  });
+  return <>{children}</>;
+}
 
 /**
  * Renders the app routes through a single <KeepAlive> boundary so that the
@@ -43,11 +60,12 @@ export function CachedRoutes({ routes }: { routes: RouteObject[] }) {
   useLayoutEffect(() => {
     if (!cached) return;
     const saved = scrollPositions.current.get(location.pathname);
-    // Restore the saved position on return, or go to top on first visit (since
-    // useScrollToTop skips kept-alive paths, otherwise the page would open at
-    // the previous page's scroll position). `behavior: 'instant'` overrides the
-    // global `scroll-behavior: smooth` (index.css) so there is no scroll motion.
-    window.scrollTo({ top: saved ?? 0, left: 0, behavior: "instant" });
+    // Only restore saved scroll here (subsequent visits). First-visit scroll
+    // to top is handled by <FirstMountScrollTop> inside KeepAlive so it fires
+    // AFTER the library's deferred swap and doesn't flash the previous page.
+    // `behavior: 'instant'` overrides the global `scroll-behavior: smooth`
+    // (index.css) so there is no scroll motion.
+    if (saved != null) window.scrollTo({ top: saved, left: 0, behavior: "instant" });
   }, [cached, location.pathname]);
 
   return (
@@ -56,7 +74,7 @@ export function CachedRoutes({ routes }: { routes: RouteObject[] }) {
       include={KEEP_ALIVE_PATTERNS}
       max={20}
     >
-      {element}
+      <FirstMountScrollTop>{element}</FirstMountScrollTop>
     </KeepAlive>
   );
 }

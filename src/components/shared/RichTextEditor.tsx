@@ -10,6 +10,7 @@ import Color from '@tiptap/extension-color';
 import Placeholder from '@tiptap/extension-placeholder';
 import { LineHeight } from '@/components/shared/editor/LineHeight';
 import { FontSize } from '@/components/shared/editor/FontSize';
+import { FontFamily } from '@/components/shared/editor/FontFamily';
 import { ParagraphSpacing } from '@/components/shared/editor/ParagraphSpacing';
 import { ColorPalette } from '@/components/shared/editor/ColorPalette';
 import {
@@ -19,7 +20,7 @@ import {
   AlignLeft, AlignCenter, AlignRight,
   Link2, Link2Off, Image as ImageIcon, Loader2,
   Undo2, Redo2, AlignVerticalSpaceAround, ChevronDown,
-  Type, Pilcrow,
+  Type, Pilcrow, CaseSensitive,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -30,17 +31,30 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-const LINE_HEIGHTS = ['0.5', '0.75', '1', '1.15', '1.5', '2', '2.5', '3'];
+const LINE_HEIGHTS = ['1', '1.15', '1.5', '2', '2.5', '3'];
 const FONT_SIZES = ['12px', '14px', '16px', '18px', '20px', '24px', '30px', '36px'];
-// Labelled space-after-paragraph options (CSS margin-bottom values).
+// Small Word-like font picker: labels are what the user sees; values are the
+// CSS font-family stacks. Keep this list short — exposing every system font
+// makes the dropdown noisy and most of them aren't installed anyway.
+const FONT_FAMILIES: { label: string; value: string }[] = [
+  { label: 'Arial', value: 'Arial, Helvetica, sans-serif' },
+  { label: 'Calibri', value: 'Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif' },
+  { label: 'Georgia', value: 'Georgia, "Times New Roman", serif' },
+  { label: 'Times New Roman', value: '"Times New Roman", Times, serif' },
+  { label: 'Verdana', value: 'Verdana, Geneva, sans-serif' },
+  { label: 'Courier New', value: '"Courier New", Courier, monospace' },
+];
+// Numeric em-based options for the gap after a paragraph/heading. Labels match
+// the values so the user sees exactly what they're picking (mirrors the
+// line-height dropdown, which also exposes raw numeric values).
 const PARAGRAPH_SPACINGS: { label: string; value: string }[] = [
-  { label: 'None', value: '0' },
-  { label: 'XS', value: '0.25em' },
-  { label: 'S', value: '0.5em' },
-  { label: 'M', value: '0.75em' },
-  { label: 'L', value: '1em' },
-  { label: 'XL', value: '1.5em' },
-  { label: 'XXL', value: '2em' },
+  { label: '0', value: '0' },
+  { label: '0.25', value: '0.25em' },
+  { label: '0.5', value: '0.5em' },
+  { label: '0.75', value: '0.75em' },
+  { label: '1', value: '1em' },
+  { label: '1.5', value: '1.5em' },
+  { label: '2', value: '2em' },
 ];
 
 interface RichTextEditorProps {
@@ -105,6 +119,10 @@ function Toolbar({
     (editor.getAttributes('paragraph').lineHeight as string | undefined) ||
     (editor.getAttributes('heading').lineHeight as string | undefined);
   const currentFontSize = editor.getAttributes('textStyle').fontSize as string | undefined;
+  const currentFontFamily = editor.getAttributes('textStyle').fontFamily as string | undefined;
+  const currentFontFamilyLabel =
+    FONT_FAMILIES.find((f) => f.value === currentFontFamily)?.label ??
+    (currentFontFamily ? currentFontFamily.split(',')[0].replace(/['"]/g, '') : 'Default');
   const currentSpacing =
     (editor.getAttributes('paragraph').marginBottom as string | undefined) ||
     (editor.getAttributes('heading').marginBottom as string | undefined);
@@ -168,15 +186,56 @@ function Toolbar({
 
       <Divider />
 
-      <ToolbarButton title="Heading 1" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive('heading', { level: 1 })}>
+      {/* Clearing the fontSize mark on the selection before toggling the heading
+          ensures the heading shows its native CSS size — otherwise a leftover
+          inline `font-size` on a span overrides h1/h2/h3 and makes headings
+          look inconsistent. */}
+      <ToolbarButton title="Heading 1" onClick={() => editor.chain().focus().unsetFontSize().toggleHeading({ level: 1 }).run()} active={editor.isActive('heading', { level: 1 })}>
         <Heading1 className="h-4 w-4" />
       </ToolbarButton>
-      <ToolbarButton title="Heading 2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={editor.isActive('heading', { level: 2 })}>
+      <ToolbarButton title="Heading 2" onClick={() => editor.chain().focus().unsetFontSize().toggleHeading({ level: 2 }).run()} active={editor.isActive('heading', { level: 2 })}>
         <Heading2 className="h-4 w-4" />
       </ToolbarButton>
-      <ToolbarButton title="Heading 3" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} active={editor.isActive('heading', { level: 3 })}>
+      <ToolbarButton title="Heading 3" onClick={() => editor.chain().focus().unsetFontSize().toggleHeading({ level: 3 }).run()} active={editor.isActive('heading', { level: 3 })}>
         <Heading3 className="h-4 w-4" />
       </ToolbarButton>
+
+      {/* Font family */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            title="Font"
+            aria-label="Font"
+            onMouseDown={(e) => e.preventDefault()}
+            className="inline-flex h-8 items-center gap-1 rounded-md px-1.5 text-foreground transition-colors hover:bg-muted"
+          >
+            <CaseSensitive className="h-4 w-4" />
+            <span
+              className="text-xs max-w-[7rem] truncate"
+              style={currentFontFamily ? { fontFamily: currentFontFamily } : undefined}
+            >
+              {currentFontFamilyLabel}
+            </span>
+            <ChevronDown className="h-3 w-3" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="min-w-[10rem]">
+          {FONT_FAMILIES.map((f) => (
+            <DropdownMenuItem
+              key={f.value}
+              onSelect={() => editor.chain().focus().setFontFamily(f.value).run()}
+              className={cn(currentFontFamily === f.value && 'bg-muted font-medium')}
+              style={{ fontFamily: f.value }}
+            >
+              {f.label}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuItem onSelect={() => editor.chain().focus().unsetFontFamily().run()}>
+            Default
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {/* Font size */}
       <DropdownMenu>
@@ -260,6 +319,9 @@ function Toolbar({
               {h}
             </DropdownMenuItem>
           ))}
+          <DropdownMenuItem onSelect={() => editor.chain().focus().unsetLineHeight().run()}>
+            Default
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -373,6 +435,7 @@ export function RichTextEditor({
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       TextStyle,
       FontSize.configure({ sizes: FONT_SIZES }),
+      FontFamily.configure({ families: FONT_FAMILIES.map((f) => f.value) }),
       Color,
       Placeholder.configure({ placeholder: placeholder || 'Write your content...' }),
     ],

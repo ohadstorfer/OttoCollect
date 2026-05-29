@@ -528,6 +528,7 @@ export type Database = {
           excerpt_en: string | null
           excerpt_tr: string | null
           id: string
+          is_draft: boolean
           main_image_url: string
           original_language: string | null
           title: string
@@ -548,6 +549,7 @@ export type Database = {
           excerpt_en?: string | null
           excerpt_tr?: string | null
           id?: string
+          is_draft?: boolean
           main_image_url: string
           original_language?: string | null
           title: string
@@ -568,6 +570,7 @@ export type Database = {
           excerpt_en?: string | null
           excerpt_tr?: string | null
           id?: string
+          is_draft?: boolean
           main_image_url?: string
           original_language?: string | null
           title?: string

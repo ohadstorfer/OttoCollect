@@ -3,15 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { CreatePostForm } from "@/components/blog/CreatePostForm";
 import { useAuth } from "@/context/AuthContext";
-import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useTranslation } from 'react-i18next';
-import { useLanguage } from "@/context/LanguageContext";
 
 export default function CreateBlogPost() {
   const { t } = useTranslation(['blog']);
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { direction } = useLanguage();
   // Redirect if user is not logged in
   if (!user) {
     return (
@@ -74,19 +71,6 @@ export default function CreateBlogPost() {
 
   return (
     <div className="container py-8">
-      <Button 
-  variant="ghost" 
-  onClick={() => navigate('/blog')}
-  className={`mb-6 flex items-center ${direction === 'rtl' ? 'justify-end' : 'justify-start'}`}
->
-  {direction === 'rtl' ? (
-    <ArrowRight className="mr-2 h-4 w-4" />
-  ) : (
-    <ArrowLeft className="ml-2 h-4 w-4" />
-  )}    
-  {t('post.backToBlog')}
-</Button>
-
       <CreatePostForm />
     </div>
   );

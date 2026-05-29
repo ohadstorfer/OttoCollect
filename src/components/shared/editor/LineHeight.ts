@@ -37,8 +37,12 @@ export const LineHeight = Extension.create<LineHeightOptions>({
         types: this.options.types,
         attributes: {
           lineHeight: {
-            default: '1',
-            parseHTML: (element) => element.style.lineHeight || '1',
+            // null (not '1') so untouched paragraphs inherit the editor's CSS
+            // line-height — otherwise every paragraph got `style="line-height:1"`
+            // inline, which is *tighter* than Word's default of ~1.15 and made
+            // the editor feel cramped regardless of CSS.
+            default: null,
+            parseHTML: (element) => element.style.lineHeight || null,
             renderHTML: (attributes) =>
               attributes.lineHeight ? { style: `line-height: ${attributes.lineHeight}` } : {},
           },

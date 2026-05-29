@@ -624,3 +624,33 @@ html {
   margin-bottom: 0.3em;
 }
 .rte-content > :where(h1, h2, h3, h4, h5, h6):first-child { margin-top: 0; }
+
+/* Paragraphs: kill the top margin so only `margin-bottom` (the user-controlled
+ * paragraph-spacing) governs the gap between consecutive paragraphs. Without
+ * this, prose's default 1.25em margin-top of the *next* paragraph keeps the
+ * gap wide even when the previous paragraph's margin-bottom is set to 0. */
+.rte-content p { margin-top: 0; margin-bottom: 0.75em; }
+.rte-content > p:last-child { margin-bottom: 0; }
+
+/* Default line-height matches Word's "Normal" (~1.15). The LineHeight
+ * extension only sets `style="line-height: ..."` inline when the user picks
+ * a value, so this rule governs everything they haven't touched. */
+.rte-content { line-height: 1.15; }
+
+/* Headings must not inherit an inline font-size mark left behind on the text:
+ * force the canonical size/weight so toggling H1/H2/H3 always looks consistent.
+ * Higher specificity than `:where(...)` so it beats both prose and any prior
+ * heading rules in this block. `font-family: inherit` keeps the heading on
+ * the same typeface as the surrounding paragraph (prose can otherwise impose
+ * a different stack) — when the user has picked a font, the inline span style
+ * still wins over this. */
+.rte-content h1,
+.rte-content h2,
+.rte-content h3,
+.rte-content h4,
+.rte-content h5,
+.rte-content h6 { font-family: inherit; }
+.rte-content h1 { font-size: 1.5em; font-weight: 700; }
+.rte-content h2 { font-size: 1.25em; font-weight: 700; }
+.rte-content h3 { font-size: 1.1em; font-weight: 700; }
+.rte-content :is(h1, h2, h3) span[style*="font-size"] { font-size: inherit !important; }

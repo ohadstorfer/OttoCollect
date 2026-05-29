@@ -46,13 +46,15 @@ export const fetchBlogPosts = async (): Promise<BlogPost[]> => {
   try {
     console.log("Fetching blog posts...");
     
-    // Step 1: Fetch blog posts with comment counts
+    // Step 1: Fetch blog posts with comment counts (drafts excluded — those
+    // are author-private until published).
     const { data: posts, error: postsError } = await supabase
       .from('blog_posts')
       .select(`
         *,
         blog_comments:blog_comments(count)
       `)
+      .eq('is_draft', false)
       .order('created_at', { ascending: false });
 
     if (postsError) {
@@ -280,10 +282,11 @@ export const createBlogPost = async (
   content: string,
   excerpt: string,
   main_image_url: string,
-  authorId: string
+  authorId: string,
+  isDraft: boolean = false
 ): Promise<BlogPost | null> => {
   try {
-    console.log("Creating blog post...");
+    console.log("Creating blog post...", { isDraft });
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -300,6 +303,7 @@ export const createBlogPost = async (
           excerpt,
           main_image_url,
           author_id: authorId,
+          is_draft: isDraft,
         },
       ])
       .select('*')
@@ -406,6 +410,45 @@ export const createBlogPost = async (
 };
 
 /**
+ * Fetch the current user's blog drafts (is_draft=true), newest-edited first.
+ * Author-private; not exposed in any public listing.
+ */
+export const fetchMyBlogDrafts = async (userId: string): Promise<BlogPost[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('id, title, content, excerpt, main_image_url, author_id, created_at, updated_at')
+      .eq('author_id', userId)
+      .eq('is_draft', true)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching user drafts:', error);
+      return [];
+    }
+
+    return (data || []).map((d: any) => ({
+      id: d.id,
+      title: d.title,
+      content: d.content,
+      excerpt: d.excerpt,
+      main_image_url: d.main_image_url,
+      author_id: d.author_id,
+      authorId: d.author_id,
+      created_at: d.created_at,
+      updated_at: d.updated_at,
+      createdAt: d.created_at,
+      updatedAt: d.updated_at,
+      author: null,
+      commentCount: 0,
+    }));
+  } catch (error) {
+    console.error('Error in fetchMyBlogDrafts:', error);
+    return [];
+  }
+};
+
+/**
  * Update an existing blog post
  */
 export const updateBlogPost = async (
@@ -413,25 +456,33 @@ export const updateBlogPost = async (
   title: string,
   content: string,
   excerpt: string,
-  main_image_url: string
+  main_image_url: string,
+  isDraft?: boolean,
 ): Promise<BlogPost | null> => {
   try {
-    console.log("Updating blog post:", id);
+    console.log("Updating blog post:", id, { isDraft });
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       throw new Error('Not authenticated');
     }
 
-    // Step 1: Update the post
+    // Step 1: Update the post — only set is_draft when explicitly provided
+    // so existing call sites that don't care about draft state keep working
+    // exactly as before.
+    const updatePayload: Record<string, unknown> = {
+      title,
+      content,
+      excerpt,
+      main_image_url,
+    };
+    if (typeof isDraft === 'boolean') {
+      updatePayload.is_draft = isDraft;
+    }
+
     const { data, error } = await supabase
       .from('blog_posts')
-      .update({
-        title,
-        content,
-        excerpt,
-        main_image_url,
-      })
+      .update(updatePayload)
       .eq('id', id)
       .select('*')
       .single();
@@ -738,12 +789,14 @@ export const fetchBlogPostsWithTranslations = async (currentLanguage: string = '
     console.log("Fetching blog posts with translations for language:", currentLanguage);
     
     // Step 1: Fetch blog posts with comment counts and translation fields
+    // (drafts excluded — those are author-private until published).
     const { data: posts, error: postsError } = await supabase
       .from('blog_posts')
       .select(`
         *,
         blog_comments:blog_comments(count)
       `)
+      .eq('is_draft', false)
       .order('created_at', { ascending: false });
 
     if (postsError) {

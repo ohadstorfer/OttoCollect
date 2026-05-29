@@ -432,6 +432,11 @@ const CollectionItemCard: React.FC<CollectionItemCardProps> = ({
                 {getLocalizedField(item.banknote.securityElement, 'security_element')}
               </p>
             )}
+            {item.publicNote && (
+              <p className="text-[13px] font-bold text-foreground/75">
+                {item.publicNote}
+              </p>
+            )}
             {item?.isForSale && (
             <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800">
               {tWithFallback('forSale', 'For Sale')}: {formatPrice(item.salePrice)}
