@@ -456,6 +456,44 @@ serve(async (req)=>{
         error: error.message
       });
     }
+    // Generate HTML for the three legal/info pages so they stop being thin
+    // duplicates of the React shell to crawlers (cookie-policy, privacy, terms).
+    if (!incremental) {
+      const legalPages: { file: string; id: string; build: () => string | Promise<string> }[] = [
+        { file: 'cookie-policy.html', id: 'cookie-policy', build: () => generateCookiePolicyHTML() },
+        { file: 'privacy.html',       id: 'privacy',       build: () => generatePrivacyPolicyHTML() },
+        { file: 'terms.html',         id: 'terms',         build: async () => {
+            // Pull the English terms strings from the publicly-served i18n bundle so
+            // SSR copy matches the React UI; fall back gracefully if the fetch fails.
+            try {
+              const r = await fetch('https://ottocollect.com/locales/en/pages.json', { headers: { 'cache-control': 'no-cache' } });
+              if (!r.ok) throw new Error(`HTTP ${r.status}`);
+              const j: any = await r.json();
+              return generateTermsHTML(j.terms || {});
+            } catch (e) {
+              console.error('terms i18n fetch failed:', (e as any)?.message || e);
+              return generateTermsHTML({});
+            }
+        } },
+      ];
+      for (const lp of legalPages) {
+        try {
+          const html = await lp.build();
+          const { error: uploadError } = await supabase.storage.from('static-pages').upload(lp.file, html, {
+            contentType: 'text/html', upsert: true, cacheControl: '3600'
+          });
+          if (uploadError) {
+            console.error(`Error uploading ${lp.file}:`, uploadError);
+            errors.push({ id: lp.id, error: uploadError.message });
+          } else {
+            generatedPages.push(lp.id);
+          }
+        } catch (error) {
+          console.error(`Error processing ${lp.id} page:`, error);
+          errors.push({ id: lp.id, error: (error as any)?.message || String(error) });
+        }
+      }
+    }
     // Generate HTML for catalog page (skipped in incremental mode)
     if (!incremental) try {
       const catalogHtml = generateCatalogPageHTML(countries);
@@ -7722,6 +7760,247 @@ function generateContactPageHTML() {
 </body>
 </html>`;
 }
+// Shared shell for the legal/info static pages (privacy, terms, cookie-policy)
+// so each gets its own title/canonical/description and isn't a duplicate of the
+// React shell. Pages render full content for crawlers; humans hit the React
+// route via the normal Cloud Run server (no JS redirect from here).
+function generateLegalPageHTML(opts: { slug: string; title: string; description: string; bodyHtml: string }) {
+  const url = `https://ottocollect.com/${opts.slug}`;
+  const safeDesc = opts.description.replace(/"/g, '&quot;');
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${opts.title}</title>
+  <meta name="description" content="${safeDesc}">
+  <meta name="robots" content="index, follow">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="${url}">
+  <meta property="og:title" content="${opts.title}">
+  <meta property="og:description" content="${safeDesc}">
+  <meta property="og:image" content="https://ottocollect.com/web-app-manifest-512x512.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="${url}">
+  <meta name="twitter:title" content="${opts.title}">
+  <meta name="twitter:description" content="${safeDesc}">
+  <link rel="canonical" href="${url}">
+  <script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": opts.title,
+    "description": opts.description,
+    "url": url,
+    "isPartOf": { "@type": "WebSite", "name": "OttoCollect", "url": "https://ottocollect.com" }
+  })}</script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#FBFBFB;color:#3C2415;line-height:1.7;padding:0 20px}
+    .crumbs{max-width:900px;margin:24px auto 0;color:#6B7280;font-size:.9rem}
+    .crumbs a{color:#8B4513;text-decoration:none}
+    main{max-width:900px;margin:24px auto 48px;background:#fff;border-radius:12px;padding:48px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+    h1{font-size:2rem;margin-bottom:24px;color:#3C2415}
+    h2{font-size:1.35rem;margin-top:32px;margin-bottom:12px;color:#5C3A1F}
+    h3{font-size:1.1rem;margin-top:20px;margin-bottom:8px;color:#5C3A1F}
+    p,li{margin-bottom:12px;color:#3C2415}
+    ul{padding-left:24px;margin-bottom:16px}
+    a{color:#8B4513}
+    a:hover{text-decoration:underline}
+    .related-legal{margin-top:40px;padding-top:20px;border-top:1px solid #E5E7EB;color:#6B7280;font-size:.9rem}
+    .related-legal a{margin-right:14px}
+  </style>
+</head>
+<body>
+  <nav class="crumbs"><a href="/">Home</a> &middot; ${opts.title}</nav>
+  <main>
+    <h1><span>${opts.title}</span></h1>
+    ${opts.bodyHtml}
+    <p class="related-legal">
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms of Service</a>
+      <a href="/cookie-policy">Cookie Policy</a>
+      <a href="/contact">Contact</a>
+      <a href="/about">About</a>
+    </p>
+  </main>
+</body>
+</html>`;
+}
+
+function generateCookiePolicyHTML() {
+  return generateLegalPageHTML({
+    slug: 'cookie-policy',
+    title: 'Cookie Policy | OttoCollect',
+    description: 'How OttoCollect uses essential cookies for authentication, security, session management and basic site functionality.',
+    bodyHtml: `
+      <h2><span>Essential Cookies</span></h2>
+      <p>Our website uses only essential cookies that are strictly necessary for the operation of our website. These cookies enable core functionality such as user authentication and session management. Without these cookies, you would not be able to log in or maintain a secure session on our website.</p>
+
+      <h2><span>What Are Cookies?</span></h2>
+      <p>Cookies are small text files that are stored on your device when you visit a website. They help the website remember information about your visit, which can both make it work better and make your next visit easier.</p>
+
+      <h2><span>How We Use Essential Cookies</span></h2>
+      <p>We use essential cookies for the following purposes:</p>
+      <ul>
+        <li><strong>Authentication:</strong> To remember your login status and keep you signed in during your session.</li>
+        <li><strong>Security:</strong> To protect user accounts and prevent unauthorized access.</li>
+        <li><strong>Session Management:</strong> To maintain your session while you browse different pages of our website.</li>
+        <li><strong>Basic Functionality:</strong> To ensure the website works correctly and maintains your preferences during your visit.</li>
+      </ul>
+
+      <h2><span>Cookie Duration</span></h2>
+      <p>Our essential cookies are session cookies, which means they are temporary and are deleted when you close your browser. Some security-related cookies may persist for a longer period to maintain your secure session and remember your login status.</p>
+
+      <h2><span>Managing Cookies</span></h2>
+      <p>Since we only use essential cookies that are strictly necessary for the website to function, these cookies will always be active and cannot be disabled. However, you can set your browser to block or alert you about these cookies, but some parts of the website may not work properly.</p>
+
+      <h2><span>Updates to This Policy</span></h2>
+      <p>We may update this Cookie Policy from time to time to reflect changes in our practices or for operational, legal, or regulatory reasons. We encourage you to periodically review this page for the latest information on our cookie practices.</p>
+
+      <h2><span>Contact Us</span></h2>
+      <p>If you have any questions about our use of cookies, please contact us through our <a href="/contact">contact page</a>.</p>
+    `
+  });
+}
+
+function generatePrivacyPolicyHTML() {
+  return generateLegalPageHTML({
+    slug: 'privacy',
+    title: 'Privacy Policy | OttoCollect',
+    description: 'How OttoCollect collects, uses, stores and protects your personal data, including GDPR rights, cookies, marketplace data and account removal.',
+    bodyHtml: `
+      <p>Your privacy is important to us. This privacy statement explains how user (also "you", "your", "member") personal information is collected, used, secured and processed on OttoCollect (also "we", "us", "our"). Many parts of OttoCollect are freely accessible without the need for registration. In order to use some key features of OttoCollect (such as personal collection management), you must first complete the registration form. If you do not agree with our privacy policy you can't use our services.</p>
+
+      <h2><span>Collection of information</span></h2>
+      <p>Your personal data is stored in our database, server logs and their backups, as well as on cookies in your browser. OttoCollect does not collect any sensitive personal data.</p>
+
+      <h3><span>Database</span></h3>
+      <p>Most of your personal data is stored in our database. This includes your:</p>
+      <ul>
+        <li>first and last name (mandatory),</li>
+        <li>email address (mandatory),</li>
+        <li>Facebook or Google ID (if you use any of these services to log in).</li>
+      </ul>
+      <p>Any additional info you may provide while updating your personal page, writing forum posts and private messages, answering surveys and updating your personal inventory.</p>
+      <p>If you use OttoCollect Marketplace, the following information is also stored:</p>
+      <ul>
+        <li>physical address (mandatory),</li>
+        <li>chosen payment information (such as bank account number, PayPal/Skrill email address — mandatory for sellers).</li>
+      </ul>
+
+      <h3><span>Server logs</span></h3>
+      <p>As is true of most websites, we gather certain information automatically and store it in log files. This information includes internet protocol (IP) addresses, user-agent identifier, referring pages and time stamp. Any request which generates an exception is saved in a specialized error log and may contain your OttoCollect user name. Any request which generates a fatal error is additionally sent via email to our development team.</p>
+
+      <h3><span>Cookies</span></h3>
+      <p>A cookie is a small text file that is stored on a user's computer for record-keeping purposes. We use both session ID cookies and persistent cookies. We use session cookies to make it easier for you to navigate OttoCollect. A session ID cookie expires when you close your browser. A persistent cookie remains on your hard drive for an extended period of time. We set a persistent cookie to make your session last longer, so you don't have to enter your password too often. You can remove persistent cookies by following directions provided by your Internet browser vendor.</p>
+      <p>OttoCollect does not use cookies to store personally identifiable information such as your name or age.</p>
+      <p>Third party vendors may use their own cookies to deliver ads related to OttoCollect, while you are surfing other websites. This is called Behavioral Advertising or Interest-Based Advertising. You can change your Google ad settings on <a href="https://adssettings.google.com" rel="nofollow">adssettings.google.com</a>. You can opt out of interest-based ads on <a href="http://optout.networkadvertising.org/" rel="nofollow">optout.networkadvertising.org</a>. We have no access to or control over these cookies.</p>
+      <p>If you reject cookies, you may still use OttoCollect, but your ability to use some areas of OttoCollect will be limited. This privacy statement covers the use of cookies by OttoCollect only and does not cover the use of cookies by any third parties.</p>
+
+      <h2><span>Use of information</span></h2>
+      <p>We collect this data based on your consent to provide services related to creating and maintaining your personal collection, to better our services, and to resolve problems and bugs faster by analyzing server logs and automatic error reports. We do not use personal data to make automated decisions nor do we transfer it internationally.</p>
+      <p>We use this information to analyze trends, to administer OttoCollect, to track users' movements around OttoCollect and to gather demographic information about our user base as a whole.</p>
+
+      <h3><span>Personal Collection</span></h3>
+      <p>Managing your personal collection and profile on OttoCollect may make inventory information you submit publicly available. In case your privacy settings have allowed your lists to be viewed publicly in the past, we cannot guarantee that nobody (be it crawlers or other users) has saved it.</p>
+
+      <h3><span>Forums</span></h3>
+      <p>If you use OttoCollect's forums or chat messages, you should be aware that any personally identifiable information you submit there can be read, collected, or used by other users of these forums, and could be used to send you unsolicited messages. We are not responsible for the personally identifiable information you choose to submit there.</p>
+
+      <h2><span>Choice / Opt-out</span></h2>
+      <p>We will send you strictly service-related announcements on rare occasions when it is necessary to do so. Generally, you may not opt out of these communications, which are not promotional in nature. If you do not wish to receive them, you have the option to deactivate or remove your account. Other email preferences may be set using the "Settings" option on the top bar of the site.</p>
+
+      <h2><span>Third Parties</span></h2>
+      <p>We DO NOT share personally identifiable information with third parties except for the rare cases described in this document. Do note that personal information you place on your profile or post on our forums may be publicly available. We reserve the right to disclose your personally identifiable information as required by law and when we believe that disclosure is necessary to protect our rights and/or to comply with a judicial proceeding, court order, or legal process served on OttoCollect.</p>
+
+      <h3><span>Analytics</span></h3>
+      <p>We use a third-party tracking service, Google Analytics, to track non-personally identifiable information about visitors to OttoCollect. This helps us monitor use of OttoCollect and improve our service. Please consult Google's privacy policy.</p>
+
+      <h3><span>Integrated Payment Methods</span></h3>
+      <p>If you choose to use an integrated payment method (such as PayPal) we disclose your email and chosen shipping address in order to make the transaction possible.</p>
+
+      <h2><span>Links to Other Sites</span></h2>
+      <p>OttoCollect contains links to other sites that are not owned or controlled by OttoCollect. Please be aware that we are not responsible for the privacy practices of such other sites. We encourage you to be aware when you leave OttoCollect and to read the privacy statements of each and every website that collects personally identifiable information. This privacy statement applies only to information collected by OttoCollect.</p>
+
+      <h2><span>Security</span></h2>
+      <p>We generally follow accepted industry standards to protect the personal information submitted to us, both during transmission and once we receive it. No method of transmission over the Internet, or method of electronic storage, is 100% secure; therefore, while we strive to use commercially acceptable means to protect your personal information, we cannot guarantee its absolute security.</p>
+
+      <h2><span>You're in charge of your data</span></h2>
+      <h3><span>Accessing and changing your data</span></h3>
+      <p>All personal data you share with us can be found in your profile / my collection and your Marketplace. You can access and change this data any time.</p>
+      <h3><span>Account removal</span></h3>
+      <p>If you no longer want to use your OttoCollect account you can deactivate it. After deactivation your lists will be hidden but your collection will not be deleted and you will be able to get it back in case you change your mind. If you're sure that you want your account completely deleted, please contact our support at <a href="mailto:info@ottocollect.com">info@ottocollect.com</a>. This action cannot be undone and your collection will be lost forever.</p>
+
+      <h2><span>User rights under GDPR</span></h2>
+      <p>If GDPR applies to you there are some rights you are subject to. Some of them have already been addressed in this document.</p>
+      <ul>
+        <li>we inform you about collection and use of your personal data,</li>
+        <li>you can review the information you provide us,</li>
+        <li>you can change and complete your personal data,</li>
+        <li>you can remove your account and we'll take care of the rest,</li>
+        <li>processing of your data can be suppressed,</li>
+        <li>you can download a digital copy of your data and ask us to transfer your data to another controller,</li>
+        <li>you can ask us to stop contacting you with direct marketing,</li>
+        <li>you don't have to agree to automatic processing of your personal data or transferring it to third parties for further processing.</li>
+      </ul>
+
+      <h2><span>Data retention</span></h2>
+      <p>We retain your personal data for at least as long as your OttoCollect account is active. We may use the data you provided for a prolonged period of time, for example to finalize Marketplace transactions or when we detect suspected behavior which would otherwise expose other users to fraud. Following your account deactivation, you may request complete removal of your information by writing to <a href="mailto:info@ottocollect.com">info@ottocollect.com</a>.</p>
+
+      <h2><span>Changes to this Privacy Statement</span></h2>
+      <p>We reserve the right to modify this privacy statement at any time. Any such change will be announced by email.</p>
+
+      <h2><span>Contact Us</span></h2>
+      <p>If you have any questions or suggestions regarding our privacy policy, please contact us at <a href="mailto:info@ottocollect.com">info@ottocollect.com</a>.</p>
+    `
+  });
+}
+
+// Render Terms of Service from the English i18n pages.json fetched at runtime,
+// so the SSR copy stays in sync with whatever the React app shows.
+function generateTermsHTML(termsData: any) {
+  const t = termsData || {};
+  const sections: any = t.sections || {};
+  const renderPoints = (sec: any) => {
+    const out: string[] = [];
+    if (sec.intro) out.push(`<p>${sec.intro}</p>`);
+    for (const key of Object.keys(sec)) {
+      if (key === 'title' || key === 'intro') continue;
+      const v = sec[key];
+      if (!v || typeof v !== 'object') {
+        if (typeof v === 'string') out.push(`<p>${v}</p>`);
+        continue;
+      }
+      // point with label/content
+      if (typeof v.label === 'string' || typeof v.content === 'string') {
+        const label = v.label ? `<strong>${v.label}</strong> ` : '';
+        const content = v.content || '';
+        out.push(`<p>${label}${content}</p>`);
+        // optional nested list
+        if (v.list && typeof v.list === 'object') {
+          const items = Object.values(v.list).filter((x: any) => typeof x === 'string') as string[];
+          if (items.length) out.push(`<ul>${items.map((i) => `<li>${i}</li>`).join('')}</ul>`);
+        }
+      } else {
+        // generic nested object — flatten string leaves into a list
+        const items = Object.values(v).filter((x: any) => typeof x === 'string') as string[];
+        if (items.length) out.push(`<ul>${items.map((i) => `<li>${i}</li>`).join('')}</ul>`);
+      }
+    }
+    return out.join('');
+  };
+  const body = Object.values(sections).map((sec: any) => {
+    const title = sec.title || '';
+    return `<h2><span>${title}</span></h2>${renderPoints(sec)}`;
+  }).join('');
+  return generateLegalPageHTML({
+    slug: 'terms',
+    title: (t.title || 'Terms of Service') + ' | OttoCollect',
+    description: 'OttoCollect Terms of Service — rules for using the catalog, marketplace, forum, blog and API, plus user account, content and liability terms.',
+    bodyHtml: body || '<p>Terms of Service unavailable.</p>'
+  });
+}
+
 // Marketplace items live at two route shapes depending on whether the underlying
 // banknote is unlisted. Every link to an item must pick the matching path.
 function marketplaceItemPath(item) {

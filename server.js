@@ -398,6 +398,33 @@ app.get('/contact', async (req, res) => {
   }
 });
 
+// Helper for static info/legal pages — same crawler-vs-human pattern as
+// /about, /guide, /contact. Cached static HTML for bots; React shell for humans.
+async function serveStaticPage(req, res, file) {
+  const isCrawler = CRAWLER_REGEX.test(req.get('User-Agent') || '');
+  if (isCrawler) {
+    try {
+      const { data, error } = await supabase.storage.from('static-pages').download(file);
+      if (!error && data) {
+        const htmlContent = await data.text();
+        res.set('Content-Type', 'text/html');
+        return res.send(htmlContent);
+      }
+      console.error(`Error fetching ${file}:`, error);
+    } catch (e) {
+      console.error(`Error serving ${file}:`, e);
+    }
+  }
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+}
+
+// Legal/info static pages — own SSR HTML so they're not duplicates of the home shell.
+app.get('/cookie-policy',    (req, res) => serveStaticPage(req, res, 'cookie-policy.html'));
+app.get('/privacy',          (req, res) => serveStaticPage(req, res, 'privacy.html'));
+app.get('/privacy-policy',   (req, res) => serveStaticPage(req, res, 'privacy.html'));
+app.get('/terms',            (req, res) => serveStaticPage(req, res, 'terms.html'));
+app.get('/terms-of-service', (req, res) => serveStaticPage(req, res, 'terms.html'));
+
 // Handle marketplace page - serve static HTML for crawlers
 app.get('/marketplace', async (req, res) => {
   const userAgent = req.get('User-Agent') || '';
