@@ -39,12 +39,17 @@ const CountryDetail = () => {
   });
   const [filters, setFilters] = useState<DynamicFilterState>(() => {
     try {
+      // If the user is arriving from a DIFFERENT catalog, drop the cached
+      // search term (issue #4 from the PDF: a search should not persist across
+      // catalog switches, only across same-catalog navigation like detail->back).
+      const lastCountry = sessionStorage.getItem('last-catalog-country');
+      const isCatalogSwitch = !!lastCountry && lastCountry !== country;
       const cached = sessionStorage.getItem(filtersCacheKey);
       if (cached) {
         const parsed = JSON.parse(cached);
         if (parsed.categories?.length > 0 && parsed.types?.length > 0) {
           return {
-            search: parsed.search || '',
+            search: isCatalogSwitch ? '' : (parsed.search || ''),
             categories: parsed.categories,
             types: parsed.types,
             sort: parsed.sort || [],
@@ -55,6 +60,28 @@ const CountryDetail = () => {
     } catch {}
     return { search: "", categories: [], types: [], sort: [], imagesOnly: true };
   });
+
+  // Reset search if the catalog (country) actually changed. Covers the case
+  // where the page is kept-alive across catalog switches, in which case the
+  // useState initializer above does not re-run.
+  useEffect(() => {
+    if (!country) return;
+    const lastCountry = sessionStorage.getItem('last-catalog-country');
+    if (lastCountry && lastCountry !== country) {
+      setFilters(prev => (prev.search ? { ...prev, search: '' } : prev));
+      try {
+        const cached = sessionStorage.getItem(filtersCacheKey);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed.search) {
+            parsed.search = '';
+            sessionStorage.setItem(filtersCacheKey, JSON.stringify(parsed));
+          }
+        }
+      } catch {}
+    }
+    sessionStorage.setItem('last-catalog-country', country);
+  }, [country, filtersCacheKey]);
 
   // New: collection loading
   const [userCollection, setUserCollection] = useState<CollectionItem[]>([]);

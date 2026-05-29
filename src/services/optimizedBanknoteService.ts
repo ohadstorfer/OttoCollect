@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DetailedBanknote } from '@/types';
 import { DynamicFilterState } from '@/types/filter';
 import { mapBanknoteFromDatabase } from './banknoteService';
+import { pickSearchOrFilters } from '@/utils/pickSearch';
 
 // Combined optimized query that fetches country data and banknotes in a single request
 export async function fetchBanknotesWithMetadata(
@@ -41,9 +42,9 @@ export async function fetchBanknotesWithMetadata(
     // Apply search filter at database level
     if (filters?.search?.trim()) {
       const searchTerm = filters.search.toLowerCase();
+      const pickOr = pickSearchOrFilters(['extended_pick_number', 'new_extended_pick_number'], searchTerm);
       query = query.or(
-        `extended_pick_number.ilike.%${searchTerm}%,` +
-        `new_extended_pick_number.ilike.%${searchTerm}%,` +
+        `${pickOr},` +
         `face_value.ilike.%${searchTerm}%,` +
         `banknote_description.ilike.%${searchTerm}%,` +
         `sultan_name.ilike.%${searchTerm}%`

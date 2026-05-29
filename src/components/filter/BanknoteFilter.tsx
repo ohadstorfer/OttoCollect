@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -97,9 +97,19 @@ export const BanknoteFilter: React.FC<BanknoteFilterProps> = ({
     currentFilters.sort || defaultSort
   );
 
-  const debouncedSearch = debounce((value: string) => {
-    handleFilterChange({ search: value });
-  }, 300);
+  // Ref pattern keeps the debounced fn stable across renders. Without it,
+  // `debounce(...)` is recreated on every render and effectively does nothing.
+  const handleFilterChangeRef = useRef(null as any);
+  useEffect(() => {
+    handleFilterChangeRef.current = handleFilterChange;
+  });
+  const debouncedSearch = useMemo(
+    () => debounce((value: string) => {
+      handleFilterChangeRef.current?.({ search: value });
+    }, 300),
+    []
+  );
+  useEffect(() => () => debouncedSearch.cancel(), [debouncedSearch]);
 
   useEffect(() => {
     handleFilterChange({

@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { DetailedBanknote, BanknoteFilters, UserRank } from '@/types';
+import { pickSearchOrFilters, matchesPickSearch } from '@/utils/pickSearch';
 
 export async function fetchBanknotes(filters?: BanknoteFilters): Promise<DetailedBanknote[]> {
   try {
@@ -23,7 +24,8 @@ export async function fetchBanknotes(filters?: BanknoteFilters): Promise<Detaile
     }
     
     if (filters?.search) {
-      query = query.or(`extended_pick_number.ilike.%${filters.search}%,new_extended_pick_number.ilike.%${filters.search}%,face_value.ilike.%${filters.search}%,banknote_description.ilike.%${filters.search}%`);
+      const pickOr = pickSearchOrFilters(['extended_pick_number', 'new_extended_pick_number'], filters.search);
+      query = query.or(`${pickOr},face_value.ilike.%${filters.search}%,banknote_description.ilike.%${filters.search}%`);
     }
     
     const { data, error } = await query;
@@ -92,9 +94,9 @@ export async function fetchBanknotesByCountryId(
     // Apply search filter if provided
     if (filters?.search?.trim()) {
       const searchTerm = filters.search.toLowerCase();
+      const pickOr = pickSearchOrFilters(['extended_pick_number', 'new_extended_pick_number'], searchTerm);
       query = query.or(
-        `extended_pick_number.ilike.%${searchTerm}%,` +
-        `new_extended_pick_number.ilike.%${searchTerm}%,` +
+        `${pickOr},` +
         `face_value.ilike.%${searchTerm}%,` +
         `banknote_description.ilike.%${searchTerm}%,` +
         `sultan_name.ilike.%${searchTerm}%`
@@ -254,7 +256,7 @@ export async function searchBanknotes(searchTerm: string): Promise<DetailedBankn
     const { data, error } = await supabase
       .from('enhanced_banknotes_with_translations')
       .select('*')
-      .or(`extended_pick_number.ilike.%${searchTerm}%,new_extended_pick_number.ilike.%${searchTerm}%,face_value.ilike.%${searchTerm}%,banknote_description.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%`)
+      .or(`${pickSearchOrFilters(['extended_pick_number', 'new_extended_pick_number'], searchTerm)},face_value.ilike.%${searchTerm}%,banknote_description.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%`)
       .limit(20);
     
     if (error) {

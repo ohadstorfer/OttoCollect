@@ -38,6 +38,7 @@ import {
 import { Download, Languages } from 'lucide-react';
 import { generateAdminExcel, downloadExcel, generateAdminFilename } from '@/services/csvExportService';
 import BulkTranslationDialog from './BulkTranslationDialog';
+import { buildPickSearchVariants } from '@/utils/pickSearch';
 
 interface BanknotesManagementProps extends AdminComponentProps {}
 
@@ -118,6 +119,7 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
     } else {
       // Search query exists - apply custom prioritization
       const searchLower = searchQuery.toLowerCase();
+      const pickVariants = buildPickSearchVariants(searchLower);
       
       // Separate banknotes into priority groups
       const extPickMatches = [];
@@ -126,9 +128,11 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
       filteredBanknotes.forEach(banknote => {
         const extPick = banknote.extendedPickNumber?.toLowerCase() || '';
         const newExtPick = (banknote as any).newExtendedPickNumber?.toLowerCase?.() || '';
+        const matchesExt = pickVariants.some(v => extPick.includes(v));
+        const matchesNew = pickVariants.some(v => newExtPick.includes(v));
         
         // Check if extendedPickNumber contains the search query
-        if (extPick.includes(searchLower) || newExtPick.includes(searchLower)) {
+        if (matchesExt || matchesNew) {
           extPickMatches.push(banknote);
         } else {
           otherMatches.push(banknote);
@@ -209,13 +213,16 @@ const BanknotesManagement: React.FC<BanknotesManagementProps> = ({
       setFilteredBanknotes(allBanknotes);
     } else {
       const searchLower = searchQuery.toLowerCase();
+      const pickVariants = buildPickSearchVariants(searchLower);
 
       const filtered = allBanknotes.filter(banknote => {
         const extPick = banknote.extendedPickNumber?.toLowerCase() || '';
         const newExtPick = (banknote as any).newExtendedPickNumber?.toLowerCase?.() || '';
+        const matchesExt = pickVariants.some(v => extPick.includes(v));
+        const matchesNew = pickVariants.some(v => newExtPick.includes(v));
 
         // Check if extendedPickNumber contains the search query
-        if (extPick.includes(searchLower) || newExtPick.includes(searchLower)) {
+        if (matchesExt || matchesNew) {
           return true;
         }
 

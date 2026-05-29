@@ -3,6 +3,7 @@ import { CollectionItem, DetailedBanknote } from "@/types";
 import { DynamicFilterState } from "@/types/filter";
 import { mapBanknoteFromDatabase } from "@/services/banknoteService";
 import { normalizeBanknoteData } from "@/services/collectionService";
+import { buildPickSearchVariants } from "@/utils/pickSearch";
 
 // Optimized collection service with combined queries and server-side filtering
 
@@ -202,18 +203,24 @@ export async function fetchFilteredUserCollection(
     if (filters.search && filters.search.trim()) {
       const searchTerm = `%${filters.search.toLowerCase()}%`;
       
+      // Expand the search term with pick variants (e.g. typing `p24` also matches `p.24A`)
+      const pickVariants = buildPickSearchVariants(filters.search);
+      const detailedPickParts = ['extended_pick_number', 'new_extended_pick_number']
+        .flatMap(col => pickVariants.map(v => `enhanced_banknotes_with_translations.${col}.ilike.%${v}%`))
+        .join(',\n        ');
       detailedQuery = detailedQuery.or(`
         enhanced_banknotes_with_translations.denomination.ilike.${searchTerm},
-        enhanced_banknotes_with_translations.extended_pick_number.ilike.${searchTerm},
-        enhanced_banknotes_with_translations.new_extended_pick_number.ilike.${searchTerm},
+        ${detailedPickParts},
         enhanced_banknotes_with_translations.series.ilike.${searchTerm},
         enhanced_banknotes_with_translations.type.ilike.${searchTerm}
       `);
 
+      const unlistedPickParts = ['extended_pick_number', 'new_extended_pick_number']
+        .flatMap(col => pickVariants.map(v => `unlisted_banknotes.${col}.ilike.%${v}%`))
+        .join(',\n        ');
       unlistedQuery = unlistedQuery.or(`
         unlisted_banknotes.face_value.ilike.${searchTerm},
-        unlisted_banknotes.extended_pick_number.ilike.${searchTerm},
-        unlisted_banknotes.new_extended_pick_number.ilike.${searchTerm},
+        ${unlistedPickParts},
         unlisted_banknotes.category.ilike.${searchTerm},
         unlisted_banknotes.type.ilike.${searchTerm}
       `);

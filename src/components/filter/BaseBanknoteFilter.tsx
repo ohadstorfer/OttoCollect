@@ -267,12 +267,21 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     }
   }, [categories, types, countries, selectedCategories, selectedTypes, selectedCountries, handleFilterChange]);
 
-  const debouncedSearch = useCallback(
-    debounce((value: string) => {
-      handleFilterChange({ search: value });
-    }, 100), // Reduced debounce time
-    [handleFilterChange] // Changed dependency to handleFilterChange
+  // Ref pattern: keep a stable debounced fn that always calls the LATEST
+  // handleFilterChange. Without this, handleFilterChange is recreated on every
+  // render -> debounce gets recreated too -> debounce never accumulates calls
+  // and effectively does nothing (cause of the search lag reported by users).
+  const handleFilterChangeRef = useRef(handleFilterChange);
+  useEffect(() => {
+    handleFilterChangeRef.current = handleFilterChange;
+  });
+  const debouncedSearch = useMemo(
+    () => debounce((value: string) => {
+      handleFilterChangeRef.current({ search: value });
+    }, 250),
+    []
   );
+  useEffect(() => () => debouncedSearch.cancel(), [debouncedSearch]);
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     
@@ -437,14 +446,12 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     // Update local state immediately
     setSearch(value);
     
-    // Cancel any pending debounced searches
-    debouncedSearch.cancel();
-    
-    // Trigger search immediately for empty or single character
-    if (value.length <= 1) {
-      handleFilterChange({ search: value });
+    // Empty input -> fire immediately so the list clears without delay.
+    // Otherwise debounce: avoids running the heavy filter+query on every keystroke.
+    if (value.length === 0) {
+      debouncedSearch.cancel();
+      handleFilterChangeRef.current({ search: '' });
     } else {
-      // Use debounced search for longer queries
       debouncedSearch(value);
     }
   };

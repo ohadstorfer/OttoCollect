@@ -8,6 +8,7 @@ import { useCollectionItemsFetching } from "@/hooks/use-collection-items-fetchin
 import { useBanknoteSorting } from "@/hooks/use-banknote-sorting";
 import { useBanknoteGroups } from "@/hooks/use-banknote-groups";
 import { getSultanOrderMap } from "@/services/sultanOrderService";
+import { matchesPickSearch } from "@/utils/pickSearch";
 import { useAuth } from "@/context/AuthContext";
 import { CollectionItemsDisplay } from "@/components/country/CollectionItemsDisplay";
 import CountryDetailMissingItems from "@/pages/CountryDetailMissingItems";
@@ -245,8 +246,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         const matches =
           (item.banknote.denomination && item.banknote.denomination.toLowerCase().includes(searchLower)) ||
           (item.banknote.sultanName && item.banknote.sultanName.toLowerCase().includes(searchLower)) ||
-          (item.banknote.extendedPickNumber && item.banknote.extendedPickNumber.toLowerCase().includes(searchLower)) ||
-          (item.banknote.newExtendedPickNumber && item.banknote.newExtendedPickNumber.toLowerCase().includes(searchLower)) ||
+          matchesPickSearch(item.banknote.extendedPickNumber, searchLower) ||
+          matchesPickSearch(item.banknote.newExtendedPickNumber, searchLower) ||
           (item.banknote.category && item.banknote.category.toLowerCase().includes(searchLower)) ||
           (item.banknote.type && item.banknote.type.toLowerCase().includes(searchLower));
         
@@ -643,8 +644,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         const matches =
           (item.denomination && item.denomination.toLowerCase().includes(searchLower)) ||
           (item.sultanName && item.sultanName.toLowerCase().includes(searchLower)) ||
-          (item.extendedPickNumber && item.extendedPickNumber.toLowerCase().includes(searchLower)) ||
-          (item.newExtendedPickNumber && item.newExtendedPickNumber.toLowerCase().includes(searchLower)) ||
+          matchesPickSearch(item.extendedPickNumber, searchLower) ||
+          matchesPickSearch(item.newExtendedPickNumber, searchLower) ||
           (item.category && item.category.toLowerCase().includes(searchLower)) ||
           (item.type && item.type.toLowerCase().includes(searchLower));
         
@@ -911,8 +912,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         const matches =
           (item.denomination && item.denomination.toLowerCase().includes(searchLower)) ||
           (item.sultanName && item.sultanName.toLowerCase().includes(searchLower)) ||
-          (item.extendedPickNumber && item.extendedPickNumber.toLowerCase().includes(searchLower)) ||
-          (item.newExtendedPickNumber && item.newExtendedPickNumber.toLowerCase().includes(searchLower)) ||
+          matchesPickSearch(item.extendedPickNumber, searchLower) ||
+          matchesPickSearch(item.newExtendedPickNumber, searchLower) ||
           (item.category && item.category.toLowerCase().includes(searchLower)) ||
           (item.type && item.type.toLowerCase().includes(searchLower));
         if (!matches) return false;

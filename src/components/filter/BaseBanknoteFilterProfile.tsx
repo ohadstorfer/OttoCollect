@@ -459,14 +459,12 @@ export const BaseBanknoteFilterProfile: React.FC<BaseBanknoteFilterProps> = ({
     // Update local state immediately
     setSearch(value);
 
-    // Cancel any pending debounced searches
-    debouncedSearch.cancel();
-
-    // Trigger search immediately for empty or single character
-    if (value.length <= 1) {
-      handleFilterChange({ search: value });
+    // Empty input -> fire immediately so the list clears without delay.
+    // Otherwise debounce so the heavy filter doesn't run on every keystroke.
+    if (value.length === 0) {
+      debouncedSearch.cancel();
+      handleFilterChangeRef.current({ search: '' });
     } else {
-      // Use debounced search for longer queries
       debouncedSearch(value);
     }
   };

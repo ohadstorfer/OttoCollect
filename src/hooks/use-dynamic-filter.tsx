@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { DynamicFilterState, FilterableItem } from "@/types/filter";
 import { fetchUserFilterPreferences } from "@/services/countryService";
+import { matchesPickSearch } from "@/utils/pickSearch";
 
 interface UseDynamicFilterProps<T extends FilterableItem> {
   items: T[];
@@ -229,8 +230,8 @@ export const useDynamicFilter = <T extends FilterableItem>({
           banknote.denomination?.toLowerCase().includes(searchTerm) ||
           banknote.year?.toLowerCase().includes(searchTerm) ||
           banknote.series?.toLowerCase().includes(searchTerm) ||
-          banknote.extendedPickNumber?.toLowerCase().includes(searchTerm) ||
-          banknote.newExtendedPickNumber?.toLowerCase().includes(searchTerm) ||
+          matchesPickSearch(banknote.extendedPickNumber, searchTerm) ||
+          matchesPickSearch(banknote.newExtendedPickNumber, searchTerm) ||
           banknote.description?.toLowerCase().includes(searchTerm) ||
           (banknote.type as string)?.toLowerCase().includes(searchTerm) ||
           (banknote.category as string)?.toLowerCase().includes(searchTerm);
