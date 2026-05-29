@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
 import { CountryHeader } from "@/components/country/CountryHeader";
@@ -22,6 +22,8 @@ import { statisticsService } from "@/services/statisticsService";
 import { CollectionItem } from "@/types";
 import { useScrollRestoration } from '@/hooks/use-scroll-restoration';
 import { Button } from "@/components/ui/button";
+import { useKeepAliveContext } from 'keepalive-for-react';
+import { getCollectionVersion, drainCollectionPatches } from '@/lib/collectionRefresh';
 
 interface CountryDetailCollectionProps {
   userId?: string;  // Optional user ID prop for viewing other users' collections
@@ -144,7 +146,8 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     missingBanknotes,
     loading: collectionDataLoading,
     error: collectionDataError,
-    refresh
+    refresh,
+    applyPatches
   } = useCollectionData({
     countryId: countryId || '',
     userId: effectiveUserId || '',
@@ -186,6 +189,27 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
       statisticsService.trackCollectionView(effectiveUserId, countryId, user?.id);
     }
   }, [countryId, effectiveUserId, user?.id, isFullyLoaded, isOwner]);
+
+  // Apply pending mutations from a detail page (edit/delete) when this
+  // kept-alive page becomes active again. Patches are applied synchronously
+  // so the change is visible instantly — no fetch, no flicker. The silent
+  // refresh after that is a safety net for anything the patches couldn't
+  // capture (e.g. shape mismatches). `silent: true` skips the global loading
+  // spinner so cards update in place.
+  const { active } = useKeepAliveContext();
+  const lastVersionRef = useRef<number>(getCollectionVersion(effectiveUserId || ''));
+  const silentRefresh = useCallback(async () => {
+    await refresh({ silent: true });
+    if (effectiveUserId) lastVersionRef.current = getCollectionVersion(effectiveUserId);
+  }, [refresh, effectiveUserId]);
+  useEffect(() => {
+    if (!active || !effectiveUserId) return;
+    const current = getCollectionVersion(effectiveUserId);
+    if (current === lastVersionRef.current) return;
+    const patches = drainCollectionPatches(effectiveUserId);
+    if (patches.length) applyPatches(patches);
+    void silentRefresh();
+  }, [active, effectiveUserId, silentRefresh, applyPatches]);
   
 
 
@@ -1112,6 +1136,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           activeTab={activeTab}
           countryName={effectiveCountryName}
           filters={filters}
+          onRefresh={silentRefresh}
         />
       )}
       {activeTab === 'missing' && (
@@ -1136,6 +1161,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
               activeTab={activeTab}
               countryName={effectiveCountryName}
               filters={filters}
+              onRefresh={silentRefresh}
             />
           );
         })()
@@ -1153,6 +1179,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           countryName={effectiveCountryName}
           filters={filters}
           hasAnyItems={wishlistItems && wishlistItems.length > 0}
+          onRefresh={silentRefresh}
         />
       )}
       {activeTab === 'sale' && (
@@ -1168,6 +1195,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
           countryName={effectiveCountryName}
           filters={filters}
           hasAnyItems={collectionItems && collectionItems.some(item => item.isForSale)}
+          onRefresh={silentRefresh}
         />
       )}
 

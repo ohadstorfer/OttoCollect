@@ -32,7 +32,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const LINE_HEIGHTS = ['1', '1.15', '1.5', '2', '2.5', '3'];
-const FONT_SIZES = ['12px', '14px', '16px', '18px', '20px', '24px', '30px', '36px'];
+// Word measures font size in points (pt), CSS in pixels (px) — they are NOT
+// the same: 1pt = 1.333px. So a "16" in our old px-based dropdown rendered
+// ~25% smaller than the same nominal size in Word. Using pt here makes every
+// number in this dropdown match the equivalent size in Word exactly. The
+// values list mirrors Word's standard dropdown.
+const FONT_SIZES = ['8pt', '10pt', '11pt', '12pt', '14pt', '16pt', '18pt', '20pt', '24pt', '28pt', '36pt', '48pt'];
 // Small Word-like font picker: labels are what the user sees; values are the
 // CSS font-family stacks. Keep this list short — exposing every system font
 // makes the dropdown noisy and most of them aren't installed anyway.
@@ -119,6 +124,22 @@ function Toolbar({
     (editor.getAttributes('paragraph').lineHeight as string | undefined) ||
     (editor.getAttributes('heading').lineHeight as string | undefined);
   const currentFontSize = editor.getAttributes('textStyle').fontSize as string | undefined;
+  // Local editable buffer for the font-size input: lets the user type a custom
+  // number (e.g. 13, 22, 100) without losing intermediate keystrokes. We
+  // commit on Enter / blur. Kept in sync with the editor's current size as
+  // the caret moves around different text.
+  const [fontSizeInput, setFontSizeInput] = React.useState('');
+  React.useEffect(() => {
+    setFontSizeInput(currentFontSize ? String(parseInt(currentFontSize, 10)) : '');
+  }, [currentFontSize]);
+  const applyFontSize = useCallback(
+    (raw: string) => {
+      const n = parseInt(raw, 10);
+      if (!Number.isFinite(n) || n <= 0 || n > 400) return;
+      editor.chain().focus().setFontSize(`${n}pt`).run();
+    },
+    [editor]
+  );
   const currentFontFamily = editor.getAttributes('textStyle').fontFamily as string | undefined;
   const currentFontFamilyLabel =
     FONT_FAMILIES.find((f) => f.value === currentFontFamily)?.label ??
@@ -237,36 +258,59 @@ function Toolbar({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Font size */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            title="Text size"
-            aria-label="Text size"
-            onMouseDown={(e) => e.preventDefault()}
-            className="inline-flex h-8 items-center gap-0.5 rounded-md px-1.5 text-foreground transition-colors hover:bg-muted"
-          >
-            <Type className="h-4 w-4" />
-            <span className="text-xs tabular-nums">{currentFontSize ? parseInt(currentFontSize, 10) : '—'}</span>
-            <ChevronDown className="h-3 w-3" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="min-w-[5rem]">
-          {FONT_SIZES.map((s) => (
-            <DropdownMenuItem
-              key={s}
-              onSelect={() => editor.chain().focus().setFontSize(s).run()}
-              className={cn(currentFontSize === s && 'bg-muted font-medium')}
+      {/* Font size: editable input + chevron that opens the preset list.
+          The input accepts any positive integer (pt), matching Word's UX
+          where you can either type 13, 22, 100... or pick from the menu. */}
+      <div
+        className="inline-flex h-8 items-center rounded-md text-foreground transition-colors hover:bg-muted"
+        title="Text size"
+      >
+        <span className="pl-1.5 pr-0.5"><Type className="h-4 w-4" /></span>
+        <input
+          type="text"
+          inputMode="numeric"
+          aria-label="Text size"
+          value={fontSizeInput}
+          placeholder="—"
+          onChange={(e) => setFontSizeInput(e.target.value.replace(/[^0-9]/g, ''))}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              applyFontSize(fontSizeInput);
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
+          onBlur={() => applyFontSize(fontSizeInput)}
+          className="w-7 bg-transparent text-center text-xs tabular-nums focus:outline-none"
+        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              title="Text size presets"
+              aria-label="Text size presets"
+              onMouseDown={(e) => e.preventDefault()}
+              className="inline-flex h-8 items-center rounded-md px-1 hover:bg-muted/60"
             >
-              {parseInt(s, 10)}
+              <ChevronDown className="h-3 w-3" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="min-w-[5rem]">
+            {FONT_SIZES.map((s) => (
+              <DropdownMenuItem
+                key={s}
+                onSelect={() => editor.chain().focus().setFontSize(s).run()}
+                className={cn(currentFontSize === s && 'bg-muted font-medium')}
+              >
+                {parseInt(s, 10)}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuItem onSelect={() => editor.chain().focus().unsetFontSize().run()}>
+              Default
             </DropdownMenuItem>
-          ))}
-          <DropdownMenuItem onSelect={() => editor.chain().focus().unsetFontSize().run()}>
-            Default
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <Divider />
 

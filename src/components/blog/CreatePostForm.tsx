@@ -23,7 +23,7 @@ import {
 } from '@/services/blogService';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, FileText, Loader2, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FileText, Loader2, Plus, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@/context/LanguageContext';
 import { blogTranslationService } from '@/services/blogTranslationService';
@@ -42,6 +42,12 @@ export function CreatePostForm() {
   const [hasReachedLimit, setHasReachedLimit] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
   const [showExitDialog, setShowExitDialog] = useState(false);
+  // The exit dialog is reused for two flows: leaving the page entirely
+  // ('navigate' — back-to-blog, footer Close, browser back) and starting a
+  // brand-new draft from scratch without leaving ('reset'). The Save draft /
+  // Discard buttons branch on this so unsaved work isn't lost when the user
+  // just wanted to start a parallel new draft.
+  const [pendingExitAction, setPendingExitAction] = useState<'navigate' | 'reset'>('navigate');
   // When set, "Save draft" updates this row instead of inserting a new one.
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
   // Snapshot of the loaded draft so we can detect if the user actually edited
@@ -244,32 +250,53 @@ export function CreatePostForm() {
     if (ok) navigate('/blog');
   };
 
+  const resetForm = () => {
+    setTitle('');
+    setContent('');
+    setEditingDraftId(null);
+    setDraftBaseline(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleClose = () => {
     if (!hasUnsavedWork) {
       navigate('/blog');
       return;
     }
+    setPendingExitAction('navigate');
+    setShowExitDialog(true);
+  };
+
+  const handleStartNewPost = () => {
+    if (!hasUnsavedWork) {
+      resetForm();
+      loadDrafts();
+      return;
+    }
+    setPendingExitAction('reset');
     setShowExitDialog(true);
   };
 
   const handleDialogDiscard = () => {
     setShowExitDialog(false);
-    setTitle('');
-    setContent('');
-    setEditingDraftId(null);
-    setDraftBaseline(null);
-    setTimeout(() => navigate('/blog'), 0);
+    resetForm();
+    if (pendingExitAction === 'navigate') {
+      setTimeout(() => navigate('/blog'), 0);
+    } else {
+      loadDrafts();
+    }
   };
 
   const handleDialogSaveDraft = async () => {
     const saved = await performSave(true);
     if (saved) {
       setShowExitDialog(false);
-      setTitle('');
-      setContent('');
-      setEditingDraftId(null);
-      setDraftBaseline(null);
-      setTimeout(() => navigate('/blog'), 0);
+      resetForm();
+      if (pendingExitAction === 'navigate') {
+        setTimeout(() => navigate('/blog'), 0);
+      } else {
+        loadDrafts();
+      }
     }
   };
 
@@ -284,20 +311,37 @@ export function CreatePostForm() {
   return (
     <>
       {/* Back-to-blog button: routes through handleClose so the same exit
-          guard fires here as for the footer Close button. */}
-      <Button
-        type="button"
-        variant="ghost"
-        onClick={handleClose}
-        className={`mb-6 flex items-center ${direction === 'rtl' ? 'justify-end' : 'justify-start'}`}
-      >
-        {direction === 'rtl' ? (
-          <ArrowRight className="mr-2 h-4 w-4" />
-        ) : (
-          <ArrowLeft className="ml-2 h-4 w-4" />
+          guard fires here as for the footer Close button. When the user is
+          editing an existing draft we also show "+ New post" so they can
+          start a *parallel* fresh draft without losing the one they have
+          open. */}
+      <div className="mb-6 flex items-center justify-between gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={handleClose}
+          className="flex items-center"
+        >
+          {direction === 'rtl' ? (
+            <ArrowRight className="mr-2 h-4 w-4" />
+          ) : (
+            <ArrowLeft className="ml-2 h-4 w-4" />
+          )}
+          {t('post.backToBlog')}
+        </Button>
+        {editingDraftId && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleStartNewPost}
+            className="flex items-center"
+          >
+            <Plus className="mr-1 h-4 w-4" />
+            {tWithFallback('drafts.newPost', 'New post')}
+          </Button>
         )}
-        {t('post.backToBlog')}
-      </Button>
+      </div>
 
       {/* Drafts shortcut: only visible when you haven't yet picked one to
           continue. Once you're editing a draft the screen collapses back to
@@ -361,6 +405,16 @@ export function CreatePostForm() {
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* Heading that disambiguates the form when drafts already exist:
+          without this, users sometimes assume "Continue" is the only way to
+          edit and don't realise the form below is for starting a brand-new
+          post. */}
+      {myDrafts.length > 0 && !editingDraftId && (
+        <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+          <span>{tWithFallback('drafts.orStartNew', 'Or start a new post')}</span>
+        </h3>
       )}
 
       <form onSubmit={handlePublishFromFooter}>

@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import ImagePreview from "@/components/shared/ImagePreview";
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from "@/context/LanguageContext";
+import { markCollectionDirty, pushCollectionPatch } from "@/lib/collectionRefresh";
 
 
 interface LabelValuePairProps {
@@ -271,7 +272,7 @@ export default function CollectionItem() {
   const handleUpdateSuccess = async (updatedItem?: CollectionItemType, hasImageChanged?: boolean) => {
     setIsEditDialogOpen(false);
     toast(t('item.collectionItemUpdatedSuccess'));
-    
+
     // If images were changed, delete existing suggestions and reset suggestion status
     if (hasImageChanged && collectionItem?.id && user?.id) {
       try {
@@ -281,15 +282,21 @@ export default function CollectionItem() {
         console.error("Failed to delete existing image suggestions:", error);
         // Don't show error to user as this is a background cleanup operation
       }
-      
+
       // Reset suggestion status regardless of deletion success
       setSuggestionStatus(null);
       setHasPendingSuggestion(false);
       setImageChangedAfterApproval(suggestionStatus === 'approved');
     }
-    
-    // Refetch the data to get the latest updates
-    await refetch();
+
+    // Refetch the data to get the latest updates, then hand the fresh item
+    // to the (kept-alive) collection page so it can patch its state in place
+    // instantly when the user returns — no waiting for a background refetch.
+    const { data: fresh } = await refetch();
+    if (user?.id) {
+      if (fresh) pushCollectionPatch(user.id, { kind: 'update', item: fresh });
+      else markCollectionDirty(user.id);
+    }
   };
 
   const handleSuggestToCatalog = async () => {
@@ -332,6 +339,7 @@ export default function CollectionItem() {
       const { removeFromCollection } = await import("@/services/collectionService");
       await removeFromCollection(collectionItem.id);
       toast(t('item.collectionItemDeletedSuccess'));
+      if (user?.id) pushCollectionPatch(user.id, { kind: 'delete', itemId: collectionItem.id });
       // Slight delay for better UX
       setTimeout(() => {
         navigate(-1);
@@ -360,7 +368,11 @@ export default function CollectionItem() {
       if (error) throw error;
 
       toast.success(t('item.imageDeletedSuccess'));
-      await refetch();
+      const { data: fresh } = await refetch();
+      if (user?.id) {
+        if (fresh) pushCollectionPatch(user.id, { kind: 'update', item: fresh });
+        else markCollectionDirty(user.id);
+      }
       setImageToDelete(null);
     } catch (error) {
       console.error('Error deleting image:', error);
@@ -389,9 +401,13 @@ export default function CollectionItem() {
       });
       
       toast(newHideImages ? t('item.imagesPrivate') : t('item.imagesPublic'));
-      
-      // Force refetch to update the UI
-      await refetch();
+
+      // Force refetch to update the UI, then patch the cached collection page.
+      const { data: fresh } = await refetch();
+      if (user?.id) {
+        if (fresh) pushCollectionPatch(user.id, { kind: 'update', item: fresh });
+        else markCollectionDirty(user.id);
+      }
     } catch (error) {
       console.error("Error updating image visibility:", error);
       toast(t('item.failedToUpdateImageVisibility'));

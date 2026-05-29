@@ -26,6 +26,7 @@ interface CollectionItemsDisplayProps {
   countryName?: string;
   filters?: DynamicFilterState; // Add filters prop
   hasAnyItems?: boolean; // Add hasAnyItems prop
+  onRefresh?: () => Promise<void>;
 }
 
 export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
@@ -40,6 +41,7 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
   countryName,
   filters, // Destructure filters prop
   hasAnyItems, // Destructure hasAnyItems prop
+  onRefresh,
 }) => {
   
   // Log when missing items are being displayed
@@ -77,12 +79,10 @@ export const CollectionItemsDisplay: React.FC<CollectionItemsDisplayProps> = ({
     });
   }
   
-  // Function to update collection items after changes
-  const handleUpdate = async () => {
-    // In a real implementation, we would call a function from props
-    // that refreshes the collection data
-    return Promise.resolve();
-  };
+  // Function to update collection items after changes (e.g. card delete/edit).
+  // Uses parent's refresh when available; the parent passes a "silent" variant
+  // so cards update in place without triggering the global loading spinner.
+  const handleUpdate = onRefresh ?? (async () => {});
 
   // Check if user is currently searching
   const isSearching = filters?.search && filters.search.trim() !== "";
