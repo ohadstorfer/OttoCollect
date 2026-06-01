@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { DetailedBanknote, BanknoteFilters, UserRank } from '@/types';
-import { pickSearchOrFilters, matchesPickSearch } from '@/utils/pickSearch';
+import { pickSearchOrFilters } from '@/utils/pickSearch';
 
 export async function fetchBanknotes(filters?: BanknoteFilters): Promise<DetailedBanknote[]> {
   try {
@@ -91,17 +91,12 @@ export async function fetchBanknotesByCountryId(
       .select('*')
       .eq('country', countryName);
     
-    // Apply search filter if provided
-    if (filters?.search?.trim()) {
-      const searchTerm = filters.search.toLowerCase();
-      const pickOr = pickSearchOrFilters(['extended_pick_number', 'new_extended_pick_number'], searchTerm);
-      query = query.or(
-        `${pickOr},` +
-        `face_value.ilike.%${searchTerm}%,` +
-        `banknote_description.ilike.%${searchTerm}%,` +
-        `sultan_name.ilike.%${searchTerm}%`
-      );
-    }
+    // NOTE: the text search is intentionally NOT applied here anymore. It is
+    // done client-side (CountryDetail via banknoteMatchesSearch) so that
+    // pick-number matching can ignore dot placement and the `p` prefix
+    // (Option A), which a PostgREST `ilike` cannot do on the stored column.
+    // Moving it out also removes the raw-string `.or(...)` that broke on commas
+    // and parentheses in the search term.
 
     // Server-side filter: drop rows where both pictures are NULL when the
     // user wants images-only. Empty-string cases are filtered client-side

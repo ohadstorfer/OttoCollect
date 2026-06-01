@@ -9,8 +9,16 @@ import { useMemo } from 'react';
 
 // Query keys for React Query caching
 export const queryKeys = {
-  banknotes: (countryId: string, filters: DynamicFilterState, language?: string) => 
-    ['banknotes', countryId, filters, language] as const,
+  // `search` is deliberately excluded: text search is applied client-side over
+  // the cached country result, so typing in the search box must NOT change the
+  // query key (otherwise every keystroke refetches the whole country).
+  banknotes: (countryId: string, filters: DynamicFilterState, language?: string) =>
+    ['banknotes', countryId, {
+      categories: filters.categories,
+      types: filters.types,
+      sort: filters.sort,
+      imagesOnly: filters.imagesOnly,
+    }, language] as const,
   userFilterPreferences: (userId: string, countryId: string) => 
     ['userFilterPreferences', userId, countryId] as const,
   userCollection: (userId: string) => 
@@ -47,8 +55,8 @@ export const useBanknoteQuery = ({
   } = useQuery({
     queryKey: queryKeys.banknotes(countryId, filters, currentLanguage),
     queryFn: async () => {
+      // search omitted on purpose — applied client-side (see queryKeys.banknotes)
       const filterParams = {
-        search: filters.search,
         categories: filters.categories,
         types: filters.types,
         sort: filters.sort,
@@ -107,8 +115,8 @@ export const useBanknoteData = (
     {
       queryKey: queryKeys.banknotes(countryId, filters, currentLanguage),
       queryFn: async () => {
+        // search omitted on purpose — applied client-side (see queryKeys.banknotes)
         const filterParams = {
-          search: filters.search,
           categories: filters.categories,
           types: filters.types,
           sort: filters.sort,

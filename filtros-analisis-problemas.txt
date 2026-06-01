@@ -1,0 +1,348 @@
+================================================================================
+ANÁLISIS PROFUNDO — PROBLEMAS EN LOS FILTROS DEL CATÁLOGO Y LA COLECCIÓN
+OttoCollect — fecha: 2026-05-29
+================================================================================
+
+Este documento lista bugs reales y edge cases (acciones del usuario que pueden
+romper el filtrado) encontrados al revisar el código de filtros del catálogo y
+de la colección. Cada hallazgo incluye archivo:línea, qué pasa, cómo
+reproducirlo y el impacto.
+
+--------------------------------------------------------------------------------
+ARQUITECTURA (resumen para entender los hallazgos)
+--------------------------------------------------------------------------------
+
+CATÁLOGO (página viva: src/pages/CountryDetail.tsx)
+  - Filtrado de búsqueda + imagesOnly: SERVER-SIDE en
+    src/services/banknoteService.ts -> fetchBanknotesByCountryId
+  - Filtrado por categoría/tipo: en realidad se hace CLIENT-SIDE (JS) DESPUÉS de
+    traer todo el país (mismo archivo, líneas ~141-167).
+  - Orden y agrupado: client-side (useOptimizedBanknoteSorting / -Groups).
+  - Query con React Query: src/hooks/use-banknote-query.ts
+
+COLECCIÓN (página viva: src/pages/CountryDetailCollection.tsx)
+  - TODO el filtrado es CLIENT-SIDE. useCollectionData trae todo sin filtros.
+  - Cada tab (collection / missing / wishlist / sale) tiene su PROPIO bloque de
+    filtrado duplicado, y NO se comportan igual entre sí.
+
+NOTA: src/pages/Collection.tsx y OptimizedCollection.tsx son LEGACY / código
+muerto (ver memoria collection-pages-routing). Los bugs ahí solo se mencionan
+al final por completitud, pero no afectan a usuarios.
+
+
+================================================================================
+A. CATÁLOGO
+================================================================================
+
+--------------------------------------------------------------------------------
+A1. [ALTO] La búsqueda se rompe con caracteres especiales (coma, paréntesis, etc.)
+--------------------------------------------------------------------------------
+Archivo: src/services/banknoteService.ts:95-103
+        (helper: src/utils/pickSearch.ts -> pickSearchOrFilters)
+
+El término que escribe el usuario se interpola CRUDO dentro del string de
+PostgREST `.or(...)`:
+
+    query = query.or(
+      `${pickOr},face_value.ilike.%${searchTerm}%,` +
+      `banknote_description.ilike.%${searchTerm}%,sultan_name.ilike.%${searchTerm}%`
+    );
+
+En PostgREST `.or()` la COMA separa condiciones y los PARÉNTESIS agrupan. Si el
+usuario escribe un valor con coma o paréntesis, el string se parte mal.
+
+Cómo romperlo (muy común con billetes):
+  - Buscar "1,000"  -> se interpreta como dos filtros: "...ilike.%1" y "000%..."
+    => query inválida => error / 0 resultados (y toast de error).
+  - Buscar "100.000", "(", ")" -> mismo problema de parseo.
+  - Buscar con "%" o "_" -> se tratan como comodines de ILIKE (resultados raros).
+
+Impacto: buscar denominaciones con separador de miles (caso típico, ej.
+"50,000 Lira") devuelve vacío o error. Falta escapar/encodear el valor.
+
+--------------------------------------------------------------------------------
+A2. [ALTO] El filtro por categoría/tipo usa coincidencia por SUBSTRING (fuga de items)
+--------------------------------------------------------------------------------
+Archivo: src/services/banknoteService.ts:141-167
+
+El match de categoría/tipo es por nombre y BIDIRECCIONAL con includes():
+
+    itemCategory === categoryName ||
+    itemCategory.includes(categoryName) ||
+    categoryName.includes(itemCategory)
+
+Edge cases que rompen el filtro:
+
+  (a) NOMBRE VACÍO matchea TODO:
+      Si un billete tiene category = "" (o type = ""), entonces
+      `categoryName.includes("")` === true SIEMPRE. => Los billetes SIN
+      categoría/tipo pasan cualquier filtro y se muestran aunque su categoría
+      no esté seleccionada. Lo mismo con tipos vacíos (línea 157-164).
+
+  (b) CATEGORÍAS CON NOMBRE PREFIJO/SUBSTRING de otra:
+      Ej. categorías "Ottoman Empire" y "Ottoman Empire Provincial".
+      Si el usuario selecciona SOLO "Ottoman Empire", los billetes de
+      "Ottoman Empire Provincial" también aparecen, porque
+      itemCategory.includes("ottoman empire") === true.
+      => Imposible aislar una categoría cuyo nombre es prefijo de otra.
+
+  (c) El tipo "Issued note"/"Issued notes" está parcheado a mano (160-164) pero
+      cualquier otro singular/plural o variante depende del includes difuso.
+
+Impacto: el conteo y el contenido filtrado no es confiable; aparecen billetes
+de categorías/tipos no seleccionados.
+
+--------------------------------------------------------------------------------
+A3. [MEDIO] Búsqueda en idioma no-inglés no busca en los campos traducidos
+--------------------------------------------------------------------------------
+Archivo: src/services/banknoteService.ts:84-103
+
+Cuando language != 'en' se consulta la vista traducida
+(enhanced_banknotes_with_translations), pero el `.ilike` de búsqueda se aplica
+sobre columnas BASE: face_value, banknote_description, sultan_name — NO sobre
+*_translated / *_ar / *_tr.
+
+Cómo romperlo: un usuario en árabe/turco que busca el valor o el nombre del
+sultán en su idioma -> no encuentra nada, aunque el dato traducido exista.
+
+--------------------------------------------------------------------------------
+A4. [MEDIO] Campos de búsqueda inconsistentes entre catálogo y colección
+--------------------------------------------------------------------------------
+Catálogo (server) busca en: extended_pick_number, new_extended_pick_number,
+  face_value, banknote_description, sultan_name
+  (src/services/banknoteService.ts:95-103)
+Colección (client) busca en: denomination, sultanName, extendedPickNumber,
+  newExtendedPickNumber, category, type
+  (src/pages/CountryDetailCollection.tsx:270-276)
+
+Diferencias que confunden al usuario:
+  - En el CATÁLOGO buscar por nombre de categoría o tipo NO funciona (no está
+    en los campos), pero en la COLECCIÓN sí.
+  - En la COLECCIÓN buscar por descripción NO funciona (no está en los campos),
+    pero en el CATÁLOGO sí.
+  - "year"/"series" no se buscan en ninguno de los dos flujos vivos (sí en el
+    hook legacy use-dynamic-filter).
+
+--------------------------------------------------------------------------------
+A5. [MEDIO] Refetch innecesario de TODO el país al cambiar orden / categorías / tipos
+--------------------------------------------------------------------------------
+Archivo: src/hooks/use-banknote-query.ts:11-13, 47-63
+
+El queryKey de React Query incluye el objeto `filters` COMPLETO (search,
+categories, types, sort, imagesOnly). Pero el query del servidor
+(fetchBanknotesByCountryId) SOLO usa search + imagesOnly; categorías, tipos y
+orden se aplican client-side.
+
+Consecuencia: cambiar el ORDEN, o togglear una categoría/tipo, cambia el
+queryKey => React Query refetchea TODO el dataset del país por red, aunque el
+servidor devuelva exactamente lo mismo. Costo de red y latencia evitables.
+
+Sugerencia: que el queryKey dependa solo de los campos que el servidor usa
+(countryId, search, imagesOnly, language).
+
+--------------------------------------------------------------------------------
+A6. [BAJO] El "safety check" de filtros vacíos puede dispararse repetido
+--------------------------------------------------------------------------------
+Archivo: src/components/filter/BaseBanknoteFilter.tsx:254-268
+
+El efecto que "rellena" categorías/tipos vacíos depende de `handleFilterChange`
+(función recreada en cada render) => el efecto puede re-correr de más y llamar
+setState + onFilterChange repetidamente al montar. No rompe datos pero genera
+renders/fetches extra y es frágil.
+
+
+================================================================================
+B. COLECCIÓN
+================================================================================
+
+--------------------------------------------------------------------------------
+B1. [ALTO] El filtro por TIPO está DESACTIVADO en el tab principal "collection"
+--------------------------------------------------------------------------------
+Archivo: src/pages/CountryDetailCollection.tsx:304-327 (bloque comentado)
+
+En el tab "collection" el filtrado por tipo está COMENTADO por completo
+(hay un comentario "WHEN WE WILL TRY TO BRING BACK THE TYPES FILTER..."). Pero:
+  - En el tab "missing"  el filtro de tipo SÍ está activo (líneas 703-737).
+  - En el tab "wishlist" el filtro de tipo SÍ está activo (líneas 954-958).
+
+Cómo romperlo: el usuario deselecciona un tipo en la UI. En "collection" no
+pasa nada (se ignora), pero al ir a "missing"/"wishlist" el mismo filtro SÍ se
+aplica. Comportamiento incoherente para el mismo control de UI.
+
+--------------------------------------------------------------------------------
+B2. [ALTO] Manejo INCONSISTENTE de categorías/tipos "no mapeados" entre tabs
+--------------------------------------------------------------------------------
+Mismo archivo, comparando los 3 bloques de filtrado:
+
+  collection (líneas 285-300):
+     categoría no encontrada en el mapa  -> SE MANTIENE el item (lenient)
+     tipo                                -> (desactivado)
+
+  missing (líneas 680-737):
+     categoría no encontrada             -> return false (SE DESCARTA)
+     tipo no encontrado                  -> SE MANTIENE
+     + maneja singular/plural "Issued note"/"Issued notes"
+
+  wishlist (líneas 947-958):
+     categoría no encontrada             -> return false (SE DESCARTA)
+     tipo no encontrado                  -> return false (SE DESCARTA)
+     + NO maneja singular/plural
+
+=> El mismo billete con una categoría/tipo "no mapeable" aparece en un tab y
+desaparece en otro. Tres semánticas distintas para el mismo filtro.
+
+--------------------------------------------------------------------------------
+B3. [ALTO] El match categoría-nombre -> ID es EXACTO y frágil (items desaparecen)
+--------------------------------------------------------------------------------
+Archivo: src/pages/CountryDetailCollection.tsx:251-260, 287, 682, 948
+
+El mapeo es `categoryNameToId[item.banknote.category]`, un objeto indexado por
+el NOMBRE EXACTO de la categoría/tipo. Cualquier diferencia entre el nombre del
+billete y el nombre de la definición rompe el lookup:
+  - espacios extra (¡el propio código tiene "War 1293 Banknotes  (1876-1877)"
+    con DOBLE espacio, línea 645!),
+  - mayúsculas/minúsculas distintas,
+  - puntuación o paréntesis distintos,
+  - nombre traducido vs nombre base.
+
+Cuando el lookup falla:
+  - en "missing"/"wishlist" el item se DESCARTA (return false) apenas haya algún
+    filtro de categoría activo — y como el default selecciona TODAS las
+    categorías, filters.categories.length siempre es > 0. => Billetes con
+    nombre de categoría ligeramente distinto DESAPARECEN del tab missing/wishlist.
+
+Esto es exactamente lo que el código intenta diagnosticar con todos los
+console.log de "War 1293". El bug de fondo es el match exacto por nombre.
+
+Contraste con el catálogo (A2): allá el match es DEMASIADO laxo (substring),
+acá es DEMASIADO estricto (exacto). Resultados distintos para el mismo billete
+según la página.
+
+--------------------------------------------------------------------------------
+B4. [MEDIO] Flash de contenido sin filtrar mientras cargan las definiciones
+--------------------------------------------------------------------------------
+Archivo: src/pages/CountryDetailCollection.tsx:285, 680, 947
+        (defs vienen de useCountryCategoryDefs / useCountryTypeDefs)
+
+El filtro de categoría/tipo solo se aplica si
+`Object.keys(categoryNameToId).length > 0`. Mientras categoryDefs/typeDefs no
+cargaron, ese mapa está vacío => NO se filtra => se muestran TODOS los items un
+instante, y luego se re-filtra al llegar las defs. Flash visible.
+
+--------------------------------------------------------------------------------
+B5. [BAJO] Colisión de nombres en el mapa nombre->ID
+--------------------------------------------------------------------------------
+Archivo: src/pages/CountryDetailCollection.tsx:251-254 (y equivalentes)
+
+`categoryNameToId` se construye con reduce sobre un objeto plano indexado por
+nombre. Si dos definiciones comparten nombre, la última pisa a la primera y los
+items de la primera quedan mal mapeados.
+
+--------------------------------------------------------------------------------
+B6. [BAJO] `filters` se pasa a useCollectionData pero no se usa
+--------------------------------------------------------------------------------
+Archivo: src/hooks/use-collection-data.ts:13, 62
+
+La prop `filters` está en la interfaz y se pasa, pero fetchData llama
+`fetchBanknotesByCountryId(countryId)` SIN filtros y no incluye filters en sus
+deps. Prop muerta; puede confundir a quien crea que hay filtrado server-side.
+
+
+================================================================================
+C. COMPARTIDO / TRANSVERSAL (catálogo + colección)
+================================================================================
+
+--------------------------------------------------------------------------------
+C1. [MEDIO] useDynamicFilter: el default de tipos es solo los que contienen "issued"
+--------------------------------------------------------------------------------
+Archivo: src/hooks/use-dynamic-filter.tsx:163, 190
+
+    effectiveTypes.filter(t => t.name.toLowerCase().includes('issued')).map(t => t.id)
+
+El fallback por defecto selecciona SOLO los tipos cuyo nombre contiene "issued".
+Si un país no tiene ningún tipo con "issued" en el nombre (o usa otro idioma /
+otra nomenclatura), el default de tipos queda VACÍO => según la rama, puede
+ocultar todo o no filtrar. Depende de strings en inglés hardcodeados.
+(Aplica a la página legacy Collection.tsx; igual conviene corregir la heurística.)
+
+--------------------------------------------------------------------------------
+C2. [MEDIO] "categorías/tipos vacíos = todos seleccionados" mezclado con
+            "vacío = ninguno" según la capa
+--------------------------------------------------------------------------------
+- useDynamicFilter (cliente): categories/types vacío => "todos" (no filtra)
+  (use-dynamic-filter.tsx:243-258)
+- banknoteService (catálogo): categories vacío => no filtra (todos)
+  (banknoteService.ts:66-72)
+- CountryDetailCollection (colección): categories vacío => no filtra; pero si
+  hay >0 y el nombre no mapea, en missing/wishlist DESCARTA todo.
+
+Esta convención "vacío = todos" es implícita y distinta de la idea natural
+"vacío = nada". Cualquier código nuevo que setee `categories: []` pensando
+"no mostrar nada" hará lo contrario (mostrar todo). Riesgo de regresión.
+
+--------------------------------------------------------------------------------
+C3. [BAJO] Persistencia de filtros: IDs huérfanos tras editar el admin
+--------------------------------------------------------------------------------
+Archivos: BanknoteFilterCatalog.tsx:224-227,415-431 ;
+          BanknoteFilterCollection.tsx:317-334 ; use-dynamic-filter.tsx:145-168
+
+Ya está MITIGADO (se validan los IDs guardados contra las definiciones actuales
+y se cae a "todos" si quedaron huérfanos). Edge case restante: si el admin
+RENOMBRA una categoría conservando el ID, el ID sobrevive en
+user_filter_preferences pero el match por NOMBRE de B3/A2 puede fallar igual.
+Es decir: la validación por ID y el filtrado por nombre no están alineados.
+
+--------------------------------------------------------------------------------
+C4. [BAJO] sessionStorage / localStorage sin disponibilidad
+--------------------------------------------------------------------------------
+Hay try/catch en casi todos los accesos (bien). Pero en modo privado o con
+storage deshabilitado, la restauración de filtros por navegación simplemente no
+ocurre; el usuario pierde sus filtros al volver del detalle. Comportamiento
+aceptable pero conviene documentarlo.
+
+
+================================================================================
+D. CÓDIGO LEGACY (no afecta usuarios, pero conviene saber)
+================================================================================
+
+D1. src/pages/Collection.tsx (legacy, ruta /collection/:countryId)
+    - Llama `refetch()` en handleSaveItem (línea 156) y en el Dialog
+      onSaveComplete (línea 438), pero `refetch` NO está definido en el
+      componente (useDynamicFilter no lo devuelve) => ReferenceError al guardar.
+    - Su useDynamicFilter está DESCONECTADO de la UI de filtros: la UI actualiza
+      `currentFilters`, pero el hook solo usa `initialFilters` al montar y nunca
+      re-sincroniza => cambiar categoría/tipo/búsqueda en esta página no afecta
+      la lista mostrada. (Confirmado también en la memoria del proyecto.)
+
+D2. src/pages/OptimizedCollection.tsx — sin ruta, código muerto.
+
+
+================================================================================
+RESUMEN / PRIORIDADES SUGERIDAS
+================================================================================
+
+ALTO (rompen resultados para el usuario):
+  A1  Búsqueda rota con comas/paréntesis (escapar input de PostgREST .or)
+  A2  Filtro de categoría/tipo por substring (fuga; "" matchea todo)
+  B1  Filtro de tipo desactivado solo en el tab "collection"
+  B2  Manejo inconsistente de no-mapeados entre tabs
+  B3  Match exacto por nombre frágil (items desaparecen en missing/wishlist)
+
+MEDIO:
+  A3  Búsqueda no usa columnas traducidas
+  A4  Campos de búsqueda inconsistentes catálogo vs colección
+  A5  Refetch de todo el país al cambiar orden/categoría/tipo
+  B4  Flash de items sin filtrar mientras cargan defs
+  C1  Default de tipos hardcodeado a "issued"
+  C2  Convención "vacío = todos" implícita y mezclada
+
+BAJO:
+  A6, B5, B6, C3, C4
+
+RECOMENDACIÓN DE FONDO:
+Unificar UNA sola función de filtrado (por ID, no por nombre) compartida entre
+catálogo y colección/tabs, con una sola semántica de "vacío", y normalizar
+nombres (trim/lowercase) o, mejor, filtrar siempre por ID estable. Hoy hay al
+menos 4 implementaciones de filtrado con reglas distintas.
+</content>
+</invoke>

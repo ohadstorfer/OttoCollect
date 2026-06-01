@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { flushSync } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";
 import { DynamicFilterState } from "@/types/filter";
@@ -11,6 +11,7 @@ import { useBanknoteFetching } from "@/hooks/use-banknote-fetching";
 import { useOptimizedBanknoteSorting } from "@/hooks/use-optimized-banknote-sorting";
 import { useOptimizedBanknoteGroups } from "@/hooks/use-optimized-banknote-groups";
 import { getSultanOrderMap } from "@/services/sultanOrderService";
+import { banknoteMatchesSearch } from "@/utils/pickSearch";
 import { CollectionItem, fetchUserCollection } from "@/services/collectionService";
 import { fetchCountryDefaultPreferences } from "@/services/countryService";
 import { useAuth } from "@/context/AuthContext";
@@ -191,11 +192,19 @@ const CountryDetail = () => {
     countryId,
     filters
   });
-  
 
+  // Text search is applied client-side over the cached country result so that
+  // pick-number matching is dot/prefix-insensitive (Option A). The server query
+  // no longer filters by search (see banknoteService / use-banknote-query).
+  const searchedBanknotes = useMemo(
+    () => (filters.search?.trim()
+      ? banknotes.filter(b => banknoteMatchesSearch(b, filters.search))
+      : banknotes),
+    [banknotes, filters.search]
+  );
 
   const sortedBanknotes = useOptimizedBanknoteSorting({
-    banknotes,
+    banknotes: searchedBanknotes,
     currencies,
     sortFields: filters.sort
   });
