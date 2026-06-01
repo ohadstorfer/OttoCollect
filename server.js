@@ -19,22 +19,27 @@ const PORT = process.env.PORT || 8080;
 // Single source of truth for crawler detection across all handlers.
 const CRAWLER_REGEX = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i;
 
-// Returns true if a row with column=value exists in `table`. Fails open
-// (returns true) on errors so a transient DB blip doesn't 404 valid URLs.
+// Returns true if a row with column=value exists in `table`. Uses a plain
+// select+limit(1) instead of count/head — the latter silently returned a
+// truthy count on missing rows in this supabase-js version, which caused
+// every bogus /catalog/<x>, /forum-post/<uuid>, etc. to serve the React
+// shell (a homepage duplicate) instead of 404. Fail-CLOSED on errors:
+// a 404 with `noindex,follow` is safer for SEO than serving a duplicate.
 async function dbHas(table, column, value) {
   try {
-    const { count, error } = await supabase
+    const { data, error } = await supabase
       .from(table)
-      .select(column, { count: 'exact', head: true })
-      .eq(column, value);
+      .select(column)
+      .eq(column, value)
+      .limit(1);
     if (error) {
       console.error(`dbHas ${table}.${column} error:`, error);
-      return true;
+      return false;
     }
-    return (count || 0) > 0;
+    return Array.isArray(data) && data.length > 0;
   } catch (e) {
     console.error(`dbHas ${table}.${column} threw:`, e);
-    return true;
+    return false;
   }
 }
 
