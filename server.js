@@ -19,24 +19,32 @@ const PORT = process.env.PORT || 8080;
 // Single source of truth for crawler detection across all handlers.
 const CRAWLER_REGEX = /bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|chatgptbot|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai|gpt/i;
 
-// Returns true if a row with column=value exists in `table`. Uses a plain
-// select+limit(1) instead of count/head — the latter silently returned a
-// truthy count on missing rows in this supabase-js version, which caused
-// every bogus /catalog/<x>, /forum-post/<uuid>, etc. to serve the React
-// shell (a homepage duplicate) instead of 404. Fail-CLOSED on errors:
-// a 404 with `noindex,follow` is safer for SEO than serving a duplicate.
+// Returns true if a row with column=value exists in `table`.
+//
+// History: we tried two supabase-js patterns ({ count: 'exact', head: true }
+// and .select().limit(1)) and both fail uniformly in production. Diagnosis:
+// the SUPABASE_SERVICE_ROLE_KEY env var is unset on Cloud Run, so the global
+// supabase client falls back to a literal placeholder and every DB request
+// gets a 401. Storage download still works because static-pages is a public
+// bucket. So we sidestep the global client entirely and hit PostgREST with
+// the public anon key — "anon can see this row" is also the correct SEO
+// semantic for existence checks: visible to the world = indexable.
+// Fail-CLOSED on errors: a 404 with `noindex,follow` is safer for SEO than
+// serving a homepage-shell duplicate.
+const SUPABASE_REST_URL = (process.env.SUPABASE_URL || 'https://psnzolounfwgvkupepxb.supabase.co') + '/rest/v1';
+const SUPABASE_PUBLIC_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzbnpvbG91bmZ3Z3ZrdXBlcHhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NTk0NTksImV4cCI6MjA1OTQzNTQ1OX0.iIE3DilRwCum5BZiVa-W3nLCAV2EEwzd2h8XDvNdhF8';
 async function dbHas(table, column, value) {
   try {
-    const { data, error } = await supabase
-      .from(table)
-      .select(column)
-      .eq(column, value)
-      .limit(1);
-    if (error) {
-      console.error(`dbHas ${table}.${column} error:`, error);
+    const url = `${SUPABASE_REST_URL}/${encodeURIComponent(table)}?select=${encodeURIComponent(column)}&${encodeURIComponent(column)}=eq.${encodeURIComponent(value)}&limit=1`;
+    const r = await fetch(url, {
+      headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: `Bearer ${SUPABASE_PUBLIC_KEY}` },
+    });
+    if (!r.ok) {
+      console.error(`dbHas ${table}.${column} HTTP ${r.status}`);
       return false;
     }
-    return Array.isArray(data) && data.length > 0;
+    const rows = await r.json();
+    return Array.isArray(rows) && rows.length > 0;
   } catch (e) {
     console.error(`dbHas ${table}.${column} threw:`, e);
     return false;
