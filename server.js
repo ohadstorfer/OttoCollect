@@ -162,13 +162,31 @@ app.get('/sitemap.xml', async (req, res) => {
 });
 
 // Banknote detail pages
-app.get('/catalog-banknote/:id', (req, res) => serveEntityPage(req, res, {
-  staticFileName: `catalog-banknote-${req.params.id}.html`,
-  dbTable: 'detailed_banknotes',
-  dbColumn: 'id',
-  dbValue: req.params.id,
-  missingMessage: 'The banknote you are looking for does not exist or has been removed.',
-}));
+// Banknote pages: the pre-rendered SSR file is the source of truth for whether
+// this banknote is indexable. The regen function only generates files for
+// approved banknotes with at least one image — imageless banknotes (~38% of
+// the catalog, 251 rows) and the sitemap explicitly omit them. So for
+// crawlers, "no static file" = "not indexable" = 404 noindex,follow. This
+// avoids serving the home shell as a duplicate for the imageless banknotes
+// that Google has been picking up via internal links. Humans still get the
+// React app so they can browse them.
+app.get('/catalog-banknote/:id', async (req, res) => {
+  const isCrawler = CRAWLER_REGEX.test(req.get('User-Agent') || '');
+  if (isCrawler) {
+    const file = `catalog-banknote-${req.params.id}.html`;
+    try {
+      const { data, error } = await supabase.storage.from('static-pages').download(file);
+      if (!error && data) {
+        res.set('Content-Type', 'text/html');
+        return res.send(await data.text());
+      }
+    } catch (e) {
+      console.error(`Error fetching ${file}:`, e);
+    }
+    return send404Html(res, 'The banknote you are looking for does not exist or has been removed.');
+  }
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
 
 // Handle forum page - serve static HTML for crawlers
 app.get('/forum', async (req, res) => {
