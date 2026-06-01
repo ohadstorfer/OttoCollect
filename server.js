@@ -95,6 +95,16 @@ app.use((req, res, next) => {
   next();
 });
 
+// Normalise trailing slashes: 301 /foo/ -> /foo so we don't end up with duplicate
+// URLs (catalog/, /about/, etc.) showing up as "Alternative page with proper
+// canonical tag" in Search Console. Query string is preserved.
+app.use((req, res, next) => {
+  if (req.path.length > 1 && req.path.endsWith('/')) {
+    return res.redirect(301, req.path.slice(0, -1) + req.url.slice(req.path.length));
+  }
+  next();
+});
+
 // Health check endpoint (must be before the catch-all route)
 app.get('/health', (req, res) => {
   console.log('Health check requested');
