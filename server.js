@@ -248,6 +248,25 @@ app.get('/blog-post/:id', (req, res) => serveEntityPage(req, res, {
   missingMessage: 'The blog post you are looking for does not exist or has been removed.',
 }));
 
+// Profile pages: validate the username exists in `profiles` so bogus profiles
+// (and the literal "/profile/:username" string that leaks from the React Router
+// config inside the JS bundle — Google has been discovering it from rendered
+// JS) 404 cleanly instead of serving the home shell as a duplicate.
+// No pre-rendered SSR for profiles — humans get the React app, bots get 404
+// for unknown usernames and the React shell for real ones.
+app.get('/profile/:username', (req, res) => serveEntityPage(req, res, {
+  dbTable: 'profiles',
+  dbColumn: 'username',
+  dbValue: decodeURIComponent(req.params.username),
+  missingMessage: `The profile "${decodeURIComponent(req.params.username)}" does not exist.`,
+}));
+app.get('/profile/:username/:country', (req, res) => serveEntityPage(req, res, {
+  dbTable: 'profiles',
+  dbColumn: 'username',
+  dbValue: decodeURIComponent(req.params.username),
+  missingMessage: `The profile "${decodeURIComponent(req.params.username)}" does not exist.`,
+}));
+
 // Handle homepage - serve static HTML for crawlers (MUST be before static middleware and catch-all)
 app.get('/', async (req, res) => {
   const userAgent = req.get('User-Agent') || '';
