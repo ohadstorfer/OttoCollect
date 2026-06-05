@@ -74,7 +74,10 @@ async function serveEntityPage(req, res, opts) {
     }
   }
 
-  if (!(await dbHas(opts.dbTable, opts.dbColumn, opts.dbValue))) {
+  // Only crawlers get a hard 404 for a missing entity (so Google removes the URL
+  // with noindex). Humans always fall through to the React shell, which renders
+  // its own client-side not-found — we never strand a real user on a dead page.
+  if (isCrawler && !(await dbHas(opts.dbTable, opts.dbColumn, opts.dbValue))) {
     return send404Html(res, opts.missingMessage);
   }
 
@@ -272,18 +275,21 @@ app.get('/blog-post/:id', (req, res) => serveEntityPage(req, res, {
 // JS) 404 cleanly instead of serving the home shell as a duplicate.
 // No pre-rendered SSR for profiles — humans get the React app, bots get 404
 // for unknown usernames and the React shell for real ones.
-app.get('/profile/:username', (req, res) => serveEntityPage(req, res, {
-  dbTable: 'profiles',
-  dbColumn: 'username',
-  dbValue: decodeURIComponent(req.params.username),
-  missingMessage: `The profile "${decodeURIComponent(req.params.username)}" does not exist.`,
-}));
-app.get('/profile/:username/:country', (req, res) => serveEntityPage(req, res, {
-  dbTable: 'profiles',
-  dbColumn: 'username',
-  dbValue: decodeURIComponent(req.params.username),
-  missingMessage: `The profile "${decodeURIComponent(req.params.username)}" does not exist.`,
-}));
+// The :username param can be either a UUID (many in-app links use the user's id —
+// messages, footer, marketplace seller, forum/blog avatars) or a real username, so
+// validate against the matching column. Mirrors getUserProfile() on the client.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const profileEntityOpts = (param) => {
+  const value = decodeURIComponent(param);
+  return {
+    dbTable: 'profiles',
+    dbColumn: UUID_RE.test(value) ? 'id' : 'username',
+    dbValue: value,
+    missingMessage: `The profile "${value}" does not exist.`,
+  };
+};
+app.get('/profile/:username', (req, res) => serveEntityPage(req, res, profileEntityOpts(req.params.username)));
+app.get('/profile/:username/:country', (req, res) => serveEntityPage(req, res, profileEntityOpts(req.params.username)));
 
 // Handle homepage - serve static HTML for crawlers (MUST be before static middleware and catch-all)
 app.get('/', async (req, res) => {
