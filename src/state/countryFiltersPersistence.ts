@@ -85,54 +85,64 @@ export async function hydrateCountryFilters(args: {
 
   const audience: CatalogDefaultAudience = args.audience ?? (userId ? 'new_user' : 'anonymous');
 
-  // Fetch all async data concurrently so generation guards are checked after all
-  // in-flight work completes (prevents mock-ordering issues and is more efficient).
-  const [cats, types, sorts, prefRow, adminDefaultsMaybe] = await Promise.all([
-    fetchCategoriesByCountryId(countryId),
-    fetchTypesByCountryId(countryId),
-    fetchSortOptionsByCountryId(countryId),
-    userId ? fetchUserFilterPreferences(userId, countryId) : Promise.resolve(null),
-    fetchCountryDefaultPreferences(countryId, audience),
-  ]);
-  if (!isCurrent()) return;
+  try {
+    // Fetch all async data concurrently so generation guards are checked after all
+    // in-flight work completes (prevents mock-ordering issues and is more efficient).
+    const [cats, types, sorts, prefRow, adminDefaultsMaybe] = await Promise.all([
+      fetchCategoriesByCountryId(countryId),
+      fetchTypesByCountryId(countryId),
+      fetchSortOptionsByCountryId(countryId),
+      userId ? fetchUserFilterPreferences(userId, countryId) : Promise.resolve(null),
+      fetchCountryDefaultPreferences(countryId, audience),
+    ]);
+    if (!isCurrent()) return;
 
-  const validCats = new Set(cats.map((c: any) => c.id));
-  const validTypes = new Set(types.map((t: any) => t.id));
-  const allCatIds = cats.map((c: any) => c.id);
-  const allTypeIds = types.map((t: any) => t.id);
-  const sortOpts: SortOpt[] = sorts.map((s: any) => ({ id: s.id, field_name: s.field_name, is_required: s.is_required }));
-  const requiredSort = sortOpts.filter((s) => s.is_required && s.field_name).map((s) => s.field_name!);
-  if (!requiredSort.includes('extPick')) requiredSort.push('extPick');
+    const validCats = new Set(cats.map((c: any) => c.id));
+    const validTypes = new Set(types.map((t: any) => t.id));
+    const allCatIds = cats.map((c: any) => c.id);
+    const allTypeIds = types.map((t: any) => t.id);
+    const sortOpts: SortOpt[] = sorts.map((s: any) => ({ id: s.id, field_name: s.field_name, is_required: s.is_required }));
+    const requiredSort = sortOpts.filter((s) => s.is_required && s.field_name).map((s) => s.field_name!);
+    if (!requiredSort.includes('extPick')) requiredSort.push('extPick');
 
-  // adminDefaults: use the fetched value only if there is no prefRow.
-  // But always pass it to reconcileSelection as the fallback for orphaned IDs.
-  const adminDefaults = adminDefaultsMaybe;
+    // adminDefaults: use the fetched value only if there is no prefRow.
+    // But always pass it to reconcileSelection as the fallback for orphaned IDs.
+    const adminDefaults = adminDefaultsMaybe;
 
-  const savedCats = prefRow?.selected_categories ?? [];
-  const savedTypes = prefRow?.selected_types ?? [];
-  const defCats = adminDefaults?.selected_categories ?? [];
-  const defTypes = adminDefaults?.selected_types ?? [];
+    const savedCats = prefRow?.selected_categories ?? [];
+    const savedTypes = prefRow?.selected_types ?? [];
+    const defCats = adminDefaults?.selected_categories ?? [];
+    const defTypes = adminDefaults?.selected_types ?? [];
 
-  const categories = reconcileSelection(savedCats, validCats, defCats, allCatIds);
-  const typesSel = reconcileSelection(savedTypes, validTypes, defTypes, allTypeIds);
+    const categories = reconcileSelection(savedCats, validCats, defCats, allCatIds);
+    const typesSel = reconcileSelection(savedTypes, validTypes, defTypes, allTypeIds);
 
-  const savedSortFields = sortIdsToFieldNames(prefRow?.selected_sort_options ?? [], sortOpts);
-  const defSortFields = sortIdsToFieldNames(adminDefaults?.selected_sort_options ?? [], sortOpts);
-  const baseSort = savedSortFields.length ? savedSortFields : defSortFields;
-  const sort = Array.from(new Set([...baseSort, ...requiredSort]));
+    const savedSortFields = sortIdsToFieldNames(prefRow?.selected_sort_options ?? [], sortOpts);
+    const defSortFields = sortIdsToFieldNames(adminDefaults?.selected_sort_options ?? [], sortOpts);
+    const baseSort = savedSortFields.length ? savedSortFields : defSortFields;
+    const sort = Array.from(new Set([...baseSort, ...requiredSort]));
 
-  const groupMode = typeof prefRow?.group_mode === 'boolean' ? prefRow.group_mode
-    : (typeof adminDefaults?.group_mode === 'boolean' ? adminDefaults.group_mode : getState(countryId).groupMode);
-  const viewMode = (prefRow?.view_mode ?? adminDefaults?.view_mode ?? getState(countryId).viewMode) as 'grid' | 'list';
-  const imagesOnly = typeof prefRow?.images_only === 'boolean' ? prefRow.images_only
-    : (typeof adminDefaults?.images_only === 'boolean' ? adminDefaults.images_only : getState(countryId).imagesOnly);
+    const groupMode = typeof prefRow?.group_mode === 'boolean' ? prefRow.group_mode
+      : (typeof adminDefaults?.group_mode === 'boolean' ? adminDefaults.group_mode : getState(countryId).groupMode);
+    const viewMode = (prefRow?.view_mode ?? adminDefaults?.view_mode ?? getState(countryId).viewMode) as 'grid' | 'list';
+    const imagesOnly = typeof prefRow?.images_only === 'boolean' ? prefRow.images_only
+      : (typeof adminDefaults?.images_only === 'boolean' ? adminDefaults.images_only : getState(countryId).imagesOnly);
 
-  if (!isCurrent()) return;
-  setState(countryId, {
-    categories, types: typesSel, sort, groupMode, viewMode, imagesOnly,
-    hydrated: true, owner: userId ?? null,
-  });
-  saveSnapshot(countryId, getState(countryId));
+    if (!isCurrent()) return;
+    setState(countryId, {
+      categories, types: typesSel, sort, groupMode, viewMode, imagesOnly,
+      hydrated: true, owner: userId ?? null,
+    });
+    saveSnapshot(countryId, getState(countryId));
+  } catch (e) {
+    // Fail open: never leave the page's `cf.hydrated` gate stuck false on a fetch
+    // error (infinite spinner). Honor the generation guard — a stale load must not
+    // write over a newer one.
+    if (generation.get(countryId) === myGen) {
+      console.error('hydrateCountryFilters failed', e);
+      setState(countryId, { hydrated: true, owner: userId ?? null });
+    }
+  }
 }
 
 // ---- Save (snapshot now + debounced DB upsert) ----

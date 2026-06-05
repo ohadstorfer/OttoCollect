@@ -106,6 +106,12 @@ describe('hydrateCountryFilters', () => {
     await p1;
     expect(getState('TR').categories).toEqual(['c1']); // newer load wins
   });
+
+  it('still marks hydrated when a fetch rejects (no infinite spinner)', async () => {
+    (svc.fetchCategoriesByCountryId as any).mockRejectedValueOnce(new Error('network'));
+    await hydrateCountryFilters({ countryId: 'TR', countryName: 'Turkey', userId: 'u1' });
+    expect(getState('TR').hydrated).toBe(true);
+  });
 });
 
 describe('persistCountryFilters', () => {

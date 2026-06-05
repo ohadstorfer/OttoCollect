@@ -46,12 +46,19 @@ const areEqual = (prevProps: CountryFilterSectionProps, nextProps: CountryFilter
   }
   
   // Re-render if other important props change
-  if (prevProps.countryId !== nextProps.countryId || 
+  if (prevProps.countryId !== nextProps.countryId ||
       prevProps.isLoading !== nextProps.isLoading ||
       prevProps.source !== nextProps.source) {
     return false;
   }
-  
+
+  // Re-render when the filter selection changes so the child (which receives this
+  // as `currentFilters`) reflects hydrated/updated store values. Reference compare
+  // is sufficient: the parent memoizes `filters` on the store fields.
+  if (prevProps.filters !== nextProps.filters) {
+    return false;
+  }
+
   return true;
 };
 

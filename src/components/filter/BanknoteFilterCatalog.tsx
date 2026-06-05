@@ -36,11 +36,19 @@ const areEqual = (prevProps: BanknoteFilterCatalogProps, nextProps: BanknoteFilt
   }
   
   // Re-render if other important props change
-  if (prevProps.countryId !== nextProps.countryId || 
+  if (prevProps.countryId !== nextProps.countryId ||
       prevProps.isLoading !== nextProps.isLoading) {
     return false;
   }
-  
+
+  // Re-render when the filter selection changes. The parent derives
+  // `currentFilters` via useMemo keyed on the store fields, so the reference only
+  // changes when values actually change — a reference compare avoids stale
+  // checkboxes after the store hydrates/updates without causing excess renders.
+  if (prevProps.currentFilters !== nextProps.currentFilters) {
+    return false;
+  }
+
   return true;
 };
 
