@@ -91,7 +91,7 @@ const appRoutes: RouteObject[] = [
   { path: "/forum-post/:id", element: <ForumPost /> },
   { path: "/create-forum-post", element: <CreateForumPost /> },
   { path: "/create-forum-announcement", element: <CreateForumAnnouncement /> },
-  { path: "/forum-announcements", element: <ForumPostAnnouncements /> },
+  { path: "/forum-announcements/:id", element: <ForumPostAnnouncements /> },
   { path: "/messaging", element: <Messaging /> },
   { path: "/messaging/:userId", element: <Messaging /> },
   { path: "/members", element: <Members /> },
