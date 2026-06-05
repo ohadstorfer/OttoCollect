@@ -52,6 +52,10 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   const [sultanOrderMap, setSultanOrderMap] = useState<Map<string, number>>(new Map());
   const [isFullyLoaded, setIsFullyLoaded] = useState(false);
   const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
+  // Collection search is ephemeral and local: `search` in the shared store is
+  // catalog-only by design, so the collection must not read/write it (otherwise
+  // a search typed in the catalog would leak into the collection and vice versa).
+  const [search, setSearch] = useState('');
   
   // Define effectiveCountryName first
   const effectiveCountryName = countryName || (country ? decodeURIComponent(country) : "");
@@ -79,11 +83,11 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     useCountryFilters(countryId, countryData?.name ?? '');
 
   const filters: DynamicFilterState = useMemo(() => ({
-    search: cf.search,
+    search,
     categories: cf.categories,
     types: cf.types,
     sort: cf.sort,
-  }), [cf.search, cf.categories, cf.types, cf.sort]);
+  }), [search, cf.categories, cf.types, cf.sort]);
   const viewMode = cf.viewMode;
   const groupMode = cf.groupMode;
   const preferencesLoaded = cf.hydrated;
@@ -522,9 +526,11 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   });
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
-    const { search, categories, types, sort } = newFilters;
+    const { search: newSearch, categories, types, sort } = newFilters;
+    // Search stays local (collection-only); only categories/types/sort go to the
+    // shared store so they stay in sync with the catalog.
+    if (newSearch !== undefined) setSearch(newSearch);
     const partial: Record<string, unknown> = {};
-    if (search !== undefined) partial.search = search;
     if (categories !== undefined) partial.categories = categories;
     if (types !== undefined) partial.types = types;
     if (sort !== undefined) partial.sort = sort;

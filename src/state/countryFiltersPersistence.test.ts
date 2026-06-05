@@ -137,6 +137,19 @@ describe('persistCountryFilters', () => {
     vi.useRealTimers();
   });
 
+  it('skips the DB upsert when sort options have not loaded yet (would drop sort)', async () => {
+    vi.useFakeTimers();
+    setState('TR', { categories: ['c1'], sort: ['extPick'], owner: 'u1' });
+    // sortOptions: [] => the non-empty sort can't be mapped; persisting would
+    // write selected_sort_options: [] and silently drop the user's sort.
+    persistCountryFilters({ countryId: 'TR', userId: 'u1', sortOptions: [] });
+    await vi.advanceTimersByTimeAsync(500);
+    expect(svc.saveUserFilterPreferences).not.toHaveBeenCalled();
+    // The snapshot still captured the field-names locally, so nothing is lost.
+    expect(loadSnapshot('TR', 'u1')?.sort).toEqual(['extPick']);
+    vi.useRealTimers();
+  });
+
   it('does not call the DB for anonymous users (snapshot only)', () => {
     vi.useFakeTimers();
     setState('TR', { categories: ['c1'], owner: null });

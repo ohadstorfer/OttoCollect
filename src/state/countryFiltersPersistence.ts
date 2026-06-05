@@ -76,6 +76,19 @@ export async function hydrateCountryFilters(args: {
   generation.set(countryId, myGen);
   const isCurrent = () => generation.get(countryId) === myGen;
 
+  const existing = getState(countryId);
+  if (existing.owner !== (userId ?? null)) {
+    // Different account (incl. logout to anon): clear the previous user's selection
+    // immediately so it can't flash before hydration resolves. Fail-open hydrate
+    // (or its catch) will set hydrated:true again. This setState is synchronous,
+    // before any await, under the current generation, so the guard still holds.
+    setState(countryId, {
+      categories: [], types: [], sort: [], search: '',
+      groupMode: false, viewMode: 'grid', imagesOnly: true,
+      hydrated: false, owner: userId ?? null,
+    });
+  }
+
   // Fast paint from snapshot first (does not block on network).
   migrateLegacyKeys(countryId, countryName, userId);
   const snap = loadSnapshot(countryId, userId);
@@ -164,10 +177,17 @@ export function persistCountryFilters(args: {
   if (existing) clearTimeout(existing);
   saveTimers.set(countryId, setTimeout(() => {
     const s = getState(countryId);
+    const mappedSort = sortFieldNamesToIds(s.sort, sortOptions);
+    // If we have a sort but no options to map it onto, sortOptions hasn't loaded
+    // yet (async fetch still in flight). Writing the empty array would silently
+    // drop the user's custom sort in the DB row. Skip this tick — the next change
+    // (after options load) persists correctly, and the localStorage snapshot above
+    // already holds the field-names, so nothing is lost locally.
+    if (s.sort.length > 0 && mappedSort.length === 0) return;
     saveUserFilterPreferences(userId, countryId, {
       selected_categories: s.categories,
       selected_types: s.types,
-      selected_sort_options: sortFieldNamesToIds(s.sort, sortOptions),
+      selected_sort_options: mappedSort,
       group_mode: s.groupMode,
       view_mode: s.viewMode,
       images_only: s.imagesOnly,
