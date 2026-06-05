@@ -1113,6 +1113,7 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         onFilterChange={handleFilterChange}
         currentFilters={filters}
         isLoading={isLoading}
+        viewMode={viewMode}
         onViewModeChange={handleViewModeChange}
         groupMode={groupMode}
         onGroupModeChange={handleGroupModeChange}

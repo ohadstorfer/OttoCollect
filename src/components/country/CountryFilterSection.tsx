@@ -12,6 +12,7 @@ interface CountryFilterSectionProps {
   filters: DynamicFilterState;
   onFilterChange: (newFilters: Partial<DynamicFilterState>) => void;
   isLoading: boolean;
+  viewMode?: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
   groupMode: boolean;
   onGroupModeChange: (mode: boolean) => void;
@@ -71,6 +72,7 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
   filters,
   onFilterChange,
   isLoading,
+  viewMode,
   onViewModeChange,
   groupMode,
   onGroupModeChange,
@@ -124,6 +126,7 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
       onFilterChange={handleFilterChange}
       currentFilters={filters}
       isLoading={isLoading}
+      viewMode={viewMode}
       onViewModeChange={onViewModeChange}
       groupMode={groupMode}
       onGroupModeChange={onGroupModeChange}

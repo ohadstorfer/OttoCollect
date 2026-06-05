@@ -18,6 +18,7 @@ export interface BanknoteFilterCollectionProps {
   currentFilters: DynamicFilterState;
   isLoading?: boolean;
   className?: string;
+  viewMode?: 'grid' | 'list';
   onViewModeChange?: (mode: 'grid' | 'list') => void;
   groupMode?: boolean;
   onGroupModeChange?: (mode: boolean) => void;
@@ -49,10 +50,15 @@ export interface BanknoteFilterCollectionProps {
 const areEqual = (prevProps: BanknoteFilterCollectionProps, nextProps: BanknoteFilterCollectionProps) => {
   // Always re-render if groupMode change
   if (prevProps.groupMode !== nextProps.groupMode) {
-    
+
     return false;
   }
-  
+
+  // Re-render when the store's viewMode changes so the toggle UI stays in sync.
+  if (prevProps.viewMode !== nextProps.viewMode) {
+    return false;
+  }
+
   // Re-render if other important props change
   if (prevProps.countryId !== nextProps.countryId ||
       prevProps.activeTab !== nextProps.activeTab ||
@@ -81,6 +87,7 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   currentFilters,
   isLoading = false,
   className,
+  viewMode: viewModeFromStore,
   onViewModeChange,
   groupMode = false,
   onGroupModeChange,
@@ -197,6 +204,11 @@ export const BanknoteFilterCollection: React.FC<BanknoteFilterCollectionProps> =
   const handleGroupModeChange = React.useCallback((mode: boolean) => {
     onGroupModeChange?.(mode);
   }, [onGroupModeChange]);
+
+  // Keep the local view-mode toggle in sync with the store value (prop).
+  useEffect(() => {
+    if (viewModeFromStore && viewModeFromStore !== viewMode) setViewMode(viewModeFromStore);
+  }, [viewModeFromStore]);
 
   return (
     <div className={cn(

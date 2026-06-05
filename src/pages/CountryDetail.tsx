@@ -289,6 +289,7 @@ const CountryDetail = () => {
             filters={filters}
             onFilterChange={handleFilterChange}
             isLoading={isLoading}
+            viewMode={viewMode}
             onViewModeChange={handleViewModeChange}
             groupMode={groupMode}
             onGroupModeChange={handleGroupModeChange}
