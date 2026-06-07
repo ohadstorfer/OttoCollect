@@ -57,7 +57,7 @@ i18n
       lookupLocalStorage: 'i18nextLng',
       lookupSessionStorage: 'i18nextLng',
     },
-                    ns: ['common', 'navigation', 'auth', 'catalog', 'collection', 'marketplace', 'forum', 'profile', 'pages', 'guide', 'filter', 'blog', 'notification', 'badges', 'settings', 'contactUs', 'messaging', 'shared', 'admin'],
+                    ns: ['common', 'navigation', 'auth', 'catalog', 'collection', 'marketplace', 'forum', 'profile', 'pages', 'guide', 'filter', 'blog', 'notification', 'badges', 'settings', 'contactUs', 'messaging', 'shared', 'admin', 'qa'],
     preload: ['en', 'tr', 'ar'],
     defaultNS: 'common',
   });

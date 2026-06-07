@@ -270,7 +270,7 @@
     },
     "fields": {
       "viewMode": "Default view",
-      "groupMode": "Group by category",
+      "groupMode": "Group Mode",
       "imagesOnly": "Images only",
       "categories": "Pre-selected categories",
       "types": "Pre-selected types",

@@ -13,8 +13,8 @@ import { useOptimizedBanknoteGroups } from "@/hooks/use-optimized-banknote-group
 import { getSultanOrderMap } from "@/services/sultanOrderService";
 import { banknoteMatchesSearch } from "@/utils/pickSearch";
 import { CollectionItem, fetchUserCollection } from "@/services/collectionService";
-import { fetchCountryDefaultPreferences } from "@/services/countryService";
 import { useAuth } from "@/context/AuthContext";
+import { useCountryFilters } from "@/hooks/useCountryFilters";
 import { WishlistProvider } from "@/context/WishlistContext";
 import SEOHead from "@/components/seo/SEOHead";
 
@@ -22,75 +22,9 @@ const CountryDetail = () => {
   const { country } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  // Per-country key for the fast navigation cache. NOT scoped to the user id
-  // because auth resolves asynchronously and is still null here on a hard
-  // refresh - scoping it by user would miss the cache and lose the restore.
-  // Cross-user safety is handled in BanknoteFilterCatalog, which stamps the
-  // owner's id into the payload and discards a snapshot owned by someone else.
-  const filtersCacheKey = `catalog-filters-${country ? decodeURIComponent(country) : ''}`;
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
-    try {
-      const cached = sessionStorage.getItem(filtersCacheKey);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (parsed.viewMode) return parsed.viewMode;
-      }
-    } catch {}
-    return 'grid';
-  });
-  const [filters, setFilters] = useState<DynamicFilterState>(() => {
-    try {
-      // If the user is arriving from a DIFFERENT catalog, drop the cached
-      // search term (issue #4 from the PDF: a search should not persist across
-      // catalog switches, only across same-catalog navigation like detail->back).
-      const lastCountry = sessionStorage.getItem('last-catalog-country');
-      const isCatalogSwitch = !!lastCountry && lastCountry !== country;
-      const cached = sessionStorage.getItem(filtersCacheKey);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (parsed.categories?.length > 0 && parsed.types?.length > 0) {
-          return {
-            search: isCatalogSwitch ? '' : (parsed.search || ''),
-            categories: parsed.categories,
-            types: parsed.types,
-            sort: parsed.sort || [],
-            imagesOnly: typeof parsed.imagesOnly === 'boolean' ? parsed.imagesOnly : true,
-          };
-        }
-      }
-    } catch {}
-    return { search: "", categories: [], types: [], sort: [], imagesOnly: true };
-  });
-
-  // Reset search if the catalog (country) actually changed. Covers the case
-  // where the page is kept-alive across catalog switches, in which case the
-  // useState initializer above does not re-run.
-  useEffect(() => {
-    if (!country) return;
-    const lastCountry = sessionStorage.getItem('last-catalog-country');
-    if (lastCountry && lastCountry !== country) {
-      setFilters(prev => (prev.search ? { ...prev, search: '' } : prev));
-      try {
-        const cached = sessionStorage.getItem(filtersCacheKey);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed.search) {
-            parsed.search = '';
-            sessionStorage.setItem(filtersCacheKey, JSON.stringify(parsed));
-          }
-        }
-      } catch {}
-    }
-    sessionStorage.setItem('last-catalog-country', country);
-  }, [country, filtersCacheKey]);
-
   // New: collection loading
   const [userCollection, setUserCollection] = useState<CollectionItem[]>([]);
-  
-  // Add preferences loading state - skip waiting if we have cached filters
-  const [preferencesLoaded, setPreferencesLoaded] = useState(() => {
-    return filters.categories.length > 0 && filters.types.length > 0;
-  });
+
   const [sultanOrderMap, setSultanOrderMap] = useState<Map<string, number>>(new Map());
   
   // Track scroll restoration state
@@ -138,13 +72,40 @@ const CountryDetail = () => {
     categoryOrder,
     sultans,
     currencies,
-    loading: countryLoading,
-    groupMode,
-    handleGroupModeChange
-  } = useCountryData({ 
-    countryName: country || "", 
-    navigate 
+    loading: countryLoading
+  } = useCountryData({
+    countryName: country || "",
+    navigate
   });
+
+  // Shared filter store is the single source of truth for catalog filters,
+  // view mode, group mode and search. The hook owns hydration + persistence.
+  const { state: cf, setViewMode: cfSetViewMode, setGroupMode: cfSetGroupMode, patch: cfPatch } =
+    useCountryFilters(countryId, country ? decodeURIComponent(country) : '');
+
+  const filters: DynamicFilterState = useMemo(() => ({
+    search: cf.search,
+    categories: cf.categories,
+    types: cf.types,
+    sort: cf.sort,
+    imagesOnly: cf.imagesOnly,
+  }), [cf.search, cf.categories, cf.types, cf.sort, cf.imagesOnly]);
+
+  const viewMode = cf.viewMode;
+  const groupMode = cf.groupMode;
+  const preferencesLoaded = cf.hydrated;
+
+  // Reset search on catalog switch. The store keeps a per-country slice, but a
+  // search term should not survive moving between catalogs (only same-catalog
+  // navigation like detail -> back).
+  const lastCountryRef = useRef('');
+  useEffect(() => {
+    if (!country) return;
+    if (lastCountryRef.current && lastCountryRef.current !== country && cf.search) {
+      cfPatch({ search: '' });
+    }
+    lastCountryRef.current = country;
+  }, [country, cf.search, cfPatch]);
 
   // Enhanced scroll restoration coordination
   useEffect(() => {
@@ -224,26 +185,25 @@ const CountryDetail = () => {
   const banknoteIds = banknotes.map(banknote => banknote.id);
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
-    setFilters(prev => ({
-      ...prev,
-      ...newFilters
-    }));
-    // Mark preferences as loaded when filter changes come from BanknoteFilterCatalog
-    setPreferencesLoaded(true);
-  }, []);
+    const { search, categories, types, sort, imagesOnly } = newFilters;
+    const partial: Record<string, unknown> = {};
+    if (search !== undefined) partial.search = search;
+    if (categories !== undefined) partial.categories = categories;
+    if (types !== undefined) partial.types = types;
+    if (sort !== undefined) partial.sort = sort;
+    if (imagesOnly !== undefined) partial.imagesOnly = imagesOnly;
+    cfPatch(partial);
+  }, [cfPatch]);
 
   const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
-    flushSync(() => {
-      setViewMode(mode);
-    });
-  }, []);
+    flushSync(() => { cfSetViewMode(mode); });
+  }, [cfSetViewMode]);
 
+  const handleGroupModeChange = useCallback((mode: boolean) => {
+    cfSetGroupMode(mode);
+  }, [cfSetGroupMode]);
 
-
-  // Handle preferences loaded callback
-  const handlePreferencesLoaded = useCallback(() => {
-    setPreferencesLoaded(true);
-  }, []);
+  const handlePreferencesLoaded = useCallback(() => { /* hydration owns this now */ }, []);
 
 
 
@@ -329,6 +289,7 @@ const CountryDetail = () => {
             filters={filters}
             onFilterChange={handleFilterChange}
             isLoading={isLoading}
+            viewMode={viewMode}
             onViewModeChange={handleViewModeChange}
             groupMode={groupMode}
             onGroupModeChange={handleGroupModeChange}

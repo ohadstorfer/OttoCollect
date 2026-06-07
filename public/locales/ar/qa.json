@@ -1,0 +1,41 @@
+{
+  "title": "الأسئلة الشائعة",
+  "subtitle": "اعثر على إجابات للأسئلة الشائعة حول OttoCollect",
+  "learnMore": "اعرف المزيد",
+  "backToGuide": "العودة إلى الأسئلة الشائعة",
+  "actions": {
+    "create": "سؤال جديد",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "save": "حفظ",
+    "publish": "نشر",
+    "cancel": "إلغاء"
+  },
+  "form": {
+    "headlineLabel": "السؤال (العنوان)",
+    "headlinePlaceholder": "مثال: ما الأوراق التي لن يتم تقييمها من PMG؟",
+    "shortLabel": "إجابة قصيرة (تظهر في قائمة الأسئلة الشائعة)",
+    "shortPlaceholder": "ملخص من جملة أو جملتين",
+    "contentLabel": "الإجابة الكاملة",
+    "contentPlaceholder": "اكتب الإجابة الكاملة...",
+    "categoryLabel": "الفئة",
+    "newCategory": "+ فئة جديدة",
+    "newCategoryPlaceholder": "اسم الفئة الجديدة",
+    "draft": "حفظ كمسودة"
+  },
+  "status": {
+    "loading": "جارٍ التحميل...",
+    "empty": "لا توجد أسئلة بعد.",
+    "saving": "جارٍ الحفظ...",
+    "deleteConfirm": "هل تريد حذف هذا السؤال نهائيًا؟"
+  },
+  "errors": {
+    "loadFailed": "تعذّر تحميل الأسئلة الشائعة. حاول مرة أخرى.",
+    "saveFailed": "تعذّر الحفظ. حاول مرة أخرى.",
+    "validation": "يرجى ملء السؤال والإجابة القصيرة والفئة والإجابة الكاملة."
+  },
+  "admin": {
+    "onlyTitle": "للمشرفين فقط",
+    "onlyDescription": "يمكن للمشرفين فقط إنشاء أو تعديل عناصر الأسئلة الشائعة."
+  }
+}

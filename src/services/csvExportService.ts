@@ -463,7 +463,7 @@ export async function generateAdminExcel(options: AdminExportOptions): Promise<A
 
   // Preferred ordering for readability
   const preferredOrder = [
-    'country', 'extended_pick_number', 'pick_number', 'turk_catalog_number',
+    'country', 'extended_pick_number', 'new_extended_pick_number', 'pick_number', 'turk_catalog_number',
     'face_value', 'islamic_year', 'gregorian_year',
     'signatures_front', 'signatures_back', 'signature_pictures',
     'seal_names', 'seal_pictures',
@@ -489,6 +489,7 @@ export async function generateAdminExcel(options: AdminExportOptions): Promise<A
       signature_pictures: 'Signature Pictures',
       other_element_pictures: 'Other Element Pictures',
       extended_pick_number: 'Extended Pick Number',
+      new_extended_pick_number: 'New Extended Pick Number',
       pick_number: 'Pick Number',
       turk_catalog_number: 'Turk Catalog Number',
       face_value: 'Face Value',

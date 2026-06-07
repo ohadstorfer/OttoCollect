@@ -58,8 +58,11 @@ export async function importBanknoteData(csvData: string): Promise<BanknoteImpor
     throw new Error("CSV file is empty");
   }
   
-  // Parse and clean headers
-  const headers = parseCSVLine(lines[0]).map(header => header.trim());
+  // Parse and clean headers, normalizing known export aliases back to DB column names.
+  // The admin export writes Title-Case headers (e.g. "New Extended Pick Number"),
+  // while the importer maps headers directly to snake_case DB columns. This keeps
+  // both forms working for round-tripping without affecting any other header.
+  const headers = parseCSVLine(lines[0]).map(header => normalizeHeader(header.trim()));
   console.log("Parsed headers:", headers);
   
   const banknotes = [];
@@ -250,6 +253,17 @@ export async function importBanknoteData(csvData: string): Promise<BanknoteImpor
   
   console.log(`Import complete. Imported/Updated: ${result.importedCount}, Skipped: ${result.skippedCount}, Errors: ${result.errors.length}`);
   return result;
+}
+
+// Maps human-readable export headers back to their snake_case DB column names.
+// Only known aliases are remapped; any other header is returned unchanged so that
+// CSVs already using snake_case column names continue to import exactly as before.
+const HEADER_ALIASES: Record<string, string> = {
+  'new extended pick number': 'new_extended_pick_number',
+};
+
+function normalizeHeader(header: string): string {
+  return HEADER_ALIASES[header.toLowerCase()] || header;
 }
 
 // Helper function to correctly parse CSV lines that might contain commas within quotes

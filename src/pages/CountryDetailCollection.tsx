@@ -17,6 +17,7 @@ import { useCountryCategoryDefs } from "@/hooks/useCountryCategoryDefs";
 import { useCountryTypeDefs } from "@/hooks/useCountryTypeDefs";
 import { BanknoteFilterCollection } from '@/components/filter/BanknoteFilterCollection';
 import { useCollectionData } from '@/hooks/use-collection-data';
+import { useCountryFilters } from '@/hooks/useCountryFilters';
 import { cn } from "@/lib/utils";
 import { statisticsService } from "@/services/statisticsService";
 import { CollectionItem } from "@/types";
@@ -48,11 +49,13 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   const { country } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [sultanOrderMap, setSultanOrderMap] = useState<Map<string, number>>(new Map());
   const [isFullyLoaded, setIsFullyLoaded] = useState(false);
   const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
+  // Collection search is ephemeral and local: `search` in the shared store is
+  // catalog-only by design, so the collection must not read/write it (otherwise
+  // a search typed in the catalog would leak into the collection and vice versa).
+  const [search, setSearch] = useState('');
   
   // Define effectiveCountryName first
   const effectiveCountryName = countryName || (country ? decodeURIComponent(country) : "");
@@ -67,13 +70,27 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     categoryOrder,
     sultans,
     currencies,
-    loading: countryLoading,
-    groupMode,
-    handleGroupModeChange
-  } = useCountryData({ 
-    countryName: effectiveCountryName, 
-    navigate 
+    loading: countryLoading
+  } = useCountryData({
+    countryName: effectiveCountryName,
+    navigate
   });
+
+  // Shared filter store is the single source of truth for collection filters,
+  // view mode, group mode and search. The hook owns hydration + persistence.
+  // The same store is keyed by countryId, so catalog <-> collection stay in sync.
+  const { state: cf, setViewMode: cfSetViewMode, setGroupMode: cfSetGroupMode, patch: cfPatch } =
+    useCountryFilters(countryId, countryData?.name ?? '');
+
+  const filters: DynamicFilterState = useMemo(() => ({
+    search,
+    categories: cf.categories,
+    types: cf.types,
+    sort: cf.sort,
+  }), [search, cf.categories, cf.types, cf.sort]);
+  const viewMode = cf.viewMode;
+  const groupMode = cf.groupMode;
+  const preferencesLoaded = cf.hydrated;
 
   // Enhanced scroll restoration for collections
   const containerRef = useScrollRestoration(countryId || '', countryLoading, false);
@@ -131,12 +148,6 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
     }
   }, [countryId]);
   
-  const [filters, setFilters] = useState<DynamicFilterState>({
-    search: "",
-    categories: [],
-    types: [],
-    sort: [],
-  });
   const [activeTab, setActiveTab] = useState<'collection' | 'wishlist' | 'missing' | 'sale'>('collection');
   // Use the new optimized collection data hook
   const {
@@ -515,23 +526,26 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
   });
 
   const handleFilterChange = useCallback((newFilters: Partial<DynamicFilterState>) => {
-    setFilters(prev => ({
-      ...prev,
-      ...newFilters
-    }));
-    // Mark preferences as loaded when filter changes come from BanknoteFilterCollection
-    setPreferencesLoaded(true);
-  }, []);
+    const { search: newSearch, categories, types, sort } = newFilters;
+    // Search stays local (collection-only); only categories/types/sort go to the
+    // shared store so they stay in sync with the catalog.
+    if (newSearch !== undefined) setSearch(newSearch);
+    const partial: Record<string, unknown> = {};
+    if (categories !== undefined) partial.categories = categories;
+    if (types !== undefined) partial.types = types;
+    if (sort !== undefined) partial.sort = sort;
+    cfPatch(partial);
+  }, [cfPatch]);
 
   const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
-    setViewMode(mode);
-  }, []);
+    cfSetViewMode(mode);
+  }, [cfSetViewMode]);
+
+  const handleGroupModeChange = useCallback((mode: boolean) => {
+    cfSetGroupMode(mode);
+  }, [cfSetGroupMode]);
 
   const isLoading = countryLoading || collectionDataLoading;
-
-  const handlePreferencesLoaded = useCallback(() => {
-    setPreferencesLoaded(true);
-  }, []);
 
   
 
@@ -1105,10 +1119,10 @@ const CountryDetailCollection: React.FC<CountryDetailCollectionProps> = ({
         onFilterChange={handleFilterChange}
         currentFilters={filters}
         isLoading={isLoading}
+        viewMode={viewMode}
         onViewModeChange={handleViewModeChange}
         groupMode={groupMode}
         onGroupModeChange={handleGroupModeChange}
-        onPreferencesLoaded={handlePreferencesLoaded}
         activeTab={activeTab}
         onTabChange={handleTabChange}
         isOwner={isOwner}

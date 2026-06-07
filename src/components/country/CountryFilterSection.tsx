@@ -12,6 +12,7 @@ interface CountryFilterSectionProps {
   filters: DynamicFilterState;
   onFilterChange: (newFilters: Partial<DynamicFilterState>) => void;
   isLoading: boolean;
+  viewMode?: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
   groupMode: boolean;
   onGroupModeChange: (mode: boolean) => void;
@@ -46,12 +47,19 @@ const areEqual = (prevProps: CountryFilterSectionProps, nextProps: CountryFilter
   }
   
   // Re-render if other important props change
-  if (prevProps.countryId !== nextProps.countryId || 
+  if (prevProps.countryId !== nextProps.countryId ||
       prevProps.isLoading !== nextProps.isLoading ||
       prevProps.source !== nextProps.source) {
     return false;
   }
-  
+
+  // Re-render when the filter selection changes so the child (which receives this
+  // as `currentFilters`) reflects hydrated/updated store values. Reference compare
+  // is sufficient: the parent memoizes `filters` on the store fields.
+  if (prevProps.filters !== nextProps.filters) {
+    return false;
+  }
+
   return true;
 };
 
@@ -64,6 +72,7 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
   filters,
   onFilterChange,
   isLoading,
+  viewMode,
   onViewModeChange,
   groupMode,
   onGroupModeChange,
@@ -117,6 +126,7 @@ export const CountryFilterSection: React.FC<CountryFilterSectionProps> = memo(({
       onFilterChange={handleFilterChange}
       currentFilters={filters}
       isLoading={isLoading}
+      viewMode={viewMode}
       onViewModeChange={onViewModeChange}
       groupMode={groupMode}
       onGroupModeChange={onGroupModeChange}

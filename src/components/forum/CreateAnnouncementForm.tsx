@@ -80,7 +80,7 @@ export function CreateAnnouncementForm() {
           title: "Success",
           description: "Your announcement has been published successfully.",
         });
-        navigate(`/forum-announcements`);
+        navigate(`/forum-announcements/${newAnnouncement.id}`);
       } else {
         toast({
           variant: "destructive",

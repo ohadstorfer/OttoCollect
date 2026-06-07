@@ -270,7 +270,7 @@
     },
     "fields": {
       "viewMode": "Varsayılan görünüm",
-      "groupMode": "Kategoriye göre grupla",
+      "groupMode": "Grup Modu",
       "imagesOnly": "Yalnızca görselli",
       "categories": "Önceden seçili kategoriler",
       "types": "Önceden seçili türler",

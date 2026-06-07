@@ -1,172 +1,124 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle, XCircle, Info, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import {
+  Accordion, AccordionContent, AccordionItem, AccordionTrigger,
+} from '@/components/ui/accordion';
+import { PenSquare } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { useLanguage } from '@/context/LanguageContext';
 import SEOHead from '@/components/seo/SEOHead';
-import { SEO_CONFIG } from '@/config/seoConfig';
+import { fetchQaCategoriesWithTranslations, fetchQaEntriesWithTranslations } from '@/services/qaService';
+import {
+  groupEntriesByCategory, getLocalizedEntry, getLocalizedCategoryName,
+  type QaCategoryGroup,
+} from '@/types/qa';
 
 const Guide = () => {
-  const { t } = useTranslation('guide');
-  const { direction } = useLanguage();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { theme } = useTheme();
+  const { currentLanguage, direction } = useLanguage();
+  const { t } = useTranslation(['qa']);
 
+  const [groups, setGroups] = useState<QaCategoryGroup[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Function to replace emojis with Lucide icons
-  const renderDescriptionWithIcons = (text: string) => {
-    if (!text) return text;
-    
-    // Replace trash emoji with Trash2 icon
-    const parts = text.split('🗑️');
-    if (parts.length > 1) {
-      return parts.map((part, index) => (
-        <React.Fragment key={index}>
-          {part}
-          {index < parts.length - 1 && (
-            <Trash2 className="inline-block w-4 h-4 text-red-500 mx-1" />
-          )}
-        </React.Fragment>
-      ));
-    }
-    
-    return text;
-  };
+  const isAdmin = user ? user.role === 'Super Admin' || !!user.role?.includes('Admin') : false;
+  const tf = useMemo(
+    () => (key: string, fallback: string) => {
+      const v = t(key);
+      return v === key ? fallback : v;
+    },
+    [t]
+  );
 
-  // State to track which sections are expanded (default to all minimized)
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    addBanknote: false,
-    editBanknote: false,
-    suggestPicture: false,
-  });
-
-  const toggleSection = (sectionKey: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [sectionKey]: !prev[sectionKey]
-    }));
-  };
-
-  const StepIcon = ({ type }: { type?: string }) => {
-    if (type === 'error') {
-      return <XCircle className="h-5 w-5 text-destructive" />;
-    }
-    return <CheckCircle className="h-5 w-5 text-primary" />;
-  };
-
-  const renderSection = (sectionKey: string) => {
-    const section = t(`sections.${sectionKey}`, { returnObjects: true }) as any;
-    const isExpanded = expandedSections[sectionKey];
-
-    return (
-      <Card key={sectionKey} className="mb-8">
-        <CardContent className="p-0">
-          {/* Collapsible Header */}
-          <Button
-            variant="ghost"
-            onClick={() => toggleSection(sectionKey)}
-            className="w-full p-8 h-auto justify-between hover:bg-muted/50 rounded-none"
-          >
-            <div className="flex flex-wrap items-center gap-3 ">
-
-              <h2 className="text-[1.25rem] font-bold text-foreground break-words whitespace-normal text-left">
-                <span className="text-[1.25rem] shrink-0">{section.icon}</span>
-                <span>{section.title}</span>
-              </h2>
-            </div>
-            {isExpanded ? (
-              <ChevronUp className="h-6 w-6 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="h-6 w-6 text-muted-foreground" />
-            )}
-          </Button>
-
-          {/* Collapsible Content */}
-          <div className={cn(
-            "overflow-hidden transition-all duration-300 ease-in-out",
-            isExpanded ? "max-h-none opacity-100" : "max-h-0 opacity-0"
-          )}>
-            <div className="px-8 pb-8 mt-4">
-              <div className="space-y-6">
-                {Object.entries(section.steps).map(([stepKey, step]: [string, any]) => (
-                  <div key={stepKey}>
-                    <div className="flex items-start gap-4">
-                      <StepIcon type={step.type} />
-                      <div className="flex-1">
-                        <h3 className={`text-lg font-semibold text-foreground mb-2 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-                          <span>{step.title}</span>
-                        </h3>
-                        <p className={`text-muted-foreground leading-relaxed ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-                          {renderDescriptionWithIcons(step.description)}
-                        </p>
-                      </div>
-                    </div>
-                    {stepKey !== Object.keys(section.steps)[Object.keys(section.steps).length - 1] && (
-                      <Separator className="my-6" />
-                    )}
-                  </div>
-                ))}
-
-                {section.note && (
-                  <>
-                    <Separator className="my-6" />
-                    <div className="flex items-start gap-4 bg-muted/50 p-4 rounded-lg">
-                      <Info className="h-5 w-5 text-primary mt-0.5" />
-                      <div>
-                        <h4 className="font-semibold text-foreground mb-1">
-                          <span>ℹ️ {section.note.title}</span>
-                        </h4>
-                        <p className="text-muted-foreground text-sm">
-                          {section.note.description}
-                        </p>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      fetchQaCategoriesWithTranslations(currentLanguage),
+      fetchQaEntriesWithTranslations(currentLanguage),
+    ])
+      .then(([cats, entries]) => setGroups(groupEntriesByCategory(cats, entries)))
+      .finally(() => setLoading(false));
+  }, [currentLanguage]);
 
   return (
-    <>
+    <div>
       <SEOHead
-        title="OttoCollect Guide - How to Use the Platform | Ottoman Banknote Collection"
-        description="Learn how to use OttoCollect platform for Ottoman Empire banknote collection. Complete guide for adding banknotes, managing collections, and connecting with collectors worldwide."
-        keywords={[
-          'OttoCollect guide',
-          'Ottoman banknote collection guide',
-          'how to collect banknotes',
-          'banknote collection tutorial',
-          'Ottoman Empire numismatics guide',
-          'collector platform tutorial',
-          'banknote catalog guide',
-          'numismatic collection help'
-        ]}
+        title="OttoCollect FAQ - Frequently Asked Questions"
+        description="Answers to common questions about collecting Ottoman Empire banknotes on OttoCollect."
         type="website"
         canonical="https://ottocollect.com/guide/"
       />
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-foreground mb-4">
-          <span>{t('title')}</span>
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          {t('subtitle')}
-        </p>
-      </div>
 
-      <div className="space-y-8">
-        {renderSection('addBanknote')}
-        {renderSection('editBanknote')}
-        {renderSection('suggestPicture')}
+      <section className={`${theme === 'light' ? 'bg-ottoman-100' : 'bg-dark-600'} py-12 mb-10`}>
+        <div className="container mx-auto px-4 text-center">
+          <h1 className={`text-3xl md:text-4xl font-serif font-bold ${theme === 'light' ? 'text-ottoman-900' : 'text-parchment-500'}`}>
+            <span>{tf('title', 'Frequently Asked Questions')}</span>
+          </h1>
+          <p className={`mt-4 ${theme === 'light' ? 'text-ottoman-700' : 'text-ottoman-300'} max-w-2xl mx-auto`}>
+            {tf('subtitle', 'Find answers to common questions about OttoCollect')}
+          </p>
+        </div>
+      </section>
+
+      <div className="page-container">
+        <div className="max-w-3xl mx-auto px-4">
+          {isAdmin && (
+            <div className="flex justify-end mb-6">
+              <Button variant="outline" size="sm" onClick={() => navigate('/create-guide-post')}>
+                <PenSquare className="h-4 w-4 mr-2" />
+                {tf('actions.create', 'New question')}
+              </Button>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="text-center py-10">{tf('status.loading', 'Loading...')}</div>
+          ) : groups.length === 0 ? (
+            <div className="text-center py-10">{tf('status.empty', 'No questions yet.')}</div>
+          ) : (
+            groups.map((group) => (
+              <div key={group.category.id} className="mb-10">
+                <h2 className="text-xl font-bold mb-4 text-foreground">
+                  <span>{getLocalizedCategoryName(group.category, currentLanguage)}</span>
+                </h2>
+                <Accordion type="single" collapsible className="w-full">
+                  {group.entries.map((entry) => {
+                    const localized = getLocalizedEntry(entry, currentLanguage);
+                    return (
+                      <AccordionItem key={entry.id} value={entry.id}>
+                        <AccordionTrigger className={direction === 'rtl' ? 'text-right' : 'text-left'}>
+                          <span>{localized.headline}</span>
+                        </AccordionTrigger>
+                        <AccordionContent
+                          dir={direction === 'rtl' ? 'rtl' : 'ltr'}
+                          className={direction === 'rtl' ? 'text-right' : 'text-left'}
+                        >
+                          <p className="text-muted-foreground mb-3 leading-relaxed">
+                            {localized.shortDescription}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/guide-post/${entry.id}`)}
+                            className="text-primary hover:underline text-sm font-medium"
+                          >
+                            {direction === 'rtl' ? `« ${tf('learnMore', 'Learn more')}` : `${tf('learnMore', 'Learn more')} »`}
+                          </button>
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
-    </>
   );
 };
 
