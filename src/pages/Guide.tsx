@@ -10,7 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useLanguage } from '@/context/LanguageContext';
 import SEOHead from '@/components/seo/SEOHead';
-import { fetchQaCategories, fetchQaEntries } from '@/services/qaService';
+import { fetchQaCategoriesWithTranslations, fetchQaEntriesWithTranslations } from '@/services/qaService';
 import {
   groupEntriesByCategory, getLocalizedEntry, getLocalizedCategoryName,
   type QaCategoryGroup,
@@ -37,10 +37,13 @@ const Guide = () => {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([fetchQaCategories(), fetchQaEntries()])
+    Promise.all([
+      fetchQaCategoriesWithTranslations(currentLanguage),
+      fetchQaEntriesWithTranslations(currentLanguage),
+    ])
       .then(([cats, entries]) => setGroups(groupEntriesByCategory(cats, entries)))
       .finally(() => setLoading(false));
-  }, []);
+  }, [currentLanguage]);
 
   return (
     <div>
@@ -91,7 +94,10 @@ const Guide = () => {
                         <AccordionTrigger className={direction === 'rtl' ? 'text-right' : 'text-left'}>
                           <span>{localized.headline}</span>
                         </AccordionTrigger>
-                        <AccordionContent>
+                        <AccordionContent
+                          dir={direction === 'rtl' ? 'rtl' : 'ltr'}
+                          className={direction === 'rtl' ? 'text-right' : 'text-left'}
+                        >
                           <p className="text-muted-foreground mb-3 leading-relaxed">
                             {localized.shortDescription}
                           </p>
@@ -100,7 +106,7 @@ const Guide = () => {
                             onClick={() => navigate(`/guide-post/${entry.id}`)}
                             className="text-primary hover:underline text-sm font-medium"
                           >
-                            {tf('learnMore', 'Learn more')} »
+                            {direction === 'rtl' ? `« ${tf('learnMore', 'Learn more')}` : `${tf('learnMore', 'Learn more')} »`}
                           </button>
                         </AccordionContent>
                       </AccordionItem>

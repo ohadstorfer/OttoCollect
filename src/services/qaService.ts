@@ -6,9 +6,27 @@ import {
   normalizeQaEntry,
 } from '@/types/qa';
 import { translationService } from './translationService';
+import {
+  databaseTranslationService,
+  createNameTranslationConfig,
+  type TranslationConfig,
+} from './databaseTranslationService';
 
 // Re-export the blog image uploader so the QA form has a single import source.
 export { uploadBlogImage as uploadQaImage } from './blogService';
+
+// Auto-translation config for entries: localize headline / short answer / full
+// answer into the current language (ar/tr), caching results in the *_<lang>
+// columns. Mirrors the blog's translation flow.
+const QA_ENTRY_TRANSLATION_CONFIG: TranslationConfig = {
+  table: 'qa_entries',
+  idField: 'id',
+  fields: [
+    { originalField: 'headline', arField: 'headline_ar', trField: 'headline_tr' },
+    { originalField: 'short_description', arField: 'short_description_ar', trField: 'short_description_tr' },
+    { originalField: 'content', arField: 'content_ar', trField: 'content_tr' },
+  ],
+};
 
 /** Fetch all categories, ordered. */
 export const fetchQaCategories = async (): Promise<QaCategory[]> => {
@@ -48,6 +66,98 @@ export const fetchQaEntryById = async (id: string): Promise<QaEntry | null> => {
     return null;
   }
   return data ? normalizeQaEntry(data) : null;
+};
+
+/**
+ * Fetch all categories, localized to the current language (auto-translating
+ * and caching the name when missing).
+ */
+export const fetchQaCategoriesWithTranslations = async (
+  currentLanguage: string = 'en'
+): Promise<QaCategory[]> => {
+  const { data, error } = await supabase
+    .from('qa_categories')
+    .select('*')
+    .order('display_order', { ascending: true });
+  if (error) {
+    console.error('Error fetching qa categories:', error);
+    return [];
+  }
+  let rows = data || [];
+  if (currentLanguage === 'ar' || currentLanguage === 'tr') {
+    try {
+      rows = await databaseTranslationService.getLocalizedRecords(
+        createNameTranslationConfig('qa_categories'),
+        rows,
+        currentLanguage,
+        true
+      );
+    } catch (e) {
+      console.error('qa categories translation failed, using originals:', e);
+    }
+  }
+  return rows.map(normalizeQaCategory);
+};
+
+/**
+ * Fetch all entries, localized to the current language (auto-translating and
+ * caching headline / short answer / content when missing).
+ */
+export const fetchQaEntriesWithTranslations = async (
+  currentLanguage: string = 'en'
+): Promise<QaEntry[]> => {
+  const { data, error } = await supabase
+    .from('qa_entries')
+    .select('*')
+    .order('display_order', { ascending: true });
+  if (error) {
+    console.error('Error fetching qa entries:', error);
+    return [];
+  }
+  let rows = data || [];
+  if (currentLanguage === 'ar' || currentLanguage === 'tr') {
+    try {
+      rows = await databaseTranslationService.getLocalizedRecords(
+        QA_ENTRY_TRANSLATION_CONFIG,
+        rows,
+        currentLanguage,
+        true
+      );
+    } catch (e) {
+      console.error('qa entries translation failed, using originals:', e);
+    }
+  }
+  return rows.map(normalizeQaEntry);
+};
+
+/** Fetch a single entry by id, localized to the current language. */
+export const fetchQaEntryByIdWithTranslations = async (
+  id: string,
+  currentLanguage: string = 'en'
+): Promise<QaEntry | null> => {
+  const { data, error } = await supabase
+    .from('qa_entries')
+    .select('*')
+    .eq('id', id)
+    .single();
+  if (error || !data) {
+    console.error('Error fetching qa entry:', error);
+    return null;
+  }
+  let row: any = data;
+  if (currentLanguage === 'ar' || currentLanguage === 'tr') {
+    try {
+      row = await databaseTranslationService.getLocalizedRecord(
+        QA_ENTRY_TRANSLATION_CONFIG,
+        row,
+        currentLanguage,
+        true
+      );
+    } catch (e) {
+      console.error('qa entry translation failed, using original:', e);
+    }
+  }
+  return normalizeQaEntry(row);
 };
 
 /** Create a category. */

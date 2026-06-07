@@ -1,41 +1,41 @@
 {
-  "title": "Frequently Asked Questions",
-  "subtitle": "Find answers to common questions about OttoCollect",
-  "learnMore": "Learn more",
-  "backToGuide": "Back to FAQ",
+  "title": "Sıkça Sorulan Sorular",
+  "subtitle": "OttoCollect hakkında sık sorulan soruların yanıtlarını bulun",
+  "learnMore": "Daha fazla bilgi",
+  "backToGuide": "SSS'ye dön",
   "actions": {
-    "create": "New question",
-    "edit": "Edit",
-    "delete": "Delete",
-    "save": "Save",
-    "publish": "Publish",
-    "cancel": "Cancel"
+    "create": "Yeni soru",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "save": "Kaydet",
+    "publish": "Yayınla",
+    "cancel": "İptal"
   },
   "form": {
-    "headlineLabel": "Question (headline)",
-    "headlinePlaceholder": "e.g. What notes will not be graded by PMG?",
-    "shortLabel": "Short answer (shown on the FAQ list)",
-    "shortPlaceholder": "A one or two sentence summary",
-    "contentLabel": "Full answer",
-    "contentPlaceholder": "Write the full answer...",
-    "categoryLabel": "Category",
-    "newCategory": "+ New category",
-    "newCategoryPlaceholder": "New category name",
-    "draft": "Save as draft"
+    "headlineLabel": "Soru (başlık)",
+    "headlinePlaceholder": "örn. PMG hangi notları derecelendirmez?",
+    "shortLabel": "Kısa yanıt (SSS listesinde gösterilir)",
+    "shortPlaceholder": "Bir veya iki cümlelik özet",
+    "contentLabel": "Tam yanıt",
+    "contentPlaceholder": "Tam yanıtı yazın...",
+    "categoryLabel": "Kategori",
+    "newCategory": "+ Yeni kategori",
+    "newCategoryPlaceholder": "Yeni kategori adı",
+    "draft": "Taslak olarak kaydet"
   },
   "status": {
-    "loading": "Loading...",
-    "empty": "No questions yet.",
-    "saving": "Saving...",
-    "deleteConfirm": "Delete this question permanently?"
+    "loading": "Yükleniyor...",
+    "empty": "Henüz soru yok.",
+    "saving": "Kaydediliyor...",
+    "deleteConfirm": "Bu soru kalıcı olarak silinsin mi?"
   },
   "errors": {
-    "loadFailed": "Could not load the FAQ. Please try again.",
-    "saveFailed": "Could not save. Please try again.",
-    "validation": "Please fill in the question, short answer, category, and full answer."
+    "loadFailed": "SSS yüklenemedi. Lütfen tekrar deneyin.",
+    "saveFailed": "Kaydedilemedi. Lütfen tekrar deneyin.",
+    "validation": "Lütfen soruyu, kısa yanıtı, kategoriyi ve tam yanıtı doldurun."
   },
   "admin": {
-    "onlyTitle": "Admins only",
-    "onlyDescription": "Only administrators can create or edit FAQ entries."
+    "onlyTitle": "Yalnızca yöneticiler",
+    "onlyDescription": "Yalnızca yöneticiler SSS girişleri oluşturabilir veya düzenleyebilir."
   }
 }

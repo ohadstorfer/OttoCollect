@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@/context/LanguageContext';
 import { ArrowLeft, ArrowRight, Pencil, Trash2, Loader2 } from 'lucide-react';
-import { fetchQaEntryById, deleteQaEntry } from '@/services/qaService';
+import { fetchQaEntryByIdWithTranslations, deleteQaEntry } from '@/services/qaService';
 import { getLocalizedEntry, type QaEntry } from '@/types/qa';
 import SEOHead from '@/components/seo/SEOHead';
 
@@ -32,10 +32,10 @@ export default function GuidePost() {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    fetchQaEntryById(id)
+    fetchQaEntryByIdWithTranslations(id, currentLanguage)
       .then(setEntry)
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, currentLanguage]);
 
   const handleDelete = async () => {
     if (!entry) return;
@@ -90,11 +90,16 @@ export default function GuidePost() {
         <img src={entry.mainImageUrl} alt="" className="w-full rounded-lg mb-6 object-cover" />
       )}
 
-      <h1 className="text-3xl font-serif font-bold mb-6 text-foreground">
-        <span>{localized.headline}</span>
-      </h1>
+      <div
+        dir={direction === 'rtl' ? 'rtl' : 'ltr'}
+        className={direction === 'rtl' ? 'text-right' : 'text-left'}
+      >
+        <h1 className="text-3xl font-serif font-bold mb-6 text-foreground">
+          <span>{localized.headline}</span>
+        </h1>
 
-      <RichTextContent content={localized.content} className="prose max-w-none" />
+        <RichTextContent content={localized.content} className="prose max-w-none" />
+      </div>
     </div>
   );
 }
