@@ -78,6 +78,40 @@ describe('hydrateCountryFilters', () => {
     expect(getState('TR').categories).toEqual(['c1']);
   });
 
+  it('uses the ANONYMOUS admin default for a logged-out visitor (no user-pref fetch)', async () => {
+    (svc.fetchCountryDefaultPreferences as any).mockResolvedValue({
+      selected_categories: ['c1'], selected_types: ['t1'], selected_sort_options: ['s1'],
+      group_mode: true, view_mode: 'list', images_only: false,
+    });
+    await hydrateCountryFilters({ countryId: 'TR', countryName: 'Turkey', userId: null });
+    expect(svc.fetchUserFilterPreferences).not.toHaveBeenCalled();
+    expect(svc.fetchCountryDefaultPreferences).toHaveBeenCalledWith('TR', 'anonymous');
+    const s = getState('TR');
+    expect(s.categories).toEqual(['c1']);
+    expect(s.groupMode).toBe(true);
+    expect(s.viewMode).toBe('list');
+    expect(s.imagesOnly).toBe(false);
+    expect(s.owner).toBeNull();
+    expect(s.hydrated).toBe(true);
+  });
+
+  it('does NOT override an existing user row with the new_user default', async () => {
+    (svc.fetchUserFilterPreferences as any).mockResolvedValue({
+      selected_categories: ['c1'], selected_types: ['t1'],
+      selected_sort_options: ['s1'], group_mode: false, view_mode: 'grid', images_only: true,
+    });
+    // Admin default differs; it must be ignored because the user has a valid row.
+    (svc.fetchCountryDefaultPreferences as any).mockResolvedValue({
+      selected_categories: ['c2'], selected_types: ['t1'], selected_sort_options: ['s1'],
+      group_mode: true, view_mode: 'list', images_only: false,
+    });
+    await hydrateCountryFilters({ countryId: 'TR', countryName: 'Turkey', userId: 'u1' });
+    const s = getState('TR');
+    expect(s.categories).toEqual(['c1']); // the user's saved row wins, not ['c2']
+    expect(s.groupMode).toBe(false);
+    expect(s.viewMode).toBe('grid');
+  });
+
   it('reconciles fully-orphaned saved IDs to admin defaults, not "all"', async () => {
     (svc.fetchUserFilterPreferences as any).mockResolvedValue({
       selected_categories: ['DEAD'], selected_types: ['DEAD'],
