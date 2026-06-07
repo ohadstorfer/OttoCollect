@@ -4,6 +4,42 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
 };
+
+// Escape user-supplied strings before interpolating into the static HTML we
+// serve to crawlers. Prevents a stray <, >, &, or quote in a post title/body/
+// author from breaking markup, corrupting adjacent JSON-LD, or truncating the
+// served document. Use for HTML body + attribute values; for JSON-LD values use
+// JSON.stringify (which handles its own escaping).
+function escapeHtml(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Trim a string to a max length on a word boundary for meta descriptions, so
+// Google doesn't truncate mid-word in the SERP. Strips HTML tags and collapses
+// whitespace first.
+function metaDescription(text: unknown, max = 155): string {
+  const clean = String(text ?? '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/https?:\/\/\S+/g, '')
+    // Neutralise characters that would break an HTML attribute when this string
+    // is interpolated into content="..."; safe for JSON-LD too (plain text).
+    .replace(/["“”]/g, "'")
+    .replace(/&/g, 'and')
+    .replace(/[<>]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max);
+  const lastSpace = cut.lastIndexOf(' ');
+  return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).replace(/[\s,.;:!-]+$/, '') + '…';
+}
+
 serve(async (req)=>{
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -455,6 +491,46 @@ serve(async (req)=>{
         id: 'about',
         error: error.message
       });
+    }
+    // Generate HTML for guide page (skipped in incremental mode).
+    // The generator + the server.js /guide route already existed; only this
+    // upload was missing, so /guide was falling back to the SPA shell for bots.
+    if (!incremental) try {
+      const guideHtml = generateGuideHTML();
+      const { error: uploadError } = await supabase.storage.from('static-pages').upload('guide.html', guideHtml, {
+        contentType: 'text/html',
+        upsert: true,
+        cacheControl: '3600'
+      });
+      if (uploadError) {
+        console.error('Error uploading guide.html:', uploadError);
+        errors.push({ id: 'guide', error: uploadError.message });
+      } else {
+        generatedPages.push('guide');
+      }
+    } catch (error) {
+      console.error('Error processing guide page:', error);
+      errors.push({ id: 'guide', error: error.message });
+    }
+    // Generate HTML for community page (skipped in incremental mode).
+    // /community is sitemapped + linked from the homepage but had no static
+    // file, so bots got the homepage shell (soft-duplicate). Now SSR'd.
+    if (!incremental) try {
+      const communityHtml = generateCommunityPageHTML(countries, forumPosts);
+      const { error: uploadError } = await supabase.storage.from('static-pages').upload('community.html', communityHtml, {
+        contentType: 'text/html',
+        upsert: true,
+        cacheControl: '3600'
+      });
+      if (uploadError) {
+        console.error('Error uploading community.html:', uploadError);
+        errors.push({ id: 'community', error: uploadError.message });
+      } else {
+        generatedPages.push('community');
+      }
+    } catch (error) {
+      console.error('Error processing community page:', error);
+      errors.push({ id: 'community', error: error.message });
     }
     // Generate HTML for the three legal/info pages so they stop being thin
     // duplicates of the React shell to crawlers (cookie-policy, privacy, terms).
@@ -912,8 +988,14 @@ ${sections.join('\n')}
 function generateCatalogItemHTML(banknote, banknoteIndex?: ReturnType<typeof buildBanknoteIndex>) {
   const imageUrl = banknote.front_picture_watermarked || banknote.front_picture_thumbnail || 'https://ottocollect.com/OttoCollectIcon.PNG';
   const backImageUrl = banknote.back_picture_watermarked || banknote.back_picture_thumbnail;
-  // Title matching the format from the image
-  const title = `${banknote.face_value} ${banknote.country} Banknote ${banknote.gregorian_year || banknote.islamic_year || ''} - OttoCollect`;
+  // Title. Include the Pick number to keep titles UNIQUE per variety — many
+  // banknotes share the same face value + country + year (different Pick /
+  // signature varieties), which produced large clusters of duplicate <title>
+  // tags (e.g. 8 pages titled "1 lira Ottoman Empire Banknote 1916"). The
+  // extended Pick number is the catalog identifier that disambiguates them.
+  const pickRef = banknote.extended_pick_number || banknote.pick_number || banknote.turk_catalog_number;
+  const titleYear = banknote.gregorian_year || banknote.islamic_year || '';
+  const title = `${banknote.face_value} ${banknote.country} Banknote ${titleYear}${pickRef ? ` (Pick ${pickRef})` : ''} - OttoCollect`;
   // Description with comprehensive details
   const buildDescription = ()=>{
     let details = [];
@@ -940,6 +1022,10 @@ function generateCatalogItemHTML(banknote, banknoteIndex?: ReturnType<typeof bui
     return `Explore the ${banknote.face_value} ${banknote.country} banknote from ${banknote.gregorian_year || banknote.islamic_year || 'a historic period'} (Pick #${banknote.extended_pick_number}). This collectible features ${banknote.sultan_name ? `Sultan ${banknote.sultan_name}` : 'unique designs'} and was printed by ${banknote.printer || 'an unknown printer'}. Key details: ${details.join(', ')}. Find more historical currency at OttoCollect.`;
   };
   const description = buildDescription();
+  // Short, SERP-safe meta description (the long `description` above is kept for
+  // the on-page body / JSON-LD). Caps at ~155 chars on a word boundary so Google
+  // doesn't truncate mid-sentence.
+  const metaDesc = metaDescription(`Authentic ${banknote.face_value} ${banknote.country} banknote from ${banknote.gregorian_year || banknote.islamic_year || 'a historic period'}${banknote.extended_pick_number ? ` (Pick #${banknote.extended_pick_number})` : ''}. Rare historical currency catalogued for collectors on OttoCollect.`, 155);
   // Generate structured data for SEO
   const generateStructuredData = ()=>{
     const images = [];
@@ -986,8 +1072,8 @@ function generateCatalogItemHTML(banknote, banknoteIndex?: ReturnType<typeof bui
       "identifier": identifiers.length > 0 ? identifiers : undefined,
       "isPartOf": {
         "@type": "Collection",
-        "name": "Ottoman Empire Banknotes",
-        "url": "https://ottocollect.com/catalog/Ottoman%20Empire"
+        "name": `${banknote.country || 'Ottoman Empire'} Banknotes`,
+        "url": `https://ottocollect.com/catalog/${encodeURIComponent(banknote.country || 'Ottoman Empire')}`
       },
       "publisher": {
         "@type": "Organization",
@@ -1110,24 +1196,24 @@ function generateCatalogItemHTML(banknote, banknoteIndex?: ReturnType<typeof bui
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title}</title>
-  <meta name="description" content="${description}">
+  <meta name="description" content="${metaDesc}">
   <link rel="canonical" href="https://ottocollect.com/catalog-banknote/${banknote.id}">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="alternate" hreflang="x-default" href="https://ottocollect.com/catalog-banknote/${banknote.id}">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://ottocollect.com/catalog-banknote/${banknote.id}">
   <meta property="og:title" content="${title}">
-  <meta property="og:description" content="${description}">
+  <meta property="og:description" content="${metaDesc}">
   <meta property="og:image" content="${imageUrl}">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="${banknote.face_value} ${banknote.country} banknote from ${banknote.gregorian_year || banknote.islamic_year || ''} - Pick ${banknote.extended_pick_number}">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="https://ottocollect.com/catalog-banknote/${banknote.id}">
   <meta property="twitter:title" content="${title}">
-  <meta property="twitter:description" content="${description}">
+  <meta property="twitter:description" content="${metaDesc}">
   <meta property="twitter:image" content="${imageUrl}">
   <meta property="twitter:image:alt" content="${banknote.face_value} ${banknote.country} banknote from ${banknote.gregorian_year || banknote.islamic_year || ''} - Pick ${banknote.extended_pick_number}">
   <meta property="twitter:creator" content="@OttoCollect">
@@ -1599,7 +1685,7 @@ ${narrativeHtml}
 </html>`;
 }
 function generateForumPageHTML(forumPosts: any[] = [], announcements: any[] = []) {
-  const title = 'Ottoman Banknote Collectors Forum';
+  const title = 'Ottoman Banknote Collectors Forum | OttoCollect';
   const description = 'Join the OttoCollect community of Ottoman Empire banknote collectors. Discuss rare Turkish currency, share authentication tips, and connect with enthusiasts.';
   const imageUrl = 'https://ottocollect.com/web-app-manifest-512x512.png';
   // Generate forum posts HTML matching the exact layout from the image
@@ -1628,21 +1714,21 @@ function generateForumPageHTML(forumPosts: any[] = [], announcements: any[] = []
       return `
         <article class="forum-post-item" itemscope itemtype="https://schema.org/DiscussionForumPosting" onclick="window.location.href='${postUrl}'">
           <div class="post-content">
-            <h3 class="post-title" itemprop="headline">${post.title || 'Untitled Post'}</h3>
+            <h3 class="post-title" itemprop="headline"><a href="${postUrl}">${escapeHtml(post.title || 'Untitled Post')}</a></h3>
             <div class="post-excerpt" itemprop="text">
-              ${contentPreview}
+              ${escapeHtml(contentPreview)}
             </div>
             <div class="post-meta">
               <div class="author-section">
                 <div class="author-avatar">
                   ${authorAvatar ? `
-                    <img src="${authorAvatar}" alt="${authorName}" class="avatar-img" itemprop="image">
+                    <img src="${authorAvatar}" alt="${escapeHtml(authorName)}" class="avatar-img" itemprop="image">
                   ` : `
                     <div class="avatar-placeholder"></div>
                   `}
                 </div>
                 <span class="author-name" itemprop="author" itemscope itemtype="https://schema.org/Person">
-                  <span itemprop="name">${authorName}</span>
+                  <span itemprop="name">${escapeHtml(authorName)}</span>
                 </span>
                 <time class="post-date" datetime="${post.created_at}" itemprop="datePublished">
                   <svg class="calendar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1663,7 +1749,7 @@ function generateForumPageHTML(forumPosts: any[] = [], announcements: any[] = []
                 <span>${commentCount} ${commentCount === 1 ? 'reply' : 'replies'}</span>
               </div>
             </div>
-            <a href="${postUrl}" itemprop="url" style="display:none;">${post.title || 'Untitled Post'}</a>
+            <a href="${postUrl}" itemprop="url" style="display:none;">${escapeHtml(post.title || 'Untitled Post')}</a>
           </div>
         </article>
       `;
@@ -1762,12 +1848,14 @@ function generateForumPageHTML(forumPosts: any[] = [], announcements: any[] = []
   
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com/forum">
-  
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="alternate" hreflang="x-default" href="https://ottocollect.com/forum">
+
   <!-- Structured Data for Forum Posts -->
   <script type="application/ld+json">
     ${JSON.stringify({
       "@context": "https://schema.org",
-      "@type": "WebSite",
+      "@type": "CollectionPage",
       "name": "OttoCollect Forum - Ottoman Empire Banknote Collectors Community",
       "description": description,
       "url": "https://ottocollect.com/forum",
@@ -2151,7 +2239,7 @@ function generateForumPageHTML(forumPosts: any[] = [], announcements: any[] = []
   <section class="hero-section">
     <div class="container">
       <div class="hero-content">
-        <h1 class="hero-title">Forum</h1>
+        <h1 class="hero-title"><span>Ottoman Banknote Collectors Forum</span></h1>
         <p class="hero-subtitle">Discuss banknotes and collecting strategies</p>
       </div>
     </div>
@@ -2220,8 +2308,8 @@ function generateForumPageHTML(forumPosts: any[] = [], announcements: any[] = []
 </html>`;
 }
 function generateCatalogPageHTML(countries) {
-  const title = 'OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform';
-  const description = 'OttoCollect is a comprehensive catalog and management platform dedicated to collectors of Ottoman Empire banknotes and those from successor countries since 1840. Our mission is to document and preserve numismatic history while supporting a vibrant community of collectors across Turkey, Jordan, Egypt, Lebanon, Palestine, Syria, Israel, Bulgaria, Albania, and beyond. Collectors can track personal collections, share images, contribute to the catalog, and connect with enthusiasts worldwide.';
+  const title = 'Ottoman Empire Banknote Catalog by Country | OttoCollect';
+  const description = 'Browse the OttoCollect catalog of Ottoman Empire banknotes and currency from successor countries — Turkey, Egypt, Jordan, Syria, Palestine and more, organised by country.';
   const imageUrl = 'https://ottocollect.com/web-app-manifest-512x512.png';
   // Generate country cards HTML
   const generateCountryCards = ()=>{
@@ -2272,20 +2360,23 @@ function generateCatalogPageHTML(countries) {
       `;
     }).join('');
   };
-  // Generate structured data
+  // Generate structured data. A catalog index is a CollectionPage (an ItemList
+  // of per-country collection pages), not a WebSite — WebSite is reserved for
+  // the home page. We drop the old duplicate `hasPart` array that repeated the
+  // same per-country list a second time.
   const generateStructuredData = ()=>{
+    const shown = countries?.filter(country => (country.banknoteCount && country.banknoteCount > 0) || country.display_order !== undefined) || [];
     return {
       "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "OttoCollect Banknote Catalog",
+      "@type": "CollectionPage",
+      "name": "Ottoman Empire Banknote Catalog",
       "description": "Comprehensive catalog of Ottoman Empire banknotes and historical currency from successor countries",
-      "url": "https://ottocollect.com/catalog/",
+      "url": "https://ottocollect.com/catalog",
       "mainEntity": {
         "@type": "ItemList",
-        "name": "Ottoman Empire Banknote Catalog",
-        "description": "Complete collection of Ottoman Empire banknotes by country",
-        "numberOfItems": countries?.filter(country => (country.banknoteCount && country.banknoteCount > 0) || country.display_order !== undefined).length || 0,
-        "itemListElement": countries?.filter(country => (country.banknoteCount && country.banknoteCount > 0) || country.display_order !== undefined).map((country, index) => ({
+        "name": "Ottoman Empire Banknote Catalog by Country",
+        "numberOfItems": shown.length,
+        "itemListElement": shown.map((country, index) => ({
           "@type": "ListItem",
           "position": index + 1,
           "item": {
@@ -2294,14 +2385,8 @@ function generateCatalogPageHTML(countries) {
             "url": `https://ottocollect.com/catalog/${encodeURIComponent(country.name)}`,
             "numberOfItems": country.banknoteCount || 0
           }
-        })) || []
+        }))
       },
-      "hasPart": countries?.filter(country => (country.banknoteCount && country.banknoteCount > 0) || country.display_order !== undefined).map((country)=>({
-          "@type": "CollectionPage",
-          "name": `${country.name} Banknote Catalog`,
-          "url": `https://ottocollect.com/catalog/${encodeURIComponent(country.name)}`,
-          "numberOfItems": country.banknoteCount || 0
-        })) || [],
       "breadcrumb": {
         "@type": "BreadcrumbList",
         "itemListElement": [
@@ -2315,7 +2400,7 @@ function generateCatalogPageHTML(countries) {
             "@type": "ListItem",
             "position": 2,
             "name": "Catalog",
-            "item": "https://ottocollect.com/catalog/"
+            "item": "https://ottocollect.com/catalog"
           }
         ]
       }
@@ -2349,7 +2434,9 @@ function generateCatalogPageHTML(countries) {
   
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com/catalog">
-  
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="alternate" hreflang="x-default" href="https://ottocollect.com/catalog">
+
   <!-- Structured Data -->
   <script type="application/ld+json">
     ${JSON.stringify(generateStructuredData(), null, 2)}
@@ -2613,9 +2700,9 @@ function generateCatalogPageHTML(countries) {
   <section class="hero-section">
     <div class="container">
       <div class="hero-content">
-        <h1 class="hero-title">Banknote Catalog</h1>
+        <h1 class="hero-title"><span>Ottoman Empire Banknote Catalog</span></h1>
         <p class="hero-subtitle">
-          Explore our comprehensive collection of Ottoman Empire banknotes and historical currency from successor countries. 
+          Explore our comprehensive collection of Ottoman Empire banknotes and historical currency from successor countries.
           Discover authentic banknotes from Turkey, Jordan, Egypt, Lebanon, Palestine, Syria, Israel, Bulgaria, Albania, and beyond.
         </p>
       </div>
@@ -2646,6 +2733,128 @@ function generateCatalogPageHTML(countries) {
 </body>
 </html>`;
 }
+// Community hub page. /community is sitemapped and linked from the homepage,
+// but previously had no static file, so crawlers got the homepage shell (a
+// soft-duplicate). This gives it unique, crawlable content + structured data.
+function generateCommunityPageHTML(countries: any[] = [], forumPosts: any[] = []) {
+  const title = 'OttoCollect Community — Ottoman Banknote Collectors Worldwide';
+  const description = 'Connect with Ottoman Empire banknote collectors worldwide on OttoCollect — join the forum, read the blog, browse the marketplace and share your collection.';
+  const imageUrl = 'https://ottocollect.com/web-app-manifest-512x512.png';
+  const canonical = 'https://ottocollect.com/community';
+
+  const recentPosts = (forumPosts || []).slice(0, 6);
+  const postsList = recentPosts.length
+    ? recentPosts.map((p: any) => {
+        const u = `/forum-post/${p.id}`;
+        return `<li><a href="${u}">${escapeHtml(p.title || 'Forum discussion')}</a></li>`;
+      }).join('')
+    : '';
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "OttoCollect Community",
+    "description": description,
+    "url": canonical,
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://ottocollect.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Community", "item": canonical }
+      ]
+    },
+    "mainEntity": {
+      "@type": "ItemList",
+      "name": "OttoCollect community areas",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Collectors Forum", "url": "https://ottocollect.com/forum" },
+        { "@type": "ListItem", "position": 2, "name": "Blog", "url": "https://ottocollect.com/blog" },
+        { "@type": "ListItem", "position": 3, "name": "Marketplace", "url": "https://ottocollect.com/marketplace" },
+        { "@type": "ListItem", "position": 4, "name": "Banknote Catalog", "url": "https://ottocollect.com/catalog" }
+      ]
+    }
+  };
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <meta name="description" content="${description}">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="${canonical}">
+  <meta property="og:title" content="${title}">
+  <meta property="og:description" content="${description}">
+  <meta property="og:image" content="${imageUrl}">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:image:alt" content="OttoCollect Community">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="${canonical}">
+  <meta name="twitter:title" content="${title}">
+  <meta name="twitter:description" content="${description}">
+  <meta name="twitter:image" content="${imageUrl}">
+  <meta name="twitter:creator" content="@OttoCollect">
+
+  <link rel="canonical" href="${canonical}">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="alternate" hreflang="x-default" href="${canonical}">
+
+  <script type="application/ld+json">
+${JSON.stringify(structuredData, null, 2)}
+  </script>
+
+  <style>
+    body { font-family: Inter, system-ui, sans-serif; margin: 0; color: #1f2937; line-height: 1.6; background:#fff; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 0 1rem; }
+    .hero-section { padding: 3rem 0 1rem; text-align: center; }
+    .hero-title { font-size: 2.4rem; margin: 0 0 .5rem; }
+    .hero-subtitle { font-size: 1.1rem; color: #4b5563; max-width: 720px; margin: 0 auto; }
+    .areas { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 2rem 0; }
+    .area-card { display:block; border:1px solid #e5e7eb; border-radius:.5rem; padding:1.25rem; text-decoration:none; color:inherit; }
+    .area-card h2 { font-size:1.2rem; margin:.25rem 0; }
+    .recent { margin: 2rem 0; }
+    .redirect-notice { text-align:center; color:#6b7280; padding:1rem 0 2rem; }
+    @media (max-width:768px){ .hero-title{ font-size:1.8rem; } }
+  </style>
+</head>
+<body>
+  <section class="hero-section">
+    <div class="container">
+      <h1 class="hero-title"><span>OttoCollect Community</span></h1>
+      <p class="hero-subtitle">A worldwide community of Ottoman Empire banknote collectors. Discuss finds and authentication, read expert articles, trade in the marketplace, and showcase your collection.</p>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="areas">
+      <a class="area-card" href="/forum"><h2>Collectors Forum</h2><p>Discuss rare currency, authentication and grading with fellow collectors.</p></a>
+      <a class="area-card" href="/blog"><h2>Blog</h2><p>Expert articles on Ottoman banknotes, history and numismatic guides.</p></a>
+      <a class="area-card" href="/marketplace"><h2>Marketplace</h2><p>Buy and sell authentic Ottoman Empire banknotes and historical paper money.</p></a>
+      <a class="area-card" href="/catalog"><h2>Banknote Catalog</h2><p>Browse the full catalog of Ottoman Empire banknotes by country.</p></a>
+    </div>
+
+    ${postsList ? `<section class="recent"><h2>Recent forum discussions</h2><ul>${postsList}</ul></section>` : ''}
+  </div>
+
+  <div class="redirect-notice">
+    <p>If you are not redirected automatically, <a href="/community">click here to view the interactive version</a>.</p>
+  </div>
+
+  <script>
+    if (!navigator.userAgent.match(/bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i)) {
+      setTimeout(() => { window.location.replace('/community'); }, 100);
+    }
+  </script>
+</body>
+</html>`;
+}
+
 export function generateGuideHTML() {
   const title = 'OttoCollect Guide - How to Use the Platform | Ottoman Banknote Catalogues and Collections';
   const description = 'Learn how to use OttoCollect platform for Ottoman Empire banknote collection. Complete guide for adding banknotes, managing collections, and connecting with collectors worldwide.';
@@ -2898,6 +3107,8 @@ export function generateGuideHTML() {
   
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com/guide">
+  <meta name="robots" content="index, follow">
+  <link rel="alternate" hreflang="x-default" href="https://ottocollect.com/guide">
   
   <!-- Structured Data -->
   <script type="application/ld+json">
@@ -3129,7 +3340,7 @@ export function generateGuideHTML() {
 
 function generateBlogPageHTML(blogPosts: any[] = []) {
   const title = 'OttoCollect Blog - Ottoman Empire Banknote News & Insights';
-  const description = 'Stay updated with the latest news, insights, and stories about Ottoman Empire banknotes. Expert analysis, market trends, and collector stories from the numismatic community.';
+  const description = 'Latest news, insights and stories about Ottoman Empire banknotes — expert analysis, market trends and collector stories from the numismatic community.';
   const imageUrl = 'https://ottocollect.com/web-app-manifest-512x512.png';
   
   // Generate blog post cards HTML in masonry grid layout
@@ -3199,8 +3410,7 @@ function generateBlogPageHTML(blogPosts: any[] = []) {
               </div>
             </div>
           </div>
-          <a href="${postUrl}" itemprop="url" style="display:none;">${postTitle}</a>
-          <div itemprop="articleBody" style="display:none;">${post.content || post.excerpt || 'No content available'}</div>
+          <a href="${postUrl}" itemprop="url" style="display:none;">${escapeHtml(postTitle)}</a>
         </article>
       `;
     }).join('');
@@ -3226,8 +3436,7 @@ function generateBlogPageHTML(blogPosts: any[] = []) {
       "blogPost": blogPosts && blogPosts.length > 0 ? blogPosts.map((post: any) => ({
         "@type": "BlogPosting",
         "headline": post.title || 'Untitled Post',
-        "description": post.excerpt || (post.content ? post.content.substring(0, 160) + '...' : 'Blog post about Ottoman Empire banknotes'),
-        "articleBody": post.content || post.excerpt || 'No content available',
+        "description": post.excerpt || (post.content ? metaDescription(post.content, 160) : 'Blog post about Ottoman Empire banknotes'),
         "author": {
           "@type": "Person",
           "name": post.author?.username || post.author?.name || 'OttoCollect Team'
@@ -3239,37 +3448,8 @@ function generateBlogPageHTML(blogPosts: any[] = []) {
         "mainEntityOfPage": {
           "@type": "WebPage",
           "@id": `https://ottocollect.com/blog-post/${post.id}`
-        },
-        "interactionStatistic": {
-          "@type": "InteractionCounter",
-          "interactionType": "https://schema.org/CommentAction",
-          "userInteractionCount": post.commentCount || post.comment_count || 0
         }
       })) : [],
-      "mainEntity": {
-        "@type": "ItemList",
-        "name": "Blog Posts",
-        "description": "Latest news, insights, and stories about Ottoman Empire banknotes, numismatic history, collecting tips, and market analysis",
-        "numberOfItems": blogPosts?.length || 0,
-        "itemListElement": blogPosts && blogPosts.length > 0 ? blogPosts.map((post: any, index: number) => ({
-          "@type": "ListItem",
-          "position": index + 1,
-          "item": {
-            "@type": "BlogPosting",
-            "headline": post.title || 'Untitled Post',
-            "description": post.excerpt || (post.content ? post.content.substring(0, 160) + '...' : 'Blog post about Ottoman Empire banknotes'),
-            "articleBody": post.content || post.excerpt || 'No content available',
-            "author": {
-              "@type": "Person",
-              "name": post.author?.username || post.author?.name || 'OttoCollect Team'
-            },
-            "datePublished": post.created_at,
-            "dateModified": post.updated_at || post.created_at,
-            "url": `https://ottocollect.com/blog-post/${post.id}`,
-            "image": post.featured_image || post.main_image_url || post.image_url || imageUrl
-          }
-        })) : []
-      },
       "about": {
         "@type": "Thing",
         "name": "Ottoman Empire Banknotes",
@@ -3307,7 +3487,9 @@ function generateBlogPageHTML(blogPosts: any[] = []) {
   
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com/blog">
-  
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="alternate" hreflang="x-default" href="https://ottocollect.com/blog">
+
   <!-- Structured Data for Blog Posts -->
   <script type="application/ld+json">
     ${JSON.stringify(generateStructuredData(), null, 2)}
@@ -3642,7 +3824,7 @@ function generateBlogPageHTML(blogPosts: any[] = []) {
   <section class="hero-section">
     <div class="container">
       <div class="hero-content">
-        <h1 class="hero-title">Blog</h1>
+        <h1 class="hero-title"><span>Ottoman Empire Banknote Blog</span></h1>
         <p class="hero-subtitle">Discover insights, stories, and knowledge about banknote collecting</p>
       </div>
     </div>
@@ -3693,16 +3875,49 @@ function generateBlogPageHTML(blogPosts: any[] = []) {
 }
 function generateForumPostHTML(post, comments = [], allPosts: any[] = []) {
   const imageUrl = post.image_url || 'https://ottocollect.com/web-app-manifest-512x512.png';
-  const title = `${post.title} - OttoCollect Forum`;
-  const description = post.content ? post.content.substring(0, 160) + '...' : `Forum discussion: ${post.title}`;
+  const rawTitle = post.title || 'Forum discussion';
+  const title = `${escapeHtml(rawTitle)} - OttoCollect Forum`;
+  const commentCount = post.commentCount || 0;
   const authorName = post.author?.username || 'Anonymous';
   const authorAvatar = post.author?.avatar_url || '';
+  // Strip HTML/URLs and trim to a SERP-safe length. If the post body is just a
+  // bare link (common), fall back to a templated, descriptive sentence.
+  const cleanBody = String(post.content || '').replace(/<[^>]*>/g, ' ').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
+  const description = cleanBody.length > 20
+    ? metaDescription(cleanBody, 155)
+    : `Discussion of "${rawTitle}"${commentCount ? `, ${commentCount} ${commentCount === 1 ? 'comment' : 'comments'}` : ''} on the OttoCollect Ottoman banknote forum.`;
   const createdDate = new Date(post.created_at).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric'
   });
-  const commentCount = post.commentCount || 0;
+  // DiscussionForumPosting structured data — was previously absent.
+  const forumPostStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "DiscussionForumPosting",
+    headline: rawTitle,
+    text: cleanBody || rawTitle,
+    url: `https://ottocollect.com/forum-post/${post.id}`,
+    datePublished: post.created_at,
+    ...(post.updated_at ? { dateModified: post.updated_at } : {}),
+    author: { "@type": "Person", name: authorName },
+    ...(post.image_url ? { image: post.image_url } : {}),
+    commentCount: commentCount,
+    interactionStatistic: {
+      "@type": "InteractionCounter",
+      interactionType: "https://schema.org/CommentAction",
+      userInteractionCount: commentCount
+    }
+  };
+  const forumPostBreadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://ottocollect.com/" },
+      { "@type": "ListItem", position: 2, name: "Forum", item: "https://ottocollect.com/forum" },
+      { "@type": "ListItem", position: 3, name: rawTitle, item: `https://ottocollect.com/forum-post/${post.id}` }
+    ]
+  };
   // Generate comments HTML
   const generateComments = (commentsList, depth = 0)=>{
     if (!commentsList || commentsList.length === 0) {
@@ -3780,7 +3995,17 @@ function generateForumPostHTML(post, comments = [], allPosts: any[] = []) {
   
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com/forum-post/${post.id}">
-  
+  <meta name="robots" content="${commentCount === 0 && cleanBody.length < 20 ? 'noindex, follow' : 'index, follow, max-image-preview:large'}">
+  <link rel="alternate" hreflang="x-default" href="https://ottocollect.com/forum-post/${post.id}">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+${JSON.stringify(forumPostStructuredData, null, 2)}
+  </script>
+  <script type="application/ld+json">
+${JSON.stringify(forumPostBreadcrumb, null, 2)}
+  </script>
+
   <!-- CSS matching the exact layout from ForumPost.tsx -->
   <style>
     * {
@@ -4201,7 +4426,7 @@ function generateForumPostHTML(post, comments = [], allPosts: any[] = []) {
           ${post.imageUrls && post.imageUrls.length > 0 ? `
             <div class="post-images">
               ${post.imageUrls.map((imageUrl)=>`
-                <img src="${imageUrl}" alt="Post image" class="post-image">
+                <img src="${imageUrl}" alt="${escapeHtml(rawTitle)} — forum image" class="post-image">
               `).join('')}
             </div>
           ` : ''}
@@ -4268,8 +4493,15 @@ function generateForumPostHTML(post, comments = [], allPosts: any[] = []) {
 function generateCountryPageHTML(countryData, banknotes) {
   const countryName = countryData?.name || 'Unknown Country';
   const encodedCountry = encodeURIComponent(countryName);
-  const title = `${countryName} Banknotes | OttoCollect`;
-  const description = `Browse ${countryName} banknotes from Ottoman Empire period. Historical banknotes with detailed info.`;
+  const title = `${countryName} Banknotes Catalog | OttoCollect`;
+  const description = `Explore ${banknotes?.length || 0} ${countryName} banknotes in the OttoCollect catalog — face values, Pick numbers, years, signatures, printers and detailed images.`;
+  // Social-share image. The previous convention path /images/<slug>.jpg does
+  // not exist (returned the SPA shell), so fall back to a real country image,
+  // then the first banknote image, then the brand icon. No width/height is
+  // declared so crawlers measure the real pixels.
+  const socialImage = (countryData && (countryData.image_url || countryData.imageUrl))
+    || (banknotes && banknotes[0] && (banknotes[0].front_picture_watermarked || banknotes[0].front_picture_thumbnail))
+    || 'https://ottocollect.com/OttoCollectIcon.PNG';
   // Generate banknote cards HTML
   const generateBanknoteCards = ()=>{
     if (!banknotes || banknotes.length === 0) {
@@ -4662,13 +4894,29 @@ function generateCountryPageHTML(countryData, banknotes) {
   };
 
   // ✅ Structured Data: CollectionPage + ItemList (per Google guidelines)
+  // CollectionPage + ItemList. Each ListItem carries only a SLIM reference
+  // (name, url, image) — not the full per-note property dump. The previous
+  // version embedded every DB column per note here AND re-emitted 173 standalone
+  // CreativeWork blocks (generatePerNoteStructuredData), producing a ~2 MB page
+  // with ~725 KB of duplicated JSON-LD that exceeded Google's limits and added
+  // zero ranking value. The rich per-banknote data lives on each banknote's own
+  // detail page, where it belongs.
   const generateStructuredData = ()=>{
-    const itemListElement = banknotes?.map((banknote, index)=>({
-        "@type": "ListItem",
-        position: index + 1,
-        url: `https://ottocollect.com/catalog-banknote/${banknote.id}`,
-        item: generateBanknoteItemData(banknote)
-      })) || [];
+    const itemListElement = banknotes?.map((banknote, index)=>{
+        const year = banknote.gregorian_year || banknote.islamic_year || '';
+        const img = banknote.front_picture_watermarked || banknote.front_picture_thumbnail;
+        const name = [banknote.face_value, year && `(${year})`].filter(Boolean).join(' ') || `${countryName} banknote`;
+        return {
+          "@type": "ListItem",
+          position: index + 1,
+          item: {
+            "@type": "CreativeWork",
+            name: `${name} ${countryName}`.trim(),
+            url: `https://ottocollect.com/catalog-banknote/${banknote.id}`,
+            ...(img ? { image: img } : {})
+          }
+        };
+      }) || [];
     return {
       "@context": "https://schema.org",
       "@type": [
@@ -4676,14 +4924,14 @@ function generateCountryPageHTML(countryData, banknotes) {
         "ItemList"
       ],
       name: `${countryName} Banknotes`,
-      description: `Catalog of ${countryName} banknotes from the Ottoman Empire period.`,
+      description: `Catalog of ${countryName} banknotes documented on OttoCollect.`,
       url: `https://ottocollect.com/catalog/${encodedCountry}`,
       numberOfItems: banknotes?.length || 0,
       itemListElement,
       isPartOf: {
         "@type": "WebSite",
         name: "OttoCollect Banknote Catalog",
-        url: "https://ottocollect.com/catalog/"
+        url: "https://ottocollect.com/catalog"
       },
       publisher: {
         "@type": "Organization",
@@ -4691,65 +4939,6 @@ function generateCountryPageHTML(countryData, banknotes) {
         url: "https://ottocollect.com"
       }
     };
-  };
-  // ✅ Optional enhancement: create per-note CreativeWork JSON-LD snippets for embedding
-  const generatePerNoteStructuredData = ()=>{
-    if (!banknotes?.length) return '';
-    return banknotes.map((banknote)=>{
-      const year = banknote.gregorian_year || banknote.islamic_year || '';
-      const imageUrl = banknote.front_picture_watermarked || banknote.front_picture_thumbnail || 'https://ottocollect.com/OttoCollectIcon.PNG';
-      return `
-          <script type="application/ld+json">
-          ${JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "CreativeWork",
-        name: `${banknote.face_value || ''} ${countryName} Banknote (${year})`,
-        url: `https://ottocollect.com/catalog-banknote/${banknote.id}`,
-        image: [
-          imageUrl
-        ],
-        identifier: [
-          banknote.turk_catalog_number ? {
-            "@type": "PropertyValue",
-            name: `${countryName} Catalog`,
-            value: banknote.turk_catalog_number
-          } : null,
-          banknote.pick_number ? {
-            "@type": "PropertyValue",
-            name: "Pick",
-            value: banknote.pick_number
-          } : null,
-          banknote.extended_pick_number ? {
-            "@type": "PropertyValue",
-            name: "Extended Pick",
-            value: banknote.extended_pick_number
-          } : null
-        ].filter(Boolean),
-        temporalCoverage: year,
-        width: banknote.width_mm ? {
-          "@type": "QuantitativeValue",
-          value: banknote.width_mm,
-          unitCode: "MMT"
-        } : undefined,
-        height: banknote.height_mm ? {
-          "@type": "QuantitativeValue",
-          value: banknote.height_mm,
-          unitCode: "MMT"
-        } : undefined,
-        isPartOf: {
-          "@type": "Collection",
-          name: `${countryName} Banknotes`,
-          url: `https://ottocollect.com/catalog/${encodedCountry}`
-        },
-        publisher: {
-          "@type": "Organization",
-          name: "OttoCollect",
-          url: "https://ottocollect.com"
-        }
-      }, null, 2)}
-          </script>
-        `;
-    }).join('\n');
   };
   // Return final HTML
   return `<!DOCTYPE html>
@@ -4760,13 +4949,15 @@ function generateCountryPageHTML(countryData, banknotes) {
   <title>${title}</title>
   <meta name="description" content="${description}">
   <link rel="canonical" href="https://ottocollect.com/catalog/${encodedCountry}">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="alternate" hreflang="x-default" href="https://ottocollect.com/catalog/${encodedCountry}">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://ottocollect.com/catalog/${encodedCountry}">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
-  <meta property="og:image" content="https://ottocollect.com/images/${countryName.toLowerCase().replace(/\s+/g, '-')}.jpg">
+  <meta property="og:image" content="${socialImage}">
   <meta property="og:image:alt" content="${countryName} Banknote Catalog">
 
   <!-- Twitter -->
@@ -4774,16 +4965,13 @@ function generateCountryPageHTML(countryData, banknotes) {
   <meta property="twitter:url" content="https://ottocollect.com/catalog/${encodedCountry}">
   <meta property="twitter:title" content="${title}">
   <meta property="twitter:description" content="${description}">
-  <meta property="twitter:image" content="https://ottocollect.com/images/${countryName.toLowerCase().replace(/\s+/g, '-')}.jpg">
+  <meta property="twitter:image" content="${socialImage}">
   <meta property="twitter:creator" content="@OttoCollect">
 
-  <!-- ✅ Schema.org: Collection + ItemList -->
+  <!-- Schema.org: CollectionPage + ItemList (slim per-item references) -->
   <script type="application/ld+json">
     ${JSON.stringify(generateStructuredData(), null, 2)}
   </script>
-
-  <!-- ✅ Per-note structured data (CreativeWork) -->
-  ${generatePerNoteStructuredData()}
 
   <!-- Styles -->
   <style>
@@ -5062,7 +5250,7 @@ function generateCountryPageHTML(countryData, banknotes) {
   <div class="container">
     <div class="header">
       <button class="back-button" onclick="window.history.back()">←</button>
-      <h1>${countryName} Banknotes</h1>
+      <h1><span>${countryName} Banknotes</span></h1>
     </div>
 
     <div class="stats">
@@ -5218,10 +5406,12 @@ function generateCountryPageHTML(countryData, banknotes) {
 </html>`;
 }
 function generateBlogPostHTML(post, comments = [], allPosts: any[] = []) {
+  const hasRealImage = !!(post.featured_image || post.main_image_url);
   const imageUrl = post.featured_image || post.main_image_url || 'https://ottocollect.com/web-app-manifest-512x512.png';
-  const title = `${post.title} - OttoCollect Blog`;
-  const description = post.excerpt || (post.content ? post.content.substring(0, 160) + '...' : `Blog post: ${post.title}`);
-  const authorName = post.author?.username || 'Anonymous';
+  const rawTitle = post.title || 'Blog post';
+  const title = `${escapeHtml(rawTitle)} - OttoCollect Blog`;
+  const description = metaDescription(post.excerpt || post.content || `Blog post: ${rawTitle}`, 155);
+  const authorName = post.author?.username || 'OttoCollect Team';
   const authorAvatar = post.author?.avatar_url || '';
   const createdDate = new Date(post.created_at).toLocaleDateString('en-US', {
     month: 'short',
@@ -5229,6 +5419,33 @@ function generateBlogPostHTML(post, comments = [], allPosts: any[] = []) {
     year: 'numeric'
   });
   const commentCount = post.commentCount || 0;
+  // BlogPosting structured data — was previously absent on post pages.
+  const blogPostStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: rawTitle,
+    description: description,
+    ...(hasRealImage ? { image: imageUrl } : {}),
+    author: { "@type": "Person", name: authorName },
+    publisher: {
+      "@type": "Organization",
+      name: "OttoCollect",
+      logo: { "@type": "ImageObject", url: "https://ottocollect.com/web-app-manifest-512x512.png" }
+    },
+    datePublished: post.created_at,
+    dateModified: post.updated_at || post.created_at,
+    mainEntityOfPage: { "@type": "WebPage", "@id": `https://ottocollect.com/blog-post/${post.id}` },
+    url: `https://ottocollect.com/blog-post/${post.id}`
+  };
+  const blogPostBreadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://ottocollect.com/" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://ottocollect.com/blog" },
+      { "@type": "ListItem", position: 3, name: rawTitle, item: `https://ottocollect.com/blog-post/${post.id}` }
+    ]
+  };
   // Generate comments HTML
   const generateComments = (commentsList)=>{
     if (!commentsList || commentsList.length === 0) {
@@ -5283,21 +5500,29 @@ function generateBlogPostHTML(post, comments = [], allPosts: any[] = []) {
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="${post.title}">
-  
+  <meta property="og:image:alt" content="${escapeHtml(rawTitle)}">
+
   <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:card" content="${hasRealImage ? 'summary_large_image' : 'summary'}">
   <meta name="twitter:url" content="https://ottocollect.com/blog-post/${post.id}">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
   <meta name="twitter:creator" content="@OttoCollect">
-  
+
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com/blog-post/${post.id}">
-  
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="alternate" hreflang="x-default" href="https://ottocollect.com/blog-post/${post.id}">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+${JSON.stringify(blogPostStructuredData, null, 2)}
+  </script>
+  <script type="application/ld+json">
+${JSON.stringify(blogPostBreadcrumb, null, 2)}
+  </script>
+
   <!-- CSS matching the exact layout from BlogPost.tsx -->
   <style>
     * {
@@ -5752,7 +5977,7 @@ function generateBlogPostHTML(post, comments = [], allPosts: any[] = []) {
           
           ${post.main_image_url ? `
             <div class="post-image">
-              <img src="${post.main_image_url}" alt="Post image">
+              <img src="${post.main_image_url}" alt="${escapeHtml(rawTitle)}">
             </div>
           ` : ''}
         </div>
@@ -5815,6 +6040,8 @@ function generateBlogPostHTML(post, comments = [], allPosts: any[] = []) {
 function generateHomePageHTML(forumPosts, marketplaceItems1, countries) {
   const title = 'OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform';
   const description = 'OttoCollect is a comprehensive catalog and management platform dedicated to collectors of Ottoman Empire banknotes and those from successor countries since 1840. Our mission is to document and preserve numismatic history while supporting a vibrant community of collectors across Turkey, Jordan, Egypt, Lebanon, Palestine, Syria, Israel, Bulgaria, Albania, and beyond. Collectors can track personal collections, share images, contribute to the catalog, and connect with enthusiasts worldwide.';
+  // SERP-safe meta description (the long `description` stays for JSON-LD/body).
+  const metaDesc = 'Catalog and collector platform for Ottoman Empire banknotes and successor states — Turkey, Egypt, Jordan, Syria, Bulgaria and more — since 1840. Track, trade and connect.';
   // Generate forum posts HTML
   const generateForumPosts = ()=>{
     if (!forumPosts || forumPosts.length === 0) {
@@ -6058,25 +6285,27 @@ function generateHomePageHTML(forumPosts, marketplaceItems1, countries) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title}</title>
-  <meta name="description" content="${description}">
+  <meta name="description" content="${metaDesc}">
   <link rel="canonical" href="https://ottocollect.com/">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="alternate" hreflang="x-default" href="https://ottocollect.com/">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://ottocollect.com/">
   <meta property="og:title" content="${title}">
-  <meta property="og:description" content="${description}">
-  <meta property="og:image" content="https://ottocollect.com/OttoCollectIconHome.PNG">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+  <meta property="og:description" content="${metaDesc}">
+  <meta property="og:image" content="https://ottocollect.com/web-app-manifest-512x512.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
   <meta property="og:image:alt" content="OttoCollect - Ottoman Empire Banknote Collectors Hub">
 
   <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:card" content="summary">
   <meta property="twitter:url" content="https://ottocollect.com/">
   <meta property="twitter:title" content="${title}">
-  <meta property="twitter:description" content="${description}">
-  <meta property="twitter:image" content="https://ottocollect.com/OttoCollectIconHome.PNG">
+  <meta property="twitter:description" content="${metaDesc}">
+  <meta property="twitter:image" content="https://ottocollect.com/web-app-manifest-512x512.png">
   <meta property="twitter:creator" content="@OttoCollect">
 
   <script type="application/ld+json">
@@ -6723,7 +6952,7 @@ function generateHomePageHTML(forumPosts, marketplaceItems1, countries) {
     <section class="hero-section">
       <h1 class="hero-title">OttoCollect</h1>
       <img src="/OttoCollectIconHome.PNG" alt="OttoCollect Logo" class="hero-logo">
-      <h2 class="hero-subtitle">Discover the Legacy of Ottoman empire and it's successor countries Banknotes</h2>
+      <h2 class="hero-subtitle">Discover the Legacy of Ottoman Empire and Its Successor Countries' Banknotes</h2>
       <p class="hero-description">
         Explore, collect, and trade historical banknotes from across regions and eras. Join our community of passionate collectors.
       </p>
@@ -6940,7 +7169,7 @@ function generateHomePageHTML(forumPosts, marketplaceItems1, countries) {
 }
 function generateAboutPageHTML() {
   const title = 'About OttoCollect - Ottoman Banknote Platform';
-  const description = 'Learn about OttoCollect, the premier platform for Ottoman Empire banknote collectors.';
+  const description = 'Discover OttoCollect, the catalog and collection platform for Ottoman Empire and successor-country banknotes since 1840 — meet our founders and our collector community.';
   const imageUrl = 'https://ottocollect.com/web-app-manifest-512x512.png';
   return `<!DOCTYPE html>
 <html lang="en">
@@ -6970,6 +7199,8 @@ function generateAboutPageHTML() {
   
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com/about">
+  <meta name="robots" content="index, follow">
+  <link rel="alternate" hreflang="x-default" href="https://ottocollect.com/about">
   
   <!-- Structured Data -->
   <script type="application/ld+json">
@@ -7315,7 +7546,7 @@ function generateAboutPageHTML() {
       <h2 class="features">Comprehensive Platform for Collectors</h2>
       <div style="text-align: center; max-width: 768px; margin: 0 auto 48px;">
         <h3 style="font-size: 2rem; color: #2c3e50; margin-bottom: 16px;">Comprehensive Platform for Collectors</h3>
-        <p style="font-size: 1.125rem; color: #666;">Everything you need to manage, showcase, and grow your Ottoman and it's successor countries banknotes collection.</p>
+        <p style="font-size: 1.125rem; color: #666;">Everything you need to manage, showcase, and grow your Ottoman Empire and successor-country banknote collection.</p>
       </div>
       
       <div class="features-grid">
@@ -7457,6 +7688,8 @@ function generateContactPageHTML() {
   
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com/contact">
+  <meta name="robots" content="index, follow">
+  <link rel="alternate" hreflang="x-default" href="https://ottocollect.com/contact">
   
   <!-- Structured Data -->
   <script type="application/ld+json">
@@ -7785,6 +8018,7 @@ function generateLegalPageHTML(opts: { slug: string; title: string; description:
   <meta name="twitter:title" content="${opts.title}">
   <meta name="twitter:description" content="${safeDesc}">
   <link rel="canonical" href="${url}">
+  <link rel="alternate" hreflang="x-default" href="${url}">
   <script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -8009,9 +8243,46 @@ function marketplaceItemPath(item) {
     : `/marketplace-item/${item.id}`;
 }
 function generateMarketplaceHTML(marketplaceItems) {
-  const title = 'OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform';
-  const description = 'Buy and sell authentic Ottoman Empire banknotes, rare Turkish currency, and historical paper money. Secure marketplace for serious collectors.';
+  const title = 'Ottoman Banknote Marketplace - Buy & Sell Rare Currency | OttoCollect';
+  const description = 'Browse and buy authentic Ottoman Empire banknotes listed by collectors worldwide. Compare prices, condition and grades on OttoCollect\'s secure marketplace.';
   const imageUrl = 'https://ottocollect.com/web-app-manifest-512x512.png';
+  // CollectionPage + ItemList structured data for the listings (capped to the
+  // items actually rendered, so the block stays lightweight).
+  const buildStructuredData = () => {
+    const items = (marketplaceItems || []).filter((i: any) => i?.collectionItem?.banknote);
+    return {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: "Ottoman Banknotes Marketplace",
+      description,
+      url: "https://ottocollect.com/marketplace",
+      mainEntity: {
+        "@type": "ItemList",
+        numberOfItems: items.length,
+        itemListElement: items.map((item: any, index: number) => {
+          const { collectionItem, seller, status } = item;
+          const { banknote, salePrice } = collectionItem;
+          return {
+            "@type": "ListItem",
+            position: index + 1,
+            url: `https://ottocollect.com${marketplaceItemPath(item)}`,
+            item: {
+              "@type": "Product",
+              name: `${banknote.denomination} ${banknote.country} Banknote ${banknote.year || ''}`.trim(),
+              ...(collectionItem.obverseImage ? { image: collectionItem.obverseImage } : {}),
+              offers: {
+                "@type": "Offer",
+                priceCurrency: "USD",
+                price: salePrice,
+                availability: (status || '').toLowerCase() === 'available' ? "https://schema.org/InStock" : "https://schema.org/SoldOut",
+                seller: { "@type": "Person", name: seller?.username || 'OttoCollect seller' }
+              }
+            }
+          };
+        })
+      }
+    };
+  };
   // Generate marketplace items HTML
   const generateMarketplaceItems = ()=>{
     if (!marketplaceItems || marketplaceItems.length === 0) {
@@ -8050,8 +8321,7 @@ function generateMarketplaceHTML(marketplaceItems) {
             <div class="item-header">
               <div class="item-title-section">
                 <h3 class="item-title">
-                  ${banknote.denomination}
-                  ${banknote.extendedPickNumber ? `(${banknote.extendedPickNumber})` : ''}
+                  <a href="${marketplaceItemPath(item)}">${banknote.denomination} ${banknote.country}${banknote.year ? ` (${banknote.year})` : ''}${banknote.extendedPickNumber ? ` — Pick ${banknote.extendedPickNumber}` : ''}</a>
                 </h3>
                 <p class="item-subtitle">
                   ${banknote.country}${banknote.year ? `, ${banknote.year}` : ''}
@@ -8109,7 +8379,14 @@ function generateMarketplaceHTML(marketplaceItems) {
   
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com/marketplace">
-  
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="alternate" hreflang="x-default" href="https://ottocollect.com/marketplace">
+
+  <!-- Structured Data: CollectionPage + ItemList of listings -->
+  <script type="application/ld+json">
+${JSON.stringify(buildStructuredData(), null, 2)}
+  </script>
+
   <!-- CSS matching the exact layout from Marketplace.tsx -->
   <style>
     * {
@@ -8595,9 +8872,44 @@ function generateMarketplaceItemHTML(marketplaceItem, allItems: any[] = []) {
   const sellerName = seller?.username || 'Unknown';
   const sellerAvatar = seller?.avatar_url || '';
   const sellerRank = seller?.rank || 'Newbie Collector';
-  const title = `${banknote.denomination} ${banknote.country} Banknote ${banknote.year} - $${salePrice} | OttoCollect Marketplace`;
-  const description = `Buy ${banknote.denomination} ${banknote.country} banknote from ${banknote.year} (Pick #${banknote.extendedPickNumber}) for $${salePrice}. ${condition ? `Condition: ${condition}` : ''} ${grade ? `Grade: ${grade}` : ''}. Seller: ${sellerName}.`;
+  // Price stays out of the <title> (volatile -> stale SERP snippets); it lives
+  // in the description and the Offer JSON-LD where it's allowed to change.
+  const pickRef = banknote.extendedPickNumber || banknote.extended_pick_number || banknote.pick_number;
+  const title = `${banknote.denomination} ${banknote.country} Banknote ${banknote.year}${pickRef ? ` (P-${pickRef})` : ''} | OttoCollect`;
+  const condGrade = [condition && `Condition: ${condition}`, grade && `Grade: ${grade}`].filter(Boolean).join(', ');
+  const description = metaDescription(`Buy this authentic ${banknote.denomination} ${banknote.country} banknote from ${banknote.year}${pickRef ? ` (Pick #${pickRef})` : ''} for $${salePrice} on OttoCollect.${condGrade ? ` ${condGrade}.` : ''} Offered by ${sellerName}.`);
   const imageUrl = obverseImage || banknote.imageUrls?.[0] || 'https://ottocollect.com/web-app-manifest-512x512.png';
+  const isAvailable = (status || '').toLowerCase() === 'available';
+  // Product + Offer + breadcrumb structured data — the highest-value SEO signal
+  // for a commerce listing. Was previously absent entirely.
+  const productStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: `${banknote.denomination} ${banknote.country} Banknote ${banknote.year}`.trim(),
+    image: [obverseImage || banknote.imageUrls?.[0], reverseImage || banknote.imageUrls?.[1]].filter(Boolean),
+    description: description,
+    category: "Collectible Banknotes",
+    ...(pickRef ? { productID: `Pick-${pickRef}`, sku: String(pickRef) } : {}),
+    ...(banknote.country ? { brand: { "@type": "Brand", name: banknote.country } } : {}),
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "USD",
+      price: salePrice,
+      availability: isAvailable ? "https://schema.org/InStock" : "https://schema.org/SoldOut",
+      url: `https://ottocollect.com${selfPath}`,
+      ...(condition || grade ? { itemCondition: "https://schema.org/UsedCondition" } : {}),
+      seller: { "@type": "Person", name: sellerName }
+    }
+  };
+  const breadcrumbStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Marketplace", item: "https://ottocollect.com/marketplace" },
+      { "@type": "ListItem", position: 2, name: `${banknote.country} Banknotes`, item: `https://ottocollect.com/catalog/${encodeURIComponent(banknote.country || '')}` },
+      { "@type": "ListItem", position: 3, name: title, item: `https://ottocollect.com${selfPath}` }
+    ]
+  };
   // Generate images HTML
   const generateImages = ()=>{
     const displayImages = [
@@ -8712,10 +9024,8 @@ function generateMarketplaceItemHTML(marketplaceItem, allItems: any[] = []) {
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="${banknote.denomination} ${banknote.country} Banknote">
-  
+
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://ottocollect.com${selfPath}">
@@ -8723,10 +9033,20 @@ function generateMarketplaceItemHTML(marketplaceItem, allItems: any[] = []) {
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
   <meta name="twitter:creator" content="@OttoCollect">
-  
+
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com${selfPath}">
-  
+  <meta name="robots" content="${isAvailable ? 'index, follow, max-image-preview:large' : 'noindex, follow'}">
+  <link rel="alternate" hreflang="x-default" href="https://ottocollect.com${selfPath}">
+
+  <!-- Product + Offer structured data -->
+  <script type="application/ld+json">
+${JSON.stringify(productStructuredData, null, 2)}
+  </script>
+  <script type="application/ld+json">
+${JSON.stringify(breadcrumbStructuredData, null, 2)}
+  </script>
+
   <!-- CSS matching the exact layout from MarketplaceItemDetail.tsx -->
   <style>
     * {

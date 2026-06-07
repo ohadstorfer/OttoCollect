@@ -4,12 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OttoCollect - Ottoman Empire Banknotes Catalog & Collectors Platform</title>
-    <!-- Meta description will be set dynamically by React Helmet -->
+    <!-- Static fallback description; React Helmet / per-page SSR overrides this on real routes -->
+    <meta name="description" content="OttoCollect is a catalog and collection-management platform for Ottoman Empire banknotes and historical currency from 1840 onward — browse, identify, manage and trade with collectors worldwide." />
     <meta name="keywords" content="Ottoman Empire banknotes, banknote collection platform, Ottoman currency catalog, historical banknotes 1840, Turkish lira paper money, numismatic collection management, Ottoman Empire collectors, banknote trading platform, historical currency database, Ottoman successor countries banknotes" />
     <meta name="author" content="OttoCollect" />
     <meta name="robots" content="index, follow" />
     
-    <!-- Canonical URL - handled by Canonical component -->
+    <!-- Canonical URL: static self-referential fallback for the home document.
+         Per-page SSR / the Canonical component override this on real routes. -->
+    <link rel="canonical" href="https://ottocollect.com/" />
     
     <!-- Help Google understand this is a SPA -->
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
@@ -183,21 +186,6 @@
     }
     </script>
     
-    <!-- Additional structured data for better indexing -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "CollectionPage",
-      "name": "Ottoman Empire Banknotes Collection",
-      "description": "Browse and discover authentic Ottoman Empire banknotes and historical currency from 1840 onwards",
-      "url": "https://ottocollect.com/catalog",
-      "mainEntity": {
-        "@type": "ItemList",
-        "name": "Ottoman Empire Banknotes",
-        "description": "Comprehensive collection of Ottoman Empire banknotes and successor country currencies"
-      }
-    }
-    </script>
   </head>
 
   <body>

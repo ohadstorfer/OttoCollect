@@ -4,26 +4,9 @@ Allow: /
 # Dynamic Sitemap (auto-updates from database)
 Sitemap: https://ottocollect.com/sitemap.xml
 
-# Disallow admin and private areas
+# Disallow admin, utility and private dashboard routes
 Disallow: /admin/
-Disallow: /api/
-Disallow: /_next/
-Disallow: /static/
 Disallow: /test-cleanup
 Disallow: /delete-processed-images
-
-# Allow important pages
-Allow: /catalog/
-Allow: /marketplace/
-Allow: /collection/
-Allow: /blog/
-Allow: /community/
-Allow: /forum/
-Allow: /guide/
-Allow: /about/
-Allow: /contact/
-
-
-
-# Additional directives for better indexing
-Host: https://ottocollect.com
+Disallow: /settings
+Disallow: /messaging
