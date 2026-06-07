@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useLanguage } from '@/context/LanguageContext';
 import SEOHead from '@/components/seo/SEOHead';
+import { SEO_CONFIG } from '@/config/seoConfig';
 import { fetchQaCategoriesWithTranslations, fetchQaEntriesWithTranslations } from '@/services/qaService';
 import {
   groupEntriesByCategory, getLocalizedEntry, getLocalizedCategoryName,
@@ -48,8 +49,9 @@ const Guide = () => {
   return (
     <div>
       <SEOHead
-        title="OttoCollect FAQ - Frequently Asked Questions"
-        description="Answers to common questions about collecting Ottoman Empire banknotes on OttoCollect."
+        title={SEO_CONFIG.pages.guide.title}
+        description={SEO_CONFIG.pages.guide.description}
+        keywords={SEO_CONFIG.pages.guide.keywords}
         type="website"
         canonical="https://ottocollect.com/guide/"
       />

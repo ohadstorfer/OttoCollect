@@ -204,6 +204,18 @@ export const SEO_CONFIG = {
       ]
     },
 
+    guide: {
+      title: 'OttoCollect FAQ - Frequently Asked Questions',
+      description: 'Answers to frequently asked questions about collecting Ottoman Empire and successor-state banknotes on OttoCollect — adding banknotes, managing your collection, grading, and suggesting catalogue images.',
+      keywords: [
+        'OttoCollect FAQ',
+        'Ottoman banknote FAQ',
+        'frequently asked questions',
+        'how to collect Ottoman banknotes',
+        'banknote collection help'
+      ]
+    },
+
     community: {
       title: 'OttoCollect Community - Connect with Collectors',
       description: 'Join the OttoCollect community of Ottoman Empire banknote collectors. Connect with fellow enthusiasts, share knowledge, and grow your collection.',

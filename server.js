@@ -308,6 +308,15 @@ app.get('/blog-post/:id', (req, res) => serveEntityPage(req, res, {
   missingMessage: 'The blog post you are looking for does not exist or has been removed.',
 }));
 
+// Guide / FAQ entry pages
+app.get('/guide-post/:id', (req, res) => serveEntityPage(req, res, {
+  staticFileName: `guide-post-${req.params.id}.html`,
+  dbTable: 'qa_entries',
+  dbColumn: 'id',
+  dbValue: req.params.id,
+  missingMessage: 'The FAQ entry you are looking for does not exist or has been removed.',
+}));
+
 // Profile pages: validate the username exists in `profiles` so bogus profiles
 // (and the literal "/profile/:username" string that leaks from the React Router
 // config inside the JS bundle — Google has been discovering it from rendered

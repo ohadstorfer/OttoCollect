@@ -205,6 +205,29 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Fetch published guide / FAQ entries dynamically
+    const { data: qaEntries } = await supabase
+      .from('qa_entries')
+      .select('id, updated_at')
+      .eq('is_draft', false)
+      .order('display_order', { ascending: true });
+
+    if (qaEntries) {
+      sitemap += '\n  <!-- Guide / FAQ entries -->\n';
+      qaEntries.forEach(entry => {
+        const lastmod = entry.updated_at
+          ? new Date(entry.updated_at).toISOString().split('T')[0]
+          : currentDate;
+        sitemap += `  <url>
+    <loc>${baseUrl}/guide-post/${entry.id}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+`;
+      });
+    }
+
     // Fetch forum posts dynamically
     const { data: forumPosts } = await supabase
       .from('forum_posts')

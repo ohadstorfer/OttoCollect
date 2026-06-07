@@ -67,7 +67,12 @@ export default function GuidePost() {
 
   return (
     <div className="container py-8 max-w-3xl mx-auto">
-      <SEOHead title={`${localized.headline} | OttoCollect`} description={localized.shortDescription} type="article" />
+      <SEOHead
+        title={`${localized.headline} | OttoCollect`}
+        description={localized.shortDescription}
+        type="article"
+        canonical={`https://ottocollect.com/guide-post/${entry.id}`}
+      />
 
       <div className="mb-6 flex items-center justify-between gap-2">
         <Button variant="ghost" onClick={() => navigate('/guide')} className="flex items-center">

@@ -492,11 +492,28 @@ serve(async (req)=>{
         error: error.message
       });
     }
+    // Fetch the Q&A / FAQ data that drives /guide and /guide-post/:id. The
+    // service-role client bypasses RLS, so we filter is_draft=false explicitly
+    // to keep unpublished entries out of the crawler-facing HTML. Base-language
+    // (English) columns are used for the static snapshot, mirroring blog.
+    let qaCategories: any[] = [];
+    let qaEntries: any[] = [];
+    try {
+      const [{ data: cats }, { data: entries }] = await Promise.all([
+        supabase.from('qa_categories').select('*').order('display_order', { ascending: true }),
+        supabase.from('qa_entries').select('*').eq('is_draft', false).order('display_order', { ascending: true }),
+      ]);
+      qaCategories = cats || [];
+      qaEntries = entries || [];
+      console.log(`Found ${qaCategories.length} qa categories and ${qaEntries.length} published qa entries`);
+    } catch (e) {
+      console.error('Error fetching qa data:', e);
+    }
     // Generate HTML for guide page (skipped in incremental mode).
     // The generator + the server.js /guide route already existed; only this
     // upload was missing, so /guide was falling back to the SPA shell for bots.
     if (!incremental) try {
-      const guideHtml = generateGuideHTML();
+      const guideHtml = generateGuideHTML(qaCategories, qaEntries);
       const { error: uploadError } = await supabase.storage.from('static-pages').upload('guide.html', guideHtml, {
         contentType: 'text/html',
         upsert: true,
@@ -511,6 +528,27 @@ serve(async (req)=>{
     } catch (error) {
       console.error('Error processing guide page:', error);
       errors.push({ id: 'guide', error: error.message });
+    }
+    // Generate HTML for each guide/FAQ entry (skipped in incremental mode).
+    if (!incremental) for (const entry of qaEntries || []) {
+      try {
+        const html = generateGuidePostHTML(entry, qaEntries);
+        const fileName = `guide-post-${entry.id}.html`;
+        const { error: uploadError } = await supabase.storage.from('static-pages').upload(fileName, html, {
+          contentType: 'text/html',
+          upsert: true,
+          cacheControl: '3600'
+        });
+        if (uploadError) {
+          console.error(`Error uploading ${fileName}:`, uploadError);
+          errors.push({ id: entry.id, error: uploadError.message });
+        } else {
+          generatedPages.push(`guide-post-${entry.id}`);
+        }
+      } catch (itemError) {
+        console.error(`Error processing guide entry ${entry.id}:`, itemError);
+        errors.push({ id: entry.id, error: itemError.message });
+      }
     }
     // Generate HTML for community page (skipped in incremental mode).
     // /community is sitemapped + linked from the homepage but had no static
@@ -2855,230 +2893,76 @@ ${JSON.stringify(structuredData, null, 2)}
 </html>`;
 }
 
-export function generateGuideHTML() {
-  const title = 'OttoCollect Guide - How to Use the Platform | Ottoman Banknote Catalogues and Collections';
-  const description = 'Learn how to use OttoCollect platform for Ottoman Empire banknote collection. Complete guide for adding banknotes, managing collections, and connecting with collectors worldwide.';
+// Strip HTML tags + collapse whitespace; used for plain-text FAQ answers/snippets.
+function qaPlainText(value: unknown): string {
+  return String(value ?? '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Group published entries under their category, ordered by display_order,
+// dropping empty categories. Mirrors groupEntriesByCategory in src/types/qa.ts.
+function qaGroups(qaCategories: any[] = [], qaEntries: any[] = []) {
+  return [...qaCategories]
+    .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+    .map((category) => ({
+      category,
+      entries: qaEntries
+        .filter((e) => e.category_id === category.id)
+        .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)),
+    }))
+    .filter((g) => g.entries.length > 0);
+}
+
+export function generateGuideHTML(qaCategories: any[] = [], qaEntries: any[] = []) {
+  const title = 'OttoCollect FAQ - Frequently Asked Questions | Ottoman Banknote Catalogues and Collections';
+  const description = 'Find answers to frequently asked questions about collecting Ottoman Empire and successor-state banknotes on OttoCollect — adding banknotes, managing your collection, suggesting catalogue images, and more.';
   const imageUrl = 'https://ottocollect.com/web-app-manifest-512x512.png';
-  
-  // Guide sections data
-  const sections = {
-    addBanknote: {
-      title: 'How to Add a Banknote to Your Collection',
-      icon: '🧾',
-      steps: {
-        step1: {
-          title: 'Go to the Catalogues',
-          description: 'From the top menu, click on "Catalogues".',
-          type: 'success'
-        },
-        step2: {
-          title: 'Choose a Country',
-          description: 'Click on the country whose banknotes you want to view.',
-          type: 'success'
-        },
-        step3: {
-          title: 'Browse and Add Banknotes',
-          description: 'Scroll through the list of banknotes. To add one to your collection, click the "+" icon on the top-right of the banknote card.',
-          type: 'success'
-        },
-        step4: {
-          title: 'Add More Banknotes',
-          description: 'Repeat the process for every banknote you own. You can quickly add multiple this way.',
-          type: 'success'
-        },
-        step5: {
-          title: 'View Your Collection',
-          description: 'Once you\'re done, go to the "My Collection" section from the menu to see all the banknotes you\'ve added.',
-          type: 'success'
-        },
-        step6: {
-          title: 'Remove a Mistaken Entry',
-          description: 'If you added a banknote by mistake: Click on that banknote in your collection. On its page, click the trash icon 🗑️ to remove it. The banknote will be deleted from your collection.',
-          type: 'error'
-        }
-      }
-    },
-    editBanknote: {
-      title: 'How to Add Information or a Picture to a Banknote in Your Collection',
-      icon: '🖼️',
-      steps: {
-        step1: {
-          title: 'Open "My Collection"',
-          description: 'From the top menu, click on "My Collection" to access your personal banknotes.',
-          type: 'success'
-        },
-        step2: {
-          title: 'Select a Country',
-          description: 'Choose the country of the banknote you\'d like to edit.',
-          type: 'success'
-        },
-        step3: {
-          title: 'Choose the Banknote',
-          description: 'Scroll down and click on the banknote you want to update.',
-          type: 'success'
-        },
-        step4: {
-          title: 'Click the Edit Icon ✏️',
-          description: 'In the banknote details page, click on the Edit icon (typically a pencil).',
-          type: 'success'
-        },
-        step5: {
-          title: 'Fill in the Details',
-          description: 'A form will appear. You can now: Add or update quantity, Enter notes, grade, purchase source, or any other personal details.',
-          type: 'success'
-        },
-        step6: {
-          title: 'Click "Change Picture"',
-          description: 'To upload or replace a photo, click the "Change Picture" button.',
-          type: 'success'
-        },
-        step7: {
-          title: 'Select Your Image',
-          description: 'Choose a front or back image of the banknote from your device.',
-          type: 'success'
-        },
-        step8: {
-          title: 'Edit Image (Optional)',
-          description: 'Adjust or crop the picture to fit the required display area. Then click the "Save" to confirm.',
-          type: 'success'
-        },
-        step9: {
-          title: 'Click "Update Item"',
-          description: 'To finish, scroll to the bottom. Then click the "Update Item" button to apply the edits to your collection.',
-          type: 'success'
-        }
-      }
-    },
-    suggestPicture: {
-      title: 'How to Suggest a banknote image from Your Collection to the Main Catalogues',
-      icon: '🖼️',
-      steps: {
-        step1: {
-          title: 'Go to the Banknote Page',
-          description: 'Navigate to the banknote page in your collection that contains the banknote image you want to suggest.',
-          type: 'success'
-        },
-        step2: {
-          title: 'Click "Suggest to Catalogues"',
-          description: 'Above your uploaded banknote image, click the "Suggest to Catalogues" button. This submits your image for review by an administrator.',
-          type: 'success'
-        },
-        step3: {
-          title: 'Wait for Review',
-          description: 'Your suggestion will be reviewed by the site\'s admin team. They may approve or reject your submission based on quality and clarity.',
-          type: 'success'
-        },
-        step4: {
-          title: 'Edit and Re-Suggest if Needed',
-          description: 'If you edit or change the banknote image later, the system will allow you to suggest it again for catalogues inclusion.',
-          type: 'success'
-        }
+
+  const groups = qaGroups(qaCategories, qaEntries);
+
+  // FAQPage structured data drives Google's FAQ rich results. Each question's
+  // answer is the admin-written short description (falling back to the article
+  // body), as plain text.
+  const faqStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "name": title,
+    "description": description,
+    "url": "https://ottocollect.com/guide",
+    "mainEntity": qaEntries.map((e) => ({
+      "@type": "Question",
+      "name": qaPlainText(e.headline),
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": qaPlainText(e.short_description) || qaPlainText(e.content),
       },
-      note: {
-        title: 'Best Picture Wins',
-        description: 'Only the best-quality images are selected for the main catalogues. Admins may choose another user\'s banknote image if it\'s better suited.'
-      }
-    }
+    })),
   };
-  
-  // Generate structured data
-  const generateStructuredData = () => {
-    return {
-      "@context": "https://schema.org",
-      "@type": "HowTo",
-      "name": title,
-      "description": description,
-      "url": "https://ottocollect.com/guide",
-      "step": [
-        ...Object.entries(sections.addBanknote.steps).map(([key, step]: [string, any]) => ({
-          "@type": "HowToStep",
-          "name": step.title,
-          "text": step.description,
-          "position": parseInt(key.replace('step', ''))
-        })),
-        ...Object.entries(sections.editBanknote.steps).map(([key, step]: [string, any]) => ({
-          "@type": "HowToStep",
-          "name": step.title,
-          "text": step.description,
-          "position": parseInt(key.replace('step', '')) + 6
-        })),
-        ...Object.entries(sections.suggestPicture.steps).map(([key, step]: [string, any]) => ({
-          "@type": "HowToStep",
-          "name": step.title,
-          "text": step.description,
-          "position": parseInt(key.replace('step', '')) + 15
-        }))
-      ],
-      "about": {
-        "@type": "Thing",
-        "name": "OttoCollect Platform Guide",
-        "description": "Comprehensive guide for using OttoCollect platform to manage Ottoman Empire banknote collections"
-      }
-    };
-  };
-  
-  // Render a section
-  const renderSection = (sectionKey) => {
-    const section = sections[sectionKey];
-    const stepEntries = Object.entries(section.steps);
-    
-    return `
-      <div class="guide-card">
-        <div class="guide-card-header">
-          <h2 class="guide-section-title">
-            <span class="guide-icon">${section.icon}</span>
-            <span>${section.title}</span>
-          </h2>
-        </div>
-        <div class="guide-card-content">
-          <div class="guide-steps">
-            ${stepEntries.map(([stepKey, step]: [string, any]) => {
-              const isError = step.type === 'error';
-              return `
-                <div class="guide-step">
-                  <div class="guide-step-content">
-                    ${isError ? `
-                      <svg class="guide-step-icon error" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="15" y1="9" x2="9" y2="15"></line>
-                        <line x1="9" y1="9" x2="15" y2="15"></line>
-                      </svg>
-                    ` : `
-                      <svg class="guide-step-icon success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                      </svg>
-                    `}
-                    <div class="guide-step-text">
-                      <h3 class="guide-step-title">${step.title}</h3>
-                      <p class="guide-step-description">${step.description}</p>
-                    </div>
-                  </div>
-                  ${stepKey !== stepEntries[stepEntries.length - 1][0] ? '<div class="guide-separator"></div>' : ''}
-                </div>
-              `;
-            }).join('')}
-            
-            ${section.note ? `
-              <div class="guide-separator"></div>
-              <div class="guide-note">
-                <svg class="guide-info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="16" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-                <div class="guide-note-content">
-                  <h4 class="guide-note-title">ℹ️ ${section.note.title}</h4>
-                  <p class="guide-note-description">${section.note.description}</p>
-                </div>
-              </div>
-            ` : ''}
-          </div>
-        </div>
-      </div>
-    `;
-  };
-  
+
+  const renderGroup = (group: any) => `
+      <section class="faq-section">
+        <h2 class="faq-category">${escapeHtml(group.category.name)}</h2>
+        ${group.entries.map((e: any) => {
+          const url = `https://ottocollect.com/guide-post/${e.id}`;
+          return `
+          <article class="faq-item" itemscope itemtype="https://schema.org/Question">
+            <h3 class="faq-question" itemprop="name">
+              <a href="${url}">${escapeHtml(e.headline)}</a>
+            </h3>
+            <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+              <p itemprop="text">${escapeHtml(qaPlainText(e.short_description))}</p>
+              <a class="faq-learn-more" href="${url}">Learn more »</a>
+            </div>
+          </article>`;
+        }).join('')}
+      </section>`;
+
+  const body = groups.length > 0
+    ? groups.map(renderGroup).join('')
+    : '<p class="faq-empty">No questions yet.</p>';
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -3086,17 +2970,15 @@ export function generateGuideHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title}</title>
   <meta name="description" content="${description}">
-  
+
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://ottocollect.com/guide">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
-  <meta property="og:image:width" content="512">
-  <meta property="og:image:height" content="512">
-  <meta property="og:image:alt" content="OttoCollect Guide">
-  
+  <meta property="og:image:alt" content="OttoCollect FAQ">
+
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://ottocollect.com/guide">
@@ -3104,234 +2986,165 @@ export function generateGuideHTML() {
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
   <meta name="twitter:creator" content="@OttoCollect">
-  
+
   <!-- Canonical URL -->
   <link rel="canonical" href="https://ottocollect.com/guide">
   <meta name="robots" content="index, follow">
   <link rel="alternate" hreflang="x-default" href="https://ottocollect.com/guide">
-  
+
   <!-- Structured Data -->
   <script type="application/ld+json">
-    ${JSON.stringify(generateStructuredData(), null, 2)}
+${JSON.stringify(faqStructuredData, null, 2)}
   </script>
-  
-  <!-- CSS -->
+
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background-color: #f5f5f0;
-      color: #333;
-      line-height: 1.6;
-      min-height: 100vh;
+      background-color: #f5f5f0; color: #333; line-height: 1.6; min-height: 100vh;
     }
-    
-    .guide-container {
-      max-width: 896px;
-      margin: 0 auto;
-      padding: 32px 16px;
-    }
-    
-    .guide-header {
-      text-align: center;
-      margin-bottom: 48px;
-    }
-    
-    .guide-title {
-      font-size: 2.5rem;
-      font-weight: bold;
-      color: #333;
-      margin-bottom: 16px;
-      font-family: serif;
-    }
-    
-    .guide-subtitle {
-      font-size: 1.125rem;
-      color: #666;
-    }
-    
-    .guide-card {
-      background: white;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      margin-bottom: 32px;
-      overflow: hidden;
-    }
-    
-    .guide-card-header {
-      padding: 32px;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    
-    .guide-section-title {
-      font-size: 1.25rem;
-      font-weight: bold;
-      color: #333;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-family: serif;
-    }
-    
-    .guide-icon {
-      font-size: 1.5rem;
-      flex-shrink: 0;
-    }
-    
-    .guide-card-content {
-      padding: 32px;
-    }
-    
-    .guide-steps {
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-    
-    .guide-step {
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .guide-step-content {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-    }
-    
-    .guide-step-icon {
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
-      margin-top: 4px;
-    }
-    
-    .guide-step-icon.success {
-      color: #22c55e;
-    }
-    
-    .guide-step-icon.error {
-      color: #ef4444;
-    }
-    
-    .guide-step-text {
-      flex: 1;
-    }
-    
-    .guide-step-title {
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 8px;
-    }
-    
-    .guide-step-description {
-      color: #666;
-      line-height: 1.6;
-    }
-    
-    .guide-separator {
-      height: 1px;
-      background-color: #e5e7eb;
-      margin: 24px 0;
-      margin-left: 36px;
-    }
-    
-    .guide-note {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      background-color: #f9fafb;
-      padding: 16px;
-      border-radius: 8px;
-      margin-top: 8px;
-    }
-    
-    .guide-info-icon {
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
-      margin-top: 4px;
-      color: #3b82f6;
-    }
-    
-    .guide-note-content {
-      flex: 1;
-    }
-    
-    .guide-note-title {
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 8px;
-    }
-    
-    .guide-note-description {
-      color: #666;
-      font-size: 0.875rem;
-    }
-    
-    .redirect-notice {
-      text-align: center;
-      padding: 20px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      margin-top: 20px;
-      color: #666;
-    }
-    
-    .redirect-notice a {
-      color: #8b4513;
-      text-decoration: none;
-    }
-    
-    .redirect-notice a:hover {
-      text-decoration: underline;
-    }
-    
+    .faq-container { max-width: 896px; margin: 0 auto; padding: 32px 16px; }
+    .faq-header { text-align: center; margin-bottom: 48px; }
+    .faq-title { font-size: 2.5rem; font-weight: bold; color: #333; margin-bottom: 16px; font-family: serif; }
+    .faq-subtitle { font-size: 1.125rem; color: #666; }
+    .faq-section { margin-bottom: 40px; }
+    .faq-category { font-size: 1.5rem; font-weight: bold; color: #333; margin-bottom: 16px; font-family: serif; }
+    .faq-item { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px 24px; margin-bottom: 12px; }
+    .faq-question { font-size: 1.125rem; font-weight: 600; margin-bottom: 8px; }
+    .faq-question a { color: #333; text-decoration: none; }
+    .faq-question a:hover { text-decoration: underline; }
+    .faq-answer p { color: #666; margin-bottom: 8px; }
+    .faq-learn-more { color: #8b4513; text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+    .faq-learn-more:hover { text-decoration: underline; }
+    .faq-empty { text-align: center; color: #666; }
     @media (max-width: 768px) {
-      .guide-container {
-        padding: 20px 16px;
-      }
-      
-      .guide-title {
-        font-size: 2rem;
-      }
-      
-      .guide-card-header,
-      .guide-card-content {
-        padding: 20px;
-      }
+      .faq-container { padding: 20px 16px; }
+      .faq-title { font-size: 2rem; }
     }
   </style>
 </head>
 <body>
-  <div class="guide-container">
-    <div class="guide-header">
-      <h1 class="guide-title">User Guide</h1>
-      <p class="guide-subtitle">Learn how to use OttoCollect effectively</p>
+  <div class="faq-container">
+    <div class="faq-header">
+      <h1 class="faq-title">Frequently Asked Questions</h1>
+      <p class="faq-subtitle">Find answers to common questions about OttoCollect</p>
     </div>
-    
-    <div class="guide-sections">
-      ${renderSection('addBanknote')}
-      ${renderSection('editBanknote')}
-      ${renderSection('suggestPicture')}
-    </div>
-    
-    <div class="redirect-notice">
-      <p>If you are not redirected automatically, <a href="/guide">click here to view the interactive version</a>.</p>
-    </div>
+    ${body}
   </div>
-  
+
   <script>
     if (!navigator.userAgent.match(/bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i)) {
-      setTimeout(() => {
-        window.location.replace('/guide');
-      }, 100);
+      setTimeout(() => { window.location.replace('/guide'); }, 100);
+    }
+  </script>
+</body>
+</html>`;
+}
+
+function generateGuidePostHTML(entry: any, allEntries: any[] = []) {
+  const rawTitle = entry.headline || 'FAQ';
+  const title = `${escapeHtml(rawTitle)} - OttoCollect FAQ`;
+  const description = metaDescription(entry.short_description || entry.content || rawTitle, 155);
+  const imageUrl = entry.main_image_url || 'https://ottocollect.com/web-app-manifest-512x512.png';
+  const hasRealImage = !!entry.main_image_url;
+  const url = `https://ottocollect.com/guide-post/${entry.id}`;
+  const datePublished = entry.created_at || new Date().toISOString();
+  const dateModified = entry.updated_at || datePublished;
+
+  const articleStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: rawTitle,
+    description,
+    ...(hasRealImage ? { image: imageUrl } : {}),
+    author: { "@type": "Organization", name: "OttoCollect" },
+    publisher: {
+      "@type": "Organization",
+      name: "OttoCollect",
+      logo: { "@type": "ImageObject", url: "https://ottocollect.com/web-app-manifest-512x512.png" },
+    },
+    datePublished,
+    dateModified,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    url,
+  };
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://ottocollect.com/" },
+      { "@type": "ListItem", position: 2, name: "FAQ", item: "https://ottocollect.com/guide" },
+      { "@type": "ListItem", position: 3, name: rawTitle, item: url },
+    ],
+  };
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <meta name="description" content="${description}">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="${url}">
+  <meta property="og:title" content="${title}">
+  <meta property="og:description" content="${description}">
+  <meta property="og:image" content="${imageUrl}">
+  <meta property="og:image:alt" content="${escapeHtml(rawTitle)}">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="${hasRealImage ? 'summary_large_image' : 'summary'}">
+  <meta name="twitter:url" content="${url}">
+  <meta name="twitter:title" content="${title}">
+  <meta name="twitter:description" content="${description}">
+  <meta name="twitter:image" content="${imageUrl}">
+  <meta name="twitter:creator" content="@OttoCollect">
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="${url}">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="alternate" hreflang="x-default" href="${url}">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+${JSON.stringify(articleStructuredData, null, 2)}
+  </script>
+  <script type="application/ld+json">
+${JSON.stringify(breadcrumb, null, 2)}
+  </script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #FBFBFB; color: #3C2415; line-height: 1.6; min-height: 100vh;
+    }
+    .post-container { max-width: 768px; margin: 0 auto; padding: 32px 20px; }
+    .post-back { display: inline-block; color: #6B7280; text-decoration: none; margin-bottom: 24px; font-size: 0.95rem; }
+    .post-back:hover { text-decoration: underline; }
+    .post-title { font-size: 2rem; font-weight: bold; font-family: serif; margin-bottom: 24px; color: #3C2415; }
+    .post-image { width: 100%; border-radius: 8px; margin-bottom: 24px; }
+    .post-content { font-size: 1.05rem; color: #3C2415; }
+    .post-content p { margin-bottom: 16px; }
+    .post-content ol, .post-content ul { margin: 0 0 16px 24px; }
+    .post-content li { margin-bottom: 8px; }
+    .post-content a { color: #8b4513; }
+    @media (max-width: 768px) { .post-title { font-size: 1.6rem; } }
+  </style>
+</head>
+<body>
+  <div class="post-container">
+    <a class="post-back" href="/guide">« Back to FAQ</a>
+    ${hasRealImage ? `<img class="post-image" src="${imageUrl}" alt="${escapeHtml(rawTitle)}">` : ''}
+    <h1 class="post-title">${escapeHtml(rawTitle)}</h1>
+    <div class="post-content">${entry.content || ''}</div>
+  </div>
+
+  <script>
+    if (!navigator.userAgent.match(/bot|crawler|spider|crawling|facebook|twitter|linkedin|whatsapp|telegram|discord|pinterest|chatgpt|openai|claude|anthropic|gemini|google-ai|bing-ai|perplexity|ai/i)) {
+      setTimeout(() => { window.location.replace('/guide-post/${entry.id}'); }, 100);
     }
   </script>
 </body>
