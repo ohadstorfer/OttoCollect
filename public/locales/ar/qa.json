@@ -1,0 +1,41 @@
+{
+  "title": "Frequently Asked Questions",
+  "subtitle": "Find answers to common questions about OttoCollect",
+  "learnMore": "Learn more",
+  "backToGuide": "Back to FAQ",
+  "actions": {
+    "create": "New question",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "publish": "Publish",
+    "cancel": "Cancel"
+  },
+  "form": {
+    "headlineLabel": "Question (headline)",
+    "headlinePlaceholder": "e.g. What notes will not be graded by PMG?",
+    "shortLabel": "Short answer (shown on the FAQ list)",
+    "shortPlaceholder": "A one or two sentence summary",
+    "contentLabel": "Full answer",
+    "contentPlaceholder": "Write the full answer...",
+    "categoryLabel": "Category",
+    "newCategory": "+ New category",
+    "newCategoryPlaceholder": "New category name",
+    "draft": "Save as draft"
+  },
+  "status": {
+    "loading": "Loading...",
+    "empty": "No questions yet.",
+    "saving": "Saving...",
+    "deleteConfirm": "Delete this question permanently?"
+  },
+  "errors": {
+    "loadFailed": "Could not load the FAQ. Please try again.",
+    "saveFailed": "Could not save. Please try again.",
+    "validation": "Please fill in the question, short answer, category, and full answer."
+  },
+  "admin": {
+    "onlyTitle": "Admins only",
+    "onlyDescription": "Only administrators can create or edit FAQ entries."
+  }
+}

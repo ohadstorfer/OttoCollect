@@ -51,6 +51,8 @@ import '@/i18n/config';  // Import this at the top
 import AboutUs from "./pages/AboutUs";
 import Blog from "./pages/Blog";
 import Guide from "./pages/Guide";
+import GuidePost from "./pages/GuidePost";
+import CreateGuidePost from "./pages/CreateGuidePost";
 import BlogPost from "./pages/BlogPost";
 import CreateBlogPost from "./pages/CreateBlogPost";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -112,6 +114,9 @@ const appRoutes: RouteObject[] = [
   { path: "/terms", element: <TermsOfService /> },
   { path: "/terms-of-service", element: <TermsOfService /> },
   { path: "/guide", element: <Guide /> },
+  { path: "/guide-post/:id", element: <GuidePost /> },
+  { path: "/create-guide-post", element: <CreateGuidePost /> },
+  { path: "/create-guide-post/:id", element: <CreateGuidePost /> },
   { path: "/test-cleanup", element: <TestCleanup /> },
   { path: "*", element: <NotFound /> },
 ];

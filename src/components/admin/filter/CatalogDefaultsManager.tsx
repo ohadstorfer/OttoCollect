@@ -244,7 +244,7 @@ const CatalogDefaultsManager: React.FC<CatalogDefaultsManagerProps> = ({ country
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <Label htmlFor="group-mode-toggle">
-              {t('catalogDefaults.fields.groupMode', 'Group by category')}
+              {t('catalogDefaults.fields.groupMode', 'Group Mode')}
             </Label>
             <Switch
               id="group-mode-toggle"
