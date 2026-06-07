@@ -251,21 +251,28 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
     }, 200);
   };
 
-  // Safety check: ensure filters are never empty on initialization
-  useEffect(() => {
-    if (categories.length > 0 && selectedCategories.length === 0) {
-      setSelectedCategories(categories.map(c => c.id));
-      handleFilterChange({ categories: categories.map(c => c.id) });
-    }
-    if (types.length > 0 && selectedTypes.length === 0) {
-      setSelectedTypes(types.map(t => t.id));
-      handleFilterChange({ types: types.map(t => t.id) });
-    }
-    if (countries.length > 0 && selectedCountries.length === 0) {
-      setSelectedCountries(countries.map(c => c.id));
-      handleFilterChange({ countries: countries.map(c => c.id) });
-    }
-  }, [categories, types, countries, selectedCategories, selectedTypes, selectedCountries, handleFilterChange]);
+  // REMOVED: legacy "ensure filters are never empty on initialization" effect.
+  //
+  // Why it was broken (React #185 "Maximum update depth exceeded"):
+  //   - `handleFilterChange` is an unmemoized inline function, so its identity
+  //     changed on every render and the effect's dep array invalidated every
+  //     render -> the effect fired every render.
+  //   - Inside it called `handleFilterChange`, which calls `onFilterChange`
+  //     (parent) -> shared-store setState -> currentFilters changes -> sync
+  //     effect above sets local `selectedX` -> deps change again -> infinite.
+  //
+  // Why it is now safe to remove:
+  //   - Defaulting is owned upstream:
+  //       * Catalog/Collection: `hydrateCountryFilters` -> `reconcileSelection`
+  //         falls back to "all" when nothing is saved and no admin defaults.
+  //       * Marketplace: `BanknoteFilterMarketplace.ensureFiltersNotEmpty`
+  //         runs before forwarding to `onFilterChange`.
+  //   - The DB query treats an empty array as "no filter applied" (see
+  //     `banknoteService.fetchBanknotesByCountryId`: the categoryNames /
+  //     typeNames filters only run `if (...length > 0)`), so even a transient
+  //     empty selection shows all rows rather than nothing.
+  //   - Verified consumers: <BaseBanknoteFilter/> is used only by
+  //     BanknoteFilterCatalog and BanknoteFilterMarketplace; both are covered.
 
   // Ref pattern: keep a stable debounced fn that always calls the LATEST
   // handleFilterChange. Without this, handleFilterChange is recreated on every

@@ -22,7 +22,10 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    sourcemap: false,
+    // Sourcemaps emitted alongside the bundle so production stack traces map
+    // back to source. Switch to 'hidden' if you don't want browsers to fetch
+    // them automatically (they're still on disk for upload to error trackers).
+    sourcemap: true,
     minify: 'esbuild',
     target: 'es2015', // Target modern browsers for better performance
     cssCodeSplit: true, // Split CSS for better caching
