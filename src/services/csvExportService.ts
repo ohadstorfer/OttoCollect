@@ -489,7 +489,7 @@ export async function generateAdminExcel(options: AdminExportOptions): Promise<A
       signature_pictures: 'Signature Pictures',
       other_element_pictures: 'Other Element Pictures',
       extended_pick_number: 'Extended Pick Number',
-      new_extended_pick_number: 'New Extended Pick Number',
+      new_extended_pick_number: 'new_extended_pick_number',
       pick_number: 'Pick Number',
       turk_catalog_number: 'Turk Catalog Number',
       face_value: 'Face Value',
