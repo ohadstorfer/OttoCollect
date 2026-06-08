@@ -11,6 +11,7 @@ import {
   createNameTranslationConfig,
   type TranslationConfig,
 } from './databaseTranslationService';
+import { withTimeout } from '@/lib/withTimeout';
 
 // Re-export the blog image uploader so the QA form has a single import source.
 export { uploadBlogImage as uploadQaImage } from './blogService';
@@ -224,6 +225,10 @@ export interface QaEntryInput {
 
 const langSuffix = (lang: string) => (lang === 'ar' ? '_ar' : lang === 'tr' ? '_tr' : '_en');
 
+// Hard ceiling for a single translation call inside a background task, so a
+// stalled edge function can't leave the task pending forever.
+const QA_TRANSLATE_TIMEOUT_MS = 20000;
+
 /**
  * Eagerly translate a raw-HTML entry into the other two languages right after
  * it's saved, so all three versions exist immediately ("translate after
@@ -250,9 +255,9 @@ async function persistRawEntryTranslations(entryId: string, input: QaEntryInput)
   for (const lang of others) {
     const sfx = langSuffix(lang);
     const [h, s, c] = await Promise.all([
-      translationService.translateText(input.headline, lang, original, 'text').catch(() => input.headline),
-      translationService.translateText(input.shortDescription, lang, original, 'text').catch(() => input.shortDescription),
-      translationService.translateText(input.content, lang, original, 'html').catch(() => input.content),
+      withTimeout(translationService.translateText(input.headline, lang, original, 'text'), QA_TRANSLATE_TIMEOUT_MS, input.headline),
+      withTimeout(translationService.translateText(input.shortDescription, lang, original, 'text'), QA_TRANSLATE_TIMEOUT_MS, input.shortDescription),
+      withTimeout(translationService.translateText(input.content, lang, original, 'html'), QA_TRANSLATE_TIMEOUT_MS, input.content),
     ]);
     update[`headline${sfx}`] = h;
     update[`short_description${sfx}`] = s;
@@ -261,6 +266,28 @@ async function persistRawEntryTranslations(entryId: string, input: QaEntryInput)
 
   const { error } = await supabase.from('qa_entries').update(update).eq('id', entryId);
   if (error) console.error('qa raw: failed to persist translations:', error);
+}
+
+/**
+ * Detect a rich-text entry's language and write the original-language columns
+ * (headline_<lang>/short_description_<lang>/content_<lang>). The other two
+ * languages translate lazily on first view. Shared by create and update so the
+ * cache is rebuilt the same way after an edit. Best-effort: on failure the base
+ * columns still hold the current text (and the render falls back to them).
+ */
+async function persistRichEntryOriginalLanguage(entryId: string, input: QaEntryInput): Promise<void> {
+  try {
+    const lang = await translationService.detectLanguage(input.content || input.headline);
+    const suffix = langSuffix(lang);
+    await supabase.from('qa_entries').update({
+      original_language: lang,
+      [`headline${suffix}`]: input.headline,
+      [`short_description${suffix}`]: input.shortDescription,
+      [`content${suffix}`]: input.content,
+    }).eq('id', entryId);
+  } catch (e) {
+    console.error('Error persisting qa original-language columns:', e);
+  }
 }
 
 /** Create an entry, then detect+store the original language fields. */
@@ -289,23 +316,14 @@ export const createQaEntry = async (
   }
 
   if (input.contentIsRaw) {
-    // Raw HTML: eagerly translate the whole document to the other two languages.
-    await persistRawEntryTranslations(data.id, input);
+    // Raw HTML: translate the whole document to the other two languages in the
+    // background so the save returns immediately (Bug 2 — never block the save).
+    void persistRawEntryTranslations(data.id, input).catch((e) =>
+      console.error('qa raw: background translation failed:', e));
   } else {
-    // Rich text: detect + store the original-language columns (best-effort);
-    // the other languages translate lazily on first view.
-    try {
-      const lang = await translationService.detectLanguage(input.content || input.headline);
-      const suffix = langSuffix(lang);
-      await supabase.from('qa_entries').update({
-        original_language: lang,
-        [`headline${suffix}`]: input.headline,
-        [`short_description${suffix}`]: input.shortDescription,
-        [`content${suffix}`]: input.content,
-      }).eq('id', data.id);
-    } catch (e) {
-      console.error('Error detecting qa entry language:', e);
-    }
+    // Rich text: store the original-language columns; the other two languages
+    // translate lazily on first view.
+    await persistRichEntryOriginalLanguage(data.id, input);
   }
 
   return normalizeQaEntry(data);
@@ -322,14 +340,19 @@ export const updateQaEntry = async (
     short_description: input.shortDescription,
     content: input.content,
     main_image_url: input.mainImageUrl ?? null,
-    // Invalidate the cached ar/tr translations: the base text just changed, so
-    // the old translated columns are stale. Nulling them makes the next ar/tr
-    // view re-translate from the new base (otherwise the published page keeps
-    // showing the pre-edit translation).
+    // Invalidate ALL cached per-language columns (_en included): the base text
+    // just changed, so every cached column is stale. getLocalizedEntry prefers
+    // the per-language column even for 'en', so leaving _en stale was Bug 1 —
+    // edits never appeared because the render kept reading the old _en value.
+    // Nulling all six makes the render fall back to the fresh base columns
+    // immediately; the original-language cache is rebuilt below.
+    headline_en: null,
     headline_ar: null,
     headline_tr: null,
+    short_description_en: null,
     short_description_ar: null,
     short_description_tr: null,
+    content_en: null,
     content_ar: null,
     content_tr: null,
   };
@@ -348,10 +371,15 @@ export const updateQaEntry = async (
     return null;
   }
 
-  // Raw HTML: the base text just changed and the _ar/_tr columns were nulled
-  // above, so re-translate the whole document eagerly into both languages.
+  // The per-language columns were nulled above, so rebuild them from the new
+  // base text. Rich entries: rebuild the original-language column (fast, awaited
+  // so the cache is consistent). Raw HTML: re-translate the whole document into
+  // both languages in the background (see Bug 2 — never block the save on it).
   if (input.contentIsRaw) {
-    await persistRawEntryTranslations(id, input);
+    void persistRawEntryTranslations(id, input).catch((e) =>
+      console.error('qa raw: background translation failed:', e));
+  } else {
+    await persistRichEntryOriginalLanguage(id, input);
   }
 
   return normalizeQaEntry(data);

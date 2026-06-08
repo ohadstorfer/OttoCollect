@@ -66,53 +66,66 @@ export default function GuidePost() {
 
   const localized = getLocalizedEntry(entry, currentLanguage);
 
+  const seo = (
+    <SEOHead
+      title={`${localized.headline} | OttoCollect`}
+      description={localized.shortDescription}
+      type="article"
+      canonical={`https://ottocollect.com/guide-post/${entry.id}`}
+    />
+  );
+
+  const toolbar = (
+    <div className="mb-6 flex items-center justify-between gap-2">
+      <Button variant="ghost" onClick={() => navigate('/guide')} className="flex items-center">
+        {direction === 'rtl' ? <ArrowRight className="mr-2 h-4 w-4" /> : <ArrowLeft className="mr-2 h-4 w-4" />}
+        {tf('backToGuide', 'Back to FAQ')}
+      </Button>
+      {isAdmin && (
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigate(`/create-guide-post/${entry.id}`)}>
+            <Pencil className="h-4 w-4 mr-1" />{tf('actions.edit', 'Edit')}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleDelete} disabled={deleting}>
+            {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
+  // Raw-HTML entries are standalone, full-page documents: render the iframe at
+  // full width so the uploaded design isn't squeezed into the article column.
+  // Only the toolbar stays in the centered column.
+  if (entry.contentIsRaw) {
+    return (
+      <div className="py-8">
+        {seo}
+        <div className="container max-w-3xl mx-auto px-4">{toolbar}</div>
+        <RawHtmlFrame html={localized.content} title={localized.headline} />
+      </div>
+    );
+  }
+
   return (
     <div className="container py-8 max-w-3xl mx-auto">
-      <SEOHead
-        title={`${localized.headline} | OttoCollect`}
-        description={localized.shortDescription}
-        type="article"
-        canonical={`https://ottocollect.com/guide-post/${entry.id}`}
-      />
+      {seo}
+      {toolbar}
 
-      <div className="mb-6 flex items-center justify-between gap-2">
-        <Button variant="ghost" onClick={() => navigate('/guide')} className="flex items-center">
-          {direction === 'rtl' ? <ArrowRight className="mr-2 h-4 w-4" /> : <ArrowLeft className="mr-2 h-4 w-4" />}
-          {tf('backToGuide', 'Back to FAQ')}
-        </Button>
-        {isAdmin && (
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate(`/create-guide-post/${entry.id}`)}>
-              <Pencil className="h-4 w-4 mr-1" />{tf('actions.edit', 'Edit')}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleDelete} disabled={deleting}>
-              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {entry.contentIsRaw ? (
-        // Raw HTML entry: the page IS the uploaded document, rendered verbatim.
-        <RawHtmlFrame html={localized.content} title={localized.headline} />
-      ) : (
-        <>
-          {entry.mainImageUrl && (
-            <img src={entry.mainImageUrl} alt="" className="w-full rounded-lg mb-6 object-cover" />
-          )}
-
-          <div
-            dir={direction === 'rtl' ? 'rtl' : 'ltr'}
-            className={direction === 'rtl' ? 'text-right' : 'text-left'}
-          >
-            <h1 className="text-3xl font-serif font-bold mb-6 text-foreground">
-              <span>{localized.headline}</span>
-            </h1>
-
-            <RichTextContent content={localized.content} className="prose max-w-none" />
-          </div>
-        </>
+      {entry.mainImageUrl && (
+        <img src={entry.mainImageUrl} alt="" className="w-full rounded-lg mb-6 object-cover" />
       )}
+
+      <div
+        dir={direction === 'rtl' ? 'rtl' : 'ltr'}
+        className={direction === 'rtl' ? 'text-right' : 'text-left'}
+      >
+        <h1 className="text-3xl font-serif font-bold mb-6 text-foreground">
+          <span>{localized.headline}</span>
+        </h1>
+
+        <RichTextContent content={localized.content} className="prose max-w-none" />
+      </div>
     </div>
   );
 }
