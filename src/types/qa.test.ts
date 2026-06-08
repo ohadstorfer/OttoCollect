@@ -32,9 +32,9 @@ describe('groupEntriesByCategory', () => {
       { id: 'c1', name: 'A', displayOrder: 0 },
     ];
     const entries: QaEntry[] = [
-      { id: 'e2', categoryId: 'c1', headline: 'h2', shortDescription: '', content: '', displayOrder: 1, isDraft: false },
-      { id: 'e1', categoryId: 'c1', headline: 'h1', shortDescription: '', content: '', displayOrder: 0, isDraft: false },
-      { id: 'e3', categoryId: 'c2', headline: 'h3', shortDescription: '', content: '', displayOrder: 0, isDraft: false },
+      { id: 'e2', categoryId: 'c1', headline: 'h2', shortDescription: '', content: '', displayOrder: 1, isDraft: false, contentIsRaw: false },
+      { id: 'e1', categoryId: 'c1', headline: 'h1', shortDescription: '', content: '', displayOrder: 0, isDraft: false, contentIsRaw: false },
+      { id: 'e3', categoryId: 'c2', headline: 'h3', shortDescription: '', content: '', displayOrder: 0, isDraft: false, contentIsRaw: false },
     ];
     const groups = groupEntriesByCategory(cats, entries);
     expect(groups.map(g => g.category.name)).toEqual(['A', 'B']);
@@ -53,7 +53,7 @@ describe('getLocalizedEntry', () => {
   it('prefers the language-specific field, falls back to base', () => {
     const e: QaEntry = {
       id: 'e1', categoryId: 'c1', headline: 'EN head', headline_ar: 'AR head',
-      shortDescription: 'EN short', content: 'EN body', displayOrder: 0, isDraft: false,
+      shortDescription: 'EN short', content: 'EN body', displayOrder: 0, isDraft: false, contentIsRaw: false,
     };
     const ar = getLocalizedEntry(e, 'ar');
     expect(ar.headline).toBe('AR head');

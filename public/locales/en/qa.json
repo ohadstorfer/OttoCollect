@@ -24,7 +24,11 @@
     "draft": "Save as draft",
     "optional": "optional",
     "uploadHtml": "Upload HTML file",
-    "htmlLoaded": "HTML file loaded into the editor"
+    "htmlLoaded": "HTML file loaded",
+    "modeRich": "Editor",
+    "modeHtml": "HTML",
+    "htmlSourcePlaceholder": "Paste a full HTML document, or use \"Upload HTML file\"...",
+    "preview": "Preview"
   },
   "status": {
     "loading": "Loading...",

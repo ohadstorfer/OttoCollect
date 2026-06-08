@@ -24,7 +24,11 @@
     "draft": "Taslak olarak kaydet",
     "optional": "isteğe bağlı",
     "uploadHtml": "HTML dosyası yükle",
-    "htmlLoaded": "HTML dosyası editöre yüklendi"
+    "htmlLoaded": "HTML dosyası yüklendi",
+    "modeRich": "Editör",
+    "modeHtml": "HTML",
+    "htmlSourcePlaceholder": "Tam bir HTML belgesi yapıştırın veya \"HTML dosyası yükle\"yi kullanın...",
+    "preview": "Önizleme"
   },
   "status": {
     "loading": "Yükleniyor...",

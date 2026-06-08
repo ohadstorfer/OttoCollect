@@ -24,7 +24,11 @@
     "draft": "حفظ كمسودة",
     "optional": "اختياري",
     "uploadHtml": "رفع ملف HTML",
-    "htmlLoaded": "تم تحميل ملف HTML في المحرر"
+    "htmlLoaded": "تم تحميل ملف HTML",
+    "modeRich": "محرر",
+    "modeHtml": "HTML",
+    "htmlSourcePlaceholder": "الصق مستند HTML كاملاً، أو استخدم \"رفع ملف HTML\"...",
+    "preview": "معاينة"
   },
   "status": {
     "loading": "جارٍ التحميل...",

@@ -3057,7 +3057,37 @@ ${JSON.stringify(faqStructuredData, null, 2)}
 </html>`;
 }
 
+// Raw-HTML entry: the page IS the admin's uploaded document. We serve it
+// verbatim to crawlers (scripts stripped for safety) with our canonical/robots/
+// OG meta injected into its <head>.
+function renderRawGuidePost(entry: any): string {
+  const url = `https://ottocollect.com/guide-post/${entry.id}`;
+  const rawTitle = entry.headline || 'FAQ';
+  const description = metaDescription(entry.short_description || rawTitle, 155);
+  let html = String(entry.content || '').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+  const inject = [
+    `<link rel="canonical" href="${url}">`,
+    `<meta name="robots" content="index, follow, max-image-preview:large">`,
+    `<link rel="alternate" hreflang="x-default" href="${url}">`,
+    `<meta property="og:type" content="article">`,
+    `<meta property="og:url" content="${url}">`,
+    `<meta property="og:title" content="${escapeHtml(rawTitle)}">`,
+    `<meta property="og:description" content="${description}">`,
+  ].join('\n  ');
+  if (/<head[^>]*>/i.test(html)) {
+    html = html.replace(/<head[^>]*>/i, (m: string) => `${m}\n  ${inject}`);
+  } else if (/<html[^>]*>/i.test(html)) {
+    html = html.replace(/<html[^>]*>/i, (m: string) => `${m}\n<head>\n  ${inject}\n</head>`);
+  } else {
+    html = `<head>\n  ${inject}\n</head>\n${html}`;
+  }
+  return html;
+}
+
 function generateGuidePostHTML(entry: any, allEntries: any[] = []) {
+  if (entry.content_is_raw) {
+    return renderRawGuidePost(entry);
+  }
   const rawTitle = entry.headline || 'FAQ';
   const title = `${escapeHtml(rawTitle)} - OttoCollect FAQ`;
   const description = metaDescription(entry.short_description || entry.content || rawTitle, 155);

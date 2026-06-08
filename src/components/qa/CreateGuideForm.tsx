@@ -9,6 +9,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { RichTextEditor } from '@/components/shared/RichTextEditor';
+import { RawHtmlFrame } from '@/components/qa/RawHtmlFrame';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
@@ -35,11 +36,14 @@ export function CreateGuideForm({ entryId }: { entryId?: string }) {
   const [headline, setHeadline] = useState('');
   const [shortDescription, setShortDescription] = useState('');
   const [content, setContent] = useState('');
+  // 'rich' = Tiptap editor; 'html' = the content is a full HTML document stored
+  // and rendered verbatim (the page IS the uploaded HTML).
+  const [contentMode, setContentMode] = useState<'rich' | 'html'>('rich');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const htmlFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load an .html file's contents straight into the editor (replaces current
-  // content). The RichTextEditor syncs from `content` when not focused.
+  // Load a .html file's raw contents into the HTML source box (verbatim — it is
+  // NOT passed through the rich-text editor, which would strip the design).
   const handleHtmlFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = ''; // allow re-selecting the same file
@@ -47,7 +51,8 @@ export function CreateGuideForm({ entryId }: { entryId?: string }) {
     try {
       const text = await file.text();
       setContent(text);
-      toast({ title: tf('form.htmlLoaded', 'HTML file loaded into the editor') });
+      setContentMode('html');
+      toast({ title: tf('form.htmlLoaded', 'HTML file loaded') });
     } catch (err) {
       console.error('Error reading HTML file:', err);
       toast({ variant: 'destructive', title: tf('errors.saveFailed', 'Could not load the file.') });
@@ -74,6 +79,7 @@ export function CreateGuideForm({ entryId }: { entryId?: string }) {
       setHeadline(e.headline);
       setShortDescription(e.shortDescription);
       setContent(e.content);
+      setContentMode(e.contentIsRaw ? 'html' : 'rich');
     });
   }, [entryId]);
 
@@ -110,6 +116,7 @@ export function CreateGuideForm({ entryId }: { entryId?: string }) {
         shortDescription: shortDescription.trim(),
         content,
         isDraft: asDraft,
+        contentIsRaw: contentMode === 'html',
       };
 
       const saved = entryId
@@ -191,35 +198,74 @@ export function CreateGuideForm({ entryId }: { entryId?: string }) {
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <Label htmlFor="qa-content">
                 {tf('form.contentLabel', 'Full answer')}{' '}
                 <span className="text-xs font-normal text-muted-foreground">({tf('form.optional', 'optional')})</span>
               </Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => htmlFileInputRef.current?.click()}
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                {tf('form.uploadHtml', 'Upload HTML file')}
-              </Button>
-              <input
-                ref={htmlFileInputRef}
-                type="file"
-                accept=".html,.htm,text/html"
-                className="hidden"
-                onChange={handleHtmlFile}
-              />
+              <div className="flex items-center gap-2">
+                <div className="inline-flex rounded-md border p-0.5">
+                  <Button
+                    type="button" size="sm"
+                    variant={contentMode === 'rich' ? 'secondary' : 'ghost'}
+                    onClick={() => setContentMode('rich')}
+                  >
+                    {tf('form.modeRich', 'Editor')}
+                  </Button>
+                  <Button
+                    type="button" size="sm"
+                    variant={contentMode === 'html' ? 'secondary' : 'ghost'}
+                    onClick={() => setContentMode('html')}
+                  >
+                    {tf('form.modeHtml', 'HTML')}
+                  </Button>
+                </div>
+                <Button
+                  type="button" variant="outline" size="sm"
+                  onClick={() => htmlFileInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {tf('form.uploadHtml', 'Upload HTML file')}
+                </Button>
+                <input
+                  ref={htmlFileInputRef}
+                  type="file"
+                  accept=".html,.htm,text/html"
+                  className="hidden"
+                  onChange={handleHtmlFile}
+                />
+              </div>
             </div>
-            <RichTextEditor
-              value={content}
-              onChange={setContent}
-              placeholder={tf('form.contentPlaceholder', 'Write the full answer...')}
-              dir={direction === 'rtl' ? 'rtl' : 'ltr'}
-              onImageUpload={uploadQaImage}
-            />
+
+            {contentMode === 'rich' ? (
+              <RichTextEditor
+                value={content}
+                onChange={setContent}
+                placeholder={tf('form.contentPlaceholder', 'Write the full answer...')}
+                dir={direction === 'rtl' ? 'rtl' : 'ltr'}
+                onImageUpload={uploadQaImage}
+              />
+            ) : (
+              <div className="space-y-2">
+                <Textarea
+                  id="qa-content"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder={tf('form.htmlSourcePlaceholder', 'Paste a full HTML document, or use "Upload HTML file"...')}
+                  rows={12}
+                  dir="ltr"
+                  className="font-mono text-xs"
+                />
+                {content.trim().length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">{tf('form.preview', 'Preview')}</p>
+                    <div className="border rounded-md overflow-hidden">
+                      <RawHtmlFrame html={content} title="preview" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </CardContent>
 

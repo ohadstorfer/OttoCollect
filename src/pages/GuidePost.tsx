@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { RichTextContent } from '@/components/shared/RichTextContent';
+import { RawHtmlFrame } from '@/components/qa/RawHtmlFrame';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
@@ -91,20 +92,27 @@ export default function GuidePost() {
         )}
       </div>
 
-      {entry.mainImageUrl && (
-        <img src={entry.mainImageUrl} alt="" className="w-full rounded-lg mb-6 object-cover" />
+      {entry.contentIsRaw ? (
+        // Raw HTML entry: the page IS the uploaded document, rendered verbatim.
+        <RawHtmlFrame html={localized.content} title={localized.headline} />
+      ) : (
+        <>
+          {entry.mainImageUrl && (
+            <img src={entry.mainImageUrl} alt="" className="w-full rounded-lg mb-6 object-cover" />
+          )}
+
+          <div
+            dir={direction === 'rtl' ? 'rtl' : 'ltr'}
+            className={direction === 'rtl' ? 'text-right' : 'text-left'}
+          >
+            <h1 className="text-3xl font-serif font-bold mb-6 text-foreground">
+              <span>{localized.headline}</span>
+            </h1>
+
+            <RichTextContent content={localized.content} className="prose max-w-none" />
+          </div>
+        </>
       )}
-
-      <div
-        dir={direction === 'rtl' ? 'rtl' : 'ltr'}
-        className={direction === 'rtl' ? 'text-right' : 'text-left'}
-      >
-        <h1 className="text-3xl font-serif font-bold mb-6 text-foreground">
-          <span>{localized.headline}</span>
-        </h1>
-
-        <RichTextContent content={localized.content} className="prose max-w-none" />
-      </div>
     </div>
   );
 }

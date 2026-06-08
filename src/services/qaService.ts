@@ -117,12 +117,22 @@ export const fetchQaEntriesWithTranslations = async (
   let rows = data || [];
   if (currentLanguage === 'ar' || currentLanguage === 'tr') {
     try {
-      rows = await databaseTranslationService.getLocalizedRecords(
-        QA_ENTRY_TRANSLATION_CONFIG,
-        rows,
-        currentLanguage,
-        true
-      );
+      // Rich-text entries auto-translate (text mode) and cache on read. Raw-HTML
+      // entries already have eagerly-translated columns, so we only PICK them
+      // (autoTranslate=false) — never text-mode-translate a full HTML document.
+      const rich = rows.filter((r: any) => !r.content_is_raw);
+      const raw = rows.filter((r: any) => r.content_is_raw);
+      const [lRich, lRaw] = await Promise.all([
+        rich.length
+          ? databaseTranslationService.getLocalizedRecords(QA_ENTRY_TRANSLATION_CONFIG, rich, currentLanguage, true)
+          : Promise.resolve([] as any[]),
+        raw.length
+          ? databaseTranslationService.getLocalizedRecords(QA_ENTRY_TRANSLATION_CONFIG, raw, currentLanguage, false)
+          : Promise.resolve([] as any[]),
+      ]);
+      const byId = new Map<string, any>();
+      [...lRich, ...lRaw].forEach((r) => byId.set(r.id, r));
+      rows = rows.map((r: any) => byId.get(r.id) || r);
     } catch (e) {
       console.error('qa entries translation failed, using originals:', e);
     }
@@ -147,11 +157,13 @@ export const fetchQaEntryByIdWithTranslations = async (
   let row: any = data;
   if (currentLanguage === 'ar' || currentLanguage === 'tr') {
     try {
+      // Raw-HTML entries: pick the eagerly-translated column (no API, no
+      // text-mode HTML translation). Rich entries: auto-translate on read.
       row = await databaseTranslationService.getLocalizedRecord(
         QA_ENTRY_TRANSLATION_CONFIG,
         row,
         currentLanguage,
-        true
+        !row.content_is_raw
       );
     } catch (e) {
       console.error('qa entry translation failed, using original:', e);
@@ -206,6 +218,49 @@ export interface QaEntryInput {
   mainImageUrl?: string | null;
   displayOrder?: number;
   isDraft?: boolean;
+  /** When true, `content` is a full HTML document stored/rendered verbatim. */
+  contentIsRaw?: boolean;
+}
+
+const langSuffix = (lang: string) => (lang === 'ar' ? '_ar' : lang === 'tr' ? '_tr' : '_en');
+
+/**
+ * Eagerly translate a raw-HTML entry into the other two languages right after
+ * it's saved, so all three versions exist immediately ("translate after
+ * upload"). headline/short answer translate as text; the full HTML document
+ * translates with format=html so the markup + CSS survive. On any failure the
+ * base text is kept for that field/language.
+ */
+async function persistRawEntryTranslations(entryId: string, input: QaEntryInput): Promise<void> {
+  // Detect from the plain-text fields (the HTML body would confuse detection).
+  let original: 'ar' | 'tr' | 'en' = 'en';
+  try {
+    original = await translationService.detectLanguage(input.shortDescription || input.headline);
+  } catch (e) {
+    console.error('qa raw: language detection failed, assuming en:', e);
+  }
+
+  const update: Record<string, unknown> = { original_language: original };
+  const oSfx = langSuffix(original);
+  update[`headline${oSfx}`] = input.headline;
+  update[`short_description${oSfx}`] = input.shortDescription;
+  update[`content${oSfx}`] = input.content;
+
+  const others = (['en', 'ar', 'tr'] as const).filter((l) => l !== original);
+  for (const lang of others) {
+    const sfx = langSuffix(lang);
+    const [h, s, c] = await Promise.all([
+      translationService.translateText(input.headline, lang, original, 'text').catch(() => input.headline),
+      translationService.translateText(input.shortDescription, lang, original, 'text').catch(() => input.shortDescription),
+      translationService.translateText(input.content, lang, original, 'html').catch(() => input.content),
+    ]);
+    update[`headline${sfx}`] = h;
+    update[`short_description${sfx}`] = s;
+    update[`content${sfx}`] = c;
+  }
+
+  const { error } = await supabase.from('qa_entries').update(update).eq('id', entryId);
+  if (error) console.error('qa raw: failed to persist translations:', error);
 }
 
 /** Create an entry, then detect+store the original language fields. */
@@ -224,6 +279,7 @@ export const createQaEntry = async (
       main_image_url: input.mainImageUrl ?? null,
       display_order: input.displayOrder ?? 0,
       is_draft: input.isDraft ?? false,
+      content_is_raw: input.contentIsRaw ?? false,
     }])
     .select('*')
     .single();
@@ -232,18 +288,24 @@ export const createQaEntry = async (
     return null;
   }
 
-  // Detect and persist the original-language columns (best-effort).
-  try {
-    const lang = await translationService.detectLanguage(input.content || input.headline);
-    const suffix = lang === 'en' ? '_en' : lang === 'ar' ? '_ar' : lang === 'tr' ? '_tr' : '_en';
-    await supabase.from('qa_entries').update({
-      original_language: lang,
-      [`headline${suffix}`]: input.headline,
-      [`short_description${suffix}`]: input.shortDescription,
-      [`content${suffix}`]: input.content,
-    }).eq('id', data.id);
-  } catch (e) {
-    console.error('Error detecting qa entry language:', e);
+  if (input.contentIsRaw) {
+    // Raw HTML: eagerly translate the whole document to the other two languages.
+    await persistRawEntryTranslations(data.id, input);
+  } else {
+    // Rich text: detect + store the original-language columns (best-effort);
+    // the other languages translate lazily on first view.
+    try {
+      const lang = await translationService.detectLanguage(input.content || input.headline);
+      const suffix = langSuffix(lang);
+      await supabase.from('qa_entries').update({
+        original_language: lang,
+        [`headline${suffix}`]: input.headline,
+        [`short_description${suffix}`]: input.shortDescription,
+        [`content${suffix}`]: input.content,
+      }).eq('id', data.id);
+    } catch (e) {
+      console.error('Error detecting qa entry language:', e);
+    }
   }
 
   return normalizeQaEntry(data);
@@ -273,6 +335,7 @@ export const updateQaEntry = async (
   };
   if (typeof input.displayOrder === 'number') payload.display_order = input.displayOrder;
   if (typeof input.isDraft === 'boolean') payload.is_draft = input.isDraft;
+  if (typeof input.contentIsRaw === 'boolean') payload.content_is_raw = input.contentIsRaw;
 
   const { data, error } = await supabase
     .from('qa_entries')
@@ -284,6 +347,13 @@ export const updateQaEntry = async (
     console.error('Error updating qa entry:', error);
     return null;
   }
+
+  // Raw HTML: the base text just changed and the _ar/_tr columns were nulled
+  // above, so re-translate the whole document eagerly into both languages.
+  if (input.contentIsRaw) {
+    await persistRawEntryTranslations(id, input);
+  }
+
   return normalizeQaEntry(data);
 };
 

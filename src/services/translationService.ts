@@ -84,7 +84,7 @@ export const translationService = {
     }
   },
   // Translate text using Google Translate API
-  async translateText(text: string, targetLanguage: 'ar' | 'tr' | 'en', sourceLanguage: string = 'en'): Promise<string> {
+  async translateText(text: string, targetLanguage: 'ar' | 'tr' | 'en', sourceLanguage: string = 'en', format: 'text' | 'html' = 'text'): Promise<string> {
     if (!text || text.trim() === '') {
       return text;
     }
@@ -102,7 +102,8 @@ export const translationService = {
         body: {
           text: text.trim(),
           targetLanguage,
-          sourceLanguage
+          sourceLanguage,
+          format
         }
       });
 

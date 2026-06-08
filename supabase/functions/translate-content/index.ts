@@ -9,6 +9,8 @@ interface TranslateRequest {
   text: string;
   targetLanguage: 'ar' | 'tr' | 'en';
   sourceLanguage?: string;
+  // 'html' keeps markup intact (only text nodes translated). Default 'text'.
+  format?: 'text' | 'html';
 }
 
 interface DetectLanguageRequest {
@@ -82,7 +84,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Handle translation endpoint (existing logic)
-    const { text, targetLanguage, sourceLanguage = 'en' }: TranslateRequest = await req.json();
+    const { text, targetLanguage, sourceLanguage = 'en', format = 'text' }: TranslateRequest = await req.json();
     
     console.log(`🔍 [EdgeFunction] Translation request:`, { text: text?.substring(0, 50) + '...', targetLanguage, sourceLanguage });
     
@@ -121,7 +123,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Use Google Translate REST API
     console.log(`🔍 [EdgeFunction] Making Google Translate API request:`, {
       url: `https://translation.googleapis.com/language/translate/v2?key=${apiKey.substring(0, 10)}...`,
-      body: { q: text, source: sourceLanguage, target: targetLanguage, format: 'text' }
+      body: { q: text, source: sourceLanguage, target: targetLanguage, format }
     });
     
     const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
@@ -133,7 +135,7 @@ const handler = async (req: Request): Promise<Response> => {
         q: text,
         source: sourceLanguage,
         target: targetLanguage,
-        format: 'text'
+        format: format === 'html' ? 'html' : 'text'
       })
     });
 

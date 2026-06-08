@@ -29,6 +29,8 @@ export interface QaEntry {
   mainImageUrl?: string | null;
   displayOrder: number;
   isDraft: boolean;
+  /** When true, `content` is a full HTML document rendered verbatim (iframe). */
+  contentIsRaw: boolean;
   originalLanguage?: string | null;
   createdAt?: string;
   updatedAt?: string;
@@ -70,6 +72,7 @@ export const normalizeQaEntry = (row: any): QaEntry => ({
   mainImageUrl: row.main_image_url ?? null,
   displayOrder: row.display_order ?? 0,
   isDraft: row.is_draft ?? false,
+  contentIsRaw: row.content_is_raw ?? false,
   originalLanguage: row.original_language ?? null,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
