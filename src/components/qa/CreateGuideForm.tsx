@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -13,8 +13,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@/context/LanguageContext';
-import { Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
-import { isContentEmpty } from '@/lib/htmlContent';
+import { Loader2, ArrowLeft, ArrowRight, Upload } from 'lucide-react';
 import {
   fetchQaCategories, fetchQaEntryById, createQaEntry, updateQaEntry,
   createQaCategory, uploadQaImage,
@@ -37,6 +36,23 @@ export function CreateGuideForm({ entryId }: { entryId?: string }) {
   const [shortDescription, setShortDescription] = useState('');
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const htmlFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load an .html file's contents straight into the editor (replaces current
+  // content). The RichTextEditor syncs from `content` when not focused.
+  const handleHtmlFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file
+    if (!file) return;
+    try {
+      const text = await file.text();
+      setContent(text);
+      toast({ title: tf('form.htmlLoaded', 'HTML file loaded into the editor') });
+    } catch (err) {
+      console.error('Error reading HTML file:', err);
+      toast({ variant: 'destructive', title: tf('errors.saveFailed', 'Could not load the file.') });
+    }
+  };
 
   const tf = useMemo(
     () => (key: string, fallback: string) => {
@@ -62,11 +78,12 @@ export function CreateGuideForm({ entryId }: { entryId?: string }) {
   }, [entryId]);
 
   const usingNewCategory = categoryId === NEW_CATEGORY_VALUE;
+  // Full HTML content is optional: an entry can be published with just the
+  // headline + short answer (it then shows in the FAQ list with no "Learn more").
   const canSubmit =
     !!user &&
     headline.trim().length > 0 &&
     shortDescription.trim().length > 0 &&
-    !isContentEmpty(content) &&
     (usingNewCategory ? newCategoryName.trim().length > 0 : categoryId.length > 0);
 
   const handleSubmit = async (asDraft: boolean) => {
@@ -174,7 +191,28 @@ export function CreateGuideForm({ entryId }: { entryId?: string }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="qa-content">{tf('form.contentLabel', 'Full answer')}</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label htmlFor="qa-content">
+                {tf('form.contentLabel', 'Full answer')}{' '}
+                <span className="text-xs font-normal text-muted-foreground">({tf('form.optional', 'optional')})</span>
+              </Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => htmlFileInputRef.current?.click()}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {tf('form.uploadHtml', 'Upload HTML file')}
+              </Button>
+              <input
+                ref={htmlFileInputRef}
+                type="file"
+                accept=".html,.htm,text/html"
+                className="hidden"
+                onChange={handleHtmlFile}
+              />
+            </div>
             <RichTextEditor
               value={content}
               onChange={setContent}

@@ -530,7 +530,10 @@ serve(async (req)=>{
       errors.push({ id: 'guide', error: error.message });
     }
     // Generate HTML for each guide/FAQ entry (skipped in incremental mode).
+    // Short-answer-only entries (no full content) have no article page, so we
+    // don't emit a thin guide-post-*.html for them.
     if (!incremental) for (const entry of qaEntries || []) {
+      if (!qaHasContent(entry.content)) continue;
       try {
         const html = generateGuidePostHTML(entry, qaEntries);
         const fileName = `guide-post-${entry.id}.html`;
@@ -2893,6 +2896,15 @@ ${JSON.stringify(structuredData, null, 2)}
 </html>`;
 }
 
+// True when an HTML string has real (non-whitespace) text once tags/&nbsp; are
+// stripped. Used to treat empty editor content as "no full answer".
+function qaHasContent(html: unknown): boolean {
+  return String(html ?? '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .trim().length > 0;
+}
+
 // Strip HTML tags + collapse whitespace; used for plain-text FAQ answers/snippets.
 function qaPlainText(value: unknown): string {
   return String(value ?? '')
@@ -2946,14 +2958,18 @@ export function generateGuideHTML(qaCategories: any[] = [], qaEntries: any[] = [
         <h2 class="faq-category">${escapeHtml(group.category.name)}</h2>
         ${group.entries.map((e: any) => {
           const url = `https://ottocollect.com/guide-post/${e.id}`;
+          // Full content is optional; only link to the article page (and show
+          // "Learn more") when there's a body to read. Preserve the admin's
+          // line breaks in the short answer (white-space: pre-wrap in CSS).
+          const hasContent = qaHasContent(e.content);
           return `
           <article class="faq-item" itemscope itemtype="https://schema.org/Question">
             <h3 class="faq-question" itemprop="name">
-              <a href="${url}">${escapeHtml(e.headline)}</a>
+              ${hasContent ? `<a href="${url}">${escapeHtml(e.headline)}</a>` : escapeHtml(e.headline)}
             </h3>
             <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-              <p itemprop="text">${escapeHtml(qaPlainText(e.short_description))}</p>
-              <a class="faq-learn-more" href="${url}">Learn more »</a>
+              <p itemprop="text">${escapeHtml(e.short_description)}</p>
+              ${hasContent ? `<a class="faq-learn-more" href="${url}">Learn more »</a>` : ''}
             </div>
           </article>`;
         }).join('')}
@@ -3013,7 +3029,7 @@ ${JSON.stringify(faqStructuredData, null, 2)}
     .faq-question { font-size: 1.125rem; font-weight: 600; margin-bottom: 8px; }
     .faq-question a { color: #333; text-decoration: none; }
     .faq-question a:hover { text-decoration: underline; }
-    .faq-answer p { color: #666; margin-bottom: 8px; }
+    .faq-answer p { color: #666; margin-bottom: 8px; white-space: pre-wrap; }
     .faq-learn-more { color: #8b4513; text-decoration: none; font-size: 0.9rem; font-weight: 500; }
     .faq-learn-more:hover { text-decoration: underline; }
     .faq-empty { text-align: center; color: #666; }

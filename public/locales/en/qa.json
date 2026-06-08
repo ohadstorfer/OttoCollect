@@ -21,7 +21,10 @@
     "categoryLabel": "Category",
     "newCategory": "+ New category",
     "newCategoryPlaceholder": "New category name",
-    "draft": "Save as draft"
+    "draft": "Save as draft",
+    "optional": "optional",
+    "uploadHtml": "Upload HTML file",
+    "htmlLoaded": "HTML file loaded into the editor"
   },
   "status": {
     "loading": "Loading...",

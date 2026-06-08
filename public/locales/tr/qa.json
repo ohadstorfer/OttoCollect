@@ -21,7 +21,10 @@
     "categoryLabel": "Kategori",
     "newCategory": "+ Yeni kategori",
     "newCategoryPlaceholder": "Yeni kategori adı",
-    "draft": "Taslak olarak kaydet"
+    "draft": "Taslak olarak kaydet",
+    "optional": "isteğe bağlı",
+    "uploadHtml": "HTML dosyası yükle",
+    "htmlLoaded": "HTML dosyası editöre yüklendi"
   },
   "status": {
     "loading": "Yükleniyor...",

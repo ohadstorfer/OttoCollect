@@ -11,6 +11,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useLanguage } from '@/context/LanguageContext';
 import SEOHead from '@/components/seo/SEOHead';
 import { SEO_CONFIG } from '@/config/seoConfig';
+import { isContentEmpty } from '@/lib/htmlContent';
 import { fetchQaCategoriesWithTranslations, fetchQaEntriesWithTranslations } from '@/services/qaService';
 import {
   groupEntriesByCategory, getLocalizedEntry, getLocalizedCategoryName,
@@ -100,16 +101,18 @@ const Guide = () => {
                           dir={direction === 'rtl' ? 'rtl' : 'ltr'}
                           className={direction === 'rtl' ? 'text-right' : 'text-left'}
                         >
-                          <p className="text-muted-foreground mb-3 leading-relaxed">
+                          <p className="text-muted-foreground mb-3 leading-relaxed whitespace-pre-wrap">
                             {localized.shortDescription}
                           </p>
-                          <button
-                            type="button"
-                            onClick={() => navigate(`/guide-post/${entry.id}`)}
-                            className="text-primary hover:underline text-sm font-medium"
-                          >
-                            {direction === 'rtl' ? `« ${tf('learnMore', 'Learn more')}` : `${tf('learnMore', 'Learn more')} »`}
-                          </button>
+                          {!isContentEmpty(localized.content) && (
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/guide-post/${entry.id}`)}
+                              className="text-primary hover:underline text-sm font-medium"
+                            >
+                              {direction === 'rtl' ? `« ${tf('learnMore', 'Learn more')}` : `${tf('learnMore', 'Learn more')} »`}
+                            </button>
+                          )}
                         </AccordionContent>
                       </AccordionItem>
                     );

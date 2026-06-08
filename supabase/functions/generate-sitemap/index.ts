@@ -205,16 +205,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch published guide / FAQ entries dynamically
+    // Fetch published guide / FAQ entries dynamically. Only entries that have a
+    // full article (non-empty content) get a /guide-post page, so short-answer-
+    // only entries are excluded here.
     const { data: qaEntries } = await supabase
       .from('qa_entries')
-      .select('id, updated_at')
+      .select('id, updated_at, content')
       .eq('is_draft', false)
       .order('display_order', { ascending: true });
 
-    if (qaEntries) {
+    const qaArticleEntries = (qaEntries || []).filter(
+      (e: any) => String(e.content ?? '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim().length > 0
+    );
+    if (qaArticleEntries.length > 0) {
       sitemap += '\n  <!-- Guide / FAQ entries -->\n';
-      qaEntries.forEach(entry => {
+      qaArticleEntries.forEach(entry => {
         const lastmod = entry.updated_at
           ? new Date(entry.updated_at).toISOString().split('T')[0]
           : currentDate;

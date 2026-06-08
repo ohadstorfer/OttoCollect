@@ -260,6 +260,16 @@ export const updateQaEntry = async (
     short_description: input.shortDescription,
     content: input.content,
     main_image_url: input.mainImageUrl ?? null,
+    // Invalidate the cached ar/tr translations: the base text just changed, so
+    // the old translated columns are stale. Nulling them makes the next ar/tr
+    // view re-translate from the new base (otherwise the published page keeps
+    // showing the pre-edit translation).
+    headline_ar: null,
+    headline_tr: null,
+    short_description_ar: null,
+    short_description_tr: null,
+    content_ar: null,
+    content_tr: null,
   };
   if (typeof input.displayOrder === 'number') payload.display_order = input.displayOrder;
   if (typeof input.isDraft === 'boolean') payload.is_draft = input.isDraft;

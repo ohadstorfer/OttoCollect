@@ -21,7 +21,10 @@
     "categoryLabel": "الفئة",
     "newCategory": "+ فئة جديدة",
     "newCategoryPlaceholder": "اسم الفئة الجديدة",
-    "draft": "حفظ كمسودة"
+    "draft": "حفظ كمسودة",
+    "optional": "اختياري",
+    "uploadHtml": "رفع ملف HTML",
+    "htmlLoaded": "تم تحميل ملف HTML في المحرر"
   },
   "status": {
     "loading": "جارٍ التحميل...",
