@@ -207,27 +207,45 @@ app.get('/sitemap.xml', async (req, res) => {
 // preserving the original anti-duplicate behaviour. Humans always get the app.
 app.get('/catalog-banknote/:id', async (req, res) => {
   const isCrawler = CRAWLER_REGEX.test(req.get('User-Agent') || '');
-  if (isCrawler) {
-    const file = `catalog-banknote-${req.params.id}.html`;
-    try {
-      const { data, error } = await supabase.storage.from('static-pages').download(file);
-      if (!error && data) {
-        res.set('Content-Type', 'text/html');
-        return res.send(await data.text());
-      }
-    } catch (e) {
+  if (!isCrawler) {
+    return res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  }
+
+  const file = `catalog-banknote-${req.params.id}.html`;
+  // Indexability is the gate, NOT "does a static file exist". A static file can
+  // be STALE: a banknote can lose its image (or its approval, or be deleted)
+  // after its HTML was generated, but the orphaned file lingers in the bucket
+  // until the next purge. Serving that orphan with HTTP 200 makes a now-thin /
+  // imageless banknote look indexable to Google → "Crawled - currently not
+  // indexed". So we re-verify indexability live and only serve the static file
+  // when the banknote still qualifies. Fetch both in parallel to keep latency
+  // ~equal to the download alone.
+  const [download, indexable] = await Promise.all([
+    supabase.storage.from('static-pages').download(file).catch((e) => {
       console.error(`Error fetching ${file}:`, e);
-    }
-    // No static file yet. If the banknote is genuinely indexable (approved +
-    // imaged, i.e. sitemap-eligible) serve the React shell so Googlebot renders
-    // the real page; otherwise it's a thin/imageless banknote → hard 404.
-    if (await banknoteIsIndexable(req.params.id)) {
-      console.log(`No static file for ${file} but banknote is indexable — serving React shell (regen lag).`);
-      return res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-    }
+      return { data: null, error: e };
+    }),
+    banknoteIsIndexable(req.params.id),
+  ]);
+
+  // Not indexable (imageless / unapproved / deleted) → hard 404 noindex, even if
+  // a stale static file still exists in the bucket.
+  if (!indexable) {
     return send404Html(res, 'The banknote you are looking for does not exist or has been removed.');
   }
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+
+  // Indexable + static file present → serve the pre-rendered HTML.
+  const { data, error } = download;
+  if (!error && data) {
+    res.set('Content-Type', 'text/html');
+    return res.send(await data.text());
+  }
+
+  // Indexable but no static file yet (sitemap is real-time, the static bucket is
+  // regenerated on a cron) → serve the React shell so Googlebot renders the real
+  // page instead of seeing a 404.
+  console.log(`No static file for ${file} but banknote is indexable — serving React shell (regen lag).`);
+  return res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // Handle forum page - serve static HTML for crawlers

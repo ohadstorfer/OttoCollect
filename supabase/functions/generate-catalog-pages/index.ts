@@ -40,6 +40,58 @@ function metaDescription(text: unknown, max = 155): string {
   return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).replace(/[\s,.;:!-]+$/, '') + '…';
 }
 
+// Remove pre-rendered catalog-banknote-*.html files whose banknote is no longer
+// indexable — it lost its image, was unapproved, or was deleted. An orphaned
+// file keeps being served to crawlers with HTTP 200 (see server.js), so a
+// now-thin banknote looks indexable to Google and lands in "Crawled - currently
+// not indexed". `indexableIds` is the authoritative set of banknote ids that
+// SHOULD have a static page (approved + has a front image). Lists the bucket and
+// deletes every catalog-banknote file whose id is not in that set, so it also
+// catches hard-deleted rows the incremental query can't see.
+async function purgeOrphanBanknotePages(
+  supabase: any,
+  indexableIds: Set<string>,
+): Promise<string[]> {
+  const PREFIX = 'catalog-banknote-';
+  const SUFFIX = '.html';
+  const pageSize = 1000;
+  let offset = 0;
+  const toRemove: string[] = [];
+  // Paginate the bucket listing, filtering to our prefix.
+  while (true) {
+    const { data, error } = await supabase.storage
+      .from('static-pages')
+      .list('', { limit: pageSize, offset, search: PREFIX });
+    if (error) {
+      console.error('purgeOrphanBanknotePages list error:', error);
+      break;
+    }
+    if (!data || data.length === 0) break;
+    for (const obj of data) {
+      const name: string = obj?.name || '';
+      if (!name.startsWith(PREFIX) || !name.endsWith(SUFFIX)) continue;
+      const id = name.slice(PREFIX.length, name.length - SUFFIX.length);
+      if (!indexableIds.has(id)) toRemove.push(name);
+    }
+    if (data.length < pageSize) break;
+    offset += pageSize;
+  }
+  // Delete in batches to stay within request limits.
+  const removed: string[] = [];
+  const BATCH = 100;
+  for (let i = 0; i < toRemove.length; i += BATCH) {
+    const batch = toRemove.slice(i, i + BATCH);
+    const { error } = await supabase.storage.from('static-pages').remove(batch);
+    if (error) {
+      console.error('purgeOrphanBanknotePages remove error:', error);
+    } else {
+      removed.push(...batch);
+    }
+  }
+  console.log(`purgeOrphanBanknotePages: removed ${removed.length} orphan file(s)`);
+  return removed;
+}
+
 serve(async (req)=>{
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -416,6 +468,39 @@ serve(async (req)=>{
         });
       }
     }
+    // Purge orphaned catalog-banknote static files so stale HTML for a banknote
+    // that lost its image / approval / was deleted stops being served (HTTP 200)
+    // to crawlers.
+    let purgedPages: string[] = [];
+    try {
+      if (incremental) {
+        // Targeted: only banknotes touched since `since` that are now
+        // non-indexable (e.g. their image was removed). Hard deletions are
+        // handled by the full regeneration that runs on country visibility
+        // changes — the row is gone so the incremental query can't see it.
+        const nowThin = (rawBanknotes || [])
+          .filter((b: any) =>
+            b.updated_at && b.updated_at >= since! &&
+            !(b.front_picture_watermarked || b.front_picture_thumbnail))
+          .map((b: any) => `catalog-banknote-${b.id}.html`);
+        if (nowThin.length > 0) {
+          const { error: rmErr } = await supabase.storage.from('static-pages').remove(nowThin);
+          if (rmErr) {
+            console.error('Incremental orphan purge error:', rmErr);
+          } else {
+            purgedPages = nowThin;
+            console.log(`Incremental orphan purge: removed ${nowThin.length} file(s)`);
+          }
+        }
+      } else {
+        // Full mode: authoritative list-and-diff against every indexable id.
+        const indexableIds = new Set<string>((allBanknotes || []).map((b: any) => String(b.id)));
+        purgedPages = await purgeOrphanBanknotePages(supabase, indexableIds);
+      }
+    } catch (purgeError) {
+      console.error('Orphan purge failed:', purgeError);
+    }
+
     // Generate HTML for each forum post (skipped in incremental mode)
     if (!incremental) for (const post of forumPosts || []){
       try {
@@ -788,9 +873,11 @@ serve(async (req)=>{
       mode: incremental ? 'incremental' : 'full',
       since: since,
       generated: generatedPages.length,
+      purgedOrphans: purgedPages.length,
+      purgedDetails: purgedPages.slice(0, 10),
       errors: errors.length,
       errorDetails: errors.slice(0, 10),
-      message: `Generated ${generatedPages.length} static HTML pages`,
+      message: `Generated ${generatedPages.length} static HTML pages, purged ${purgedPages.length} orphan(s)`,
       timestamp: new Date().toISOString()
     }), {
       headers: {
