@@ -446,23 +446,9 @@ export async function generateAdminExcel(options: AdminExportOptions): Promise<A
     }
   });
 
-  // 2) Determine columns dynamically and exclude specified fields
-  const excludeKeys = new Set<string>([
-    'updated_at', 'created_at', 'is_pending', 'is_approved',
-    'back_picture_thumbnail', 'front_picture_thumbnail',
-    'back_picture_watermarked', 'front_picture_watermarked',
-    'front_picture', 'back_picture','other_element_pictures','id' // Exclude Front Picture URL and Back Picture URL from admin export
-  ]);
-
-  const allKeysSet = new Set<string>();
-  records.forEach(r => {
-    Object.keys(r || {}).forEach(k => {
-      if (!excludeKeys.has(k)) allKeysSet.add(k);
-    });
-  });
-
-  // Preferred ordering for readability
-  const preferredOrder = [
+  // 2) Use the fixed template column set/order with snake_case headers,
+  // matching the import template (banknote_template_*.csv) for clean round-trips.
+  const TEMPLATE_COLUMNS = [
     'country', 'extended_pick_number', 'new_extended_pick_number', 'pick_number', 'turk_catalog_number',
     'face_value', 'islamic_year', 'gregorian_year',
     'signatures_front', 'signatures_back', 'signature_pictures',
@@ -476,35 +462,6 @@ export async function generateAdminExcel(options: AdminExportOptions): Promise<A
     'dimensions'
   ];
 
-  const remainingKeys = Array.from(allKeysSet).filter(k => !preferredOrder.includes(k)).sort();
-  const orderedKeys = [...preferredOrder.filter(k => allKeysSet.has(k)), ...remainingKeys];
-
-  const headerForKey = (key: string): string => {
-    const mapping: Record<string, string> = {
-      front_picture: 'Front Picture URL',
-      back_picture: 'Back Picture URL',
-      watermark_picture: 'Watermark Picture URL',
-      tughra_picture: 'Tughra Picture URL',
-      seal_pictures: 'Seal Pictures',
-      signature_pictures: 'Signature Pictures',
-      other_element_pictures: 'Other Element Pictures',
-      extended_pick_number: 'Extended Pick Number',
-      new_extended_pick_number: 'new_extended_pick_number',
-      pick_number: 'Pick Number',
-      turk_catalog_number: 'Turk Catalog Number',
-      face_value: 'Face Value',
-      islamic_year: 'Islamic Year',
-      gregorian_year: 'Gregorian Year',
-      sultan_name: 'Sultan Name',
-      serial_numbering: 'Serial Numbering',
-      banknote_description: 'Banknote Description',
-      historical_description: 'Historical Description',
-      seal_names: 'Seal Names'
-    };
-    if (mapping[key]) return mapping[key];
-    return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-  };
-
   const toCellValue = (v: any): string => {
     if (v === null || v === undefined) return '';
     if (Array.isArray(v)) return v.filter(Boolean).join(', ');
@@ -512,11 +469,11 @@ export async function generateAdminExcel(options: AdminExportOptions): Promise<A
     return String(v);
   };
 
-  const headers = orderedKeys.map(headerForKey);
+  const headers = TEMPLATE_COLUMNS; // snake_case headers, matching the import template
   const data: any[][] = [headers];
 
   records.forEach(rec => {
-    const row = orderedKeys.map(k => toCellValue((rec as any)[k]));
+    const row = TEMPLATE_COLUMNS.map(k => toCellValue((rec as any)[k]));
     data.push(row);
   });
 
