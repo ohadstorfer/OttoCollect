@@ -1,0 +1,20 @@
+{
+  "title": "Credits & Links",
+  "subtitle": "Useful links and the people and projects we credit.",
+  "status": {
+    "loading": "Loading...",
+    "empty": "No links yet."
+  },
+  "actions": {
+    "add": "Add link",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "form": {
+    "namePlaceholder": "Display name",
+    "urlPlaceholder": "https://example.com"
+  },
+  "status_deleteConfirm": "Delete this link permanently?"
+}

@@ -1,0 +1,20 @@
+{
+  "title": "Krediler ve Bağlantılar",
+  "subtitle": "Faydalı bağlantılar ve teşekkür ettiğimiz kişiler ve projeler.",
+  "status": {
+    "loading": "Yükleniyor...",
+    "empty": "Henüz bağlantı yok."
+  },
+  "actions": {
+    "add": "Bağlantı ekle",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "save": "Kaydet",
+    "cancel": "İptal"
+  },
+  "form": {
+    "namePlaceholder": "Görünen ad",
+    "urlPlaceholder": "https://example.com"
+  },
+  "status_deleteConfirm": "Bu bağlantı kalıcı olarak silinsin mi?"
+}

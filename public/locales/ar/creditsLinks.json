@@ -1,0 +1,20 @@
+{
+  "title": "الاعتمادات والروابط",
+  "subtitle": "روابط مفيدة والأشخاص والمشاريع التي نقدّرها.",
+  "status": {
+    "loading": "جارٍ التحميل...",
+    "empty": "لا توجد روابط بعد."
+  },
+  "actions": {
+    "add": "إضافة رابط",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "save": "حفظ",
+    "cancel": "إلغاء"
+  },
+  "form": {
+    "namePlaceholder": "الاسم المعروض",
+    "urlPlaceholder": "https://example.com"
+  },
+  "status_deleteConfirm": "حذف هذا الرابط نهائيًا؟"
+}
