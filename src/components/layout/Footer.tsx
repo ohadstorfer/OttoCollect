@@ -93,6 +93,9 @@ export const Footer = () => {
                 <Link to="/about" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
                   {t('footer.aboutUs')}
             </Link>
+                <Link to="/credits" className={`block ${theme === 'light' ? 'text-ottoman-300 hover:text-ottoman-100' : 'text-ottoman-400 hover:text-ottoman-200'} transition-colors`}>
+                  {t('footer.creditsLinks')}
+                </Link>
               </nav>
             </div>
           </div>
