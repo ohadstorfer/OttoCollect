@@ -140,6 +140,18 @@ app.use((req, res, next) => {
   next();
 });
 
+// Canonicalise host: 301 www.ottocollect.com -> ottocollect.com so the site is
+// not duplicated across both hosts. Runs before the trailing-slash redirect so a
+// www URL with a trailing slash is fixed in a single hop. Cloud Run sits behind a
+// proxy, so the real host is in x-forwarded-host.
+app.use((req, res, next) => {
+  const host = req.headers['x-forwarded-host'] || req.headers.host || '';
+  if (host.startsWith('www.')) {
+    return res.redirect(301, `https://ottocollect.com${req.originalUrl}`);
+  }
+  next();
+});
+
 // Normalise trailing slashes: 301 /foo/ -> /foo so we don't end up with duplicate
 // URLs (catalog/, /about/, etc.) showing up as "Alternative page with proper
 // canonical tag" in Search Console. Query string is preserved.

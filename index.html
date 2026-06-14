@@ -10,10 +10,12 @@
     <meta name="author" content="OttoCollect" />
     <meta name="robots" content="index, follow" />
     
-    <!-- Canonical URL: static self-referential fallback for the home document.
-         Per-page SSR / the Canonical component override this on real routes. -->
-    <link rel="canonical" href="https://ottocollect.com/" />
-    
+    <!-- No hardcoded canonical here: this shell is served as a fallback for ALL
+         routes, so a static homepage canonical would mislabel sub-pages for
+         non-rendering crawlers. The canonical is set per-route by the Canonical
+         component (humans/Googlebot) and by the pre-rendered static HTML in the
+         Supabase static-pages bucket (crawlers). -->
+
     <!-- Help Google understand this is a SPA -->
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
