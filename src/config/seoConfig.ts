@@ -216,6 +216,17 @@ export const SEO_CONFIG = {
       ]
     },
 
+    credits: {
+      title: 'Credits & Links - OttoCollect',
+      description: 'Useful links, references, and credits for the people and projects behind OttoCollect.',
+      keywords: [
+        'OttoCollect credits',
+        'OttoCollect links',
+        'numismatic resources',
+        'banknote references'
+      ]
+    },
+
     community: {
       title: 'OttoCollect Community - Connect with Collectors',
       description: 'Join the OttoCollect community of Ottoman Empire banknote collectors. Connect with fellow enthusiasts, share knowledge, and grow your collection.',
