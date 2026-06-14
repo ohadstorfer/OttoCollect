@@ -51,6 +51,7 @@ import '@/i18n/config';  // Import this at the top
 import AboutUs from "./pages/AboutUs";
 import Blog from "./pages/Blog";
 import Guide from "./pages/Guide";
+import CreditsLinks from "./pages/CreditsLinks";
 import GuidePost from "./pages/GuidePost";
 import CreateGuidePost from "./pages/CreateGuidePost";
 import BlogPost from "./pages/BlogPost";
@@ -114,6 +115,7 @@ const appRoutes: RouteObject[] = [
   { path: "/terms", element: <TermsOfService /> },
   { path: "/terms-of-service", element: <TermsOfService /> },
   { path: "/guide", element: <Guide /> },
+  { path: "/credits", element: <CreditsLinks /> },
   { path: "/guide-post/:id", element: <GuidePost /> },
   { path: "/create-guide-post", element: <CreateGuidePost /> },
   { path: "/create-guide-post/:id", element: <CreateGuidePost /> },
