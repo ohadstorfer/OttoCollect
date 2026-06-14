@@ -140,24 +140,22 @@ app.use((req, res, next) => {
   next();
 });
 
-// Canonicalise host: 301 www.ottocollect.com -> ottocollect.com so the site is
-// not duplicated across both hosts. Runs before the trailing-slash redirect so a
-// www URL with a trailing slash is fixed in a single hop. Cloud Run sits behind a
-// proxy, so the real host is in x-forwarded-host.
+// Canonicalise host + trailing slash in a SINGLE 301 hop:
+//   - www.ottocollect.com -> ottocollect.com (no www/non-www duplicate content)
+//   - /foo/ -> /foo (no trailing-slash duplicate showing as "Alternative page
+//     with proper canonical tag" in Search Console)
+// Both are handled together so e.g. www.ottocollect.com/forum/ redirects straight
+// to https://ottocollect.com/forum without a redirect chain. Cloud Run sits behind
+// a proxy, so the real host is in x-forwarded-host. Query string is preserved.
 app.use((req, res, next) => {
   const host = req.headers['x-forwarded-host'] || req.headers.host || '';
-  if (host.startsWith('www.')) {
-    return res.redirect(301, `https://ottocollect.com${req.originalUrl}`);
-  }
-  next();
-});
-
-// Normalise trailing slashes: 301 /foo/ -> /foo so we don't end up with duplicate
-// URLs (catalog/, /about/, etc.) showing up as "Alternative page with proper
-// canonical tag" in Search Console. Query string is preserved.
-app.use((req, res, next) => {
-  if (req.path.length > 1 && req.path.endsWith('/')) {
-    return res.redirect(301, req.path.slice(0, -1) + req.url.slice(req.path.length));
+  const isWww = host.startsWith('www.');
+  const hasTrailingSlash = req.path.length > 1 && req.path.endsWith('/');
+  if (isWww || hasTrailingSlash) {
+    const path = hasTrailingSlash ? req.path.slice(0, -1) : req.path;
+    const query = req.url.slice(req.path.length); // preserves ?query
+    const target = (isWww ? 'https://ottocollect.com' : '') + path + query;
+    return res.redirect(301, target);
   }
   next();
 });
