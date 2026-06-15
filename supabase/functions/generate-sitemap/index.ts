@@ -255,20 +255,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch banknotes dynamically. Only include banknotes that have at least
-    // one front image — banknotes without an image are thin from Google's POV
-    // and dilute the sitemap's signal/noise ratio.
+    // Fetch banknotes dynamically. All approved banknotes are included, with or
+    // without a front image (the imageless "thin" filter was intentionally removed).
     const { data: banknotes } = await supabase
       .from('detailed_banknotes')
-      .select('id, updated_at, front_picture_watermarked, front_picture_thumbnail')
+      .select('id, updated_at')
       .eq('is_approved', true)
       .order('extended_pick_number');
 
-    const indexableBanknotes = (banknotes || []).filter((b: any) =>
-      !!(b.front_picture_watermarked || b.front_picture_thumbnail)
-    );
-    const droppedThinCount = (banknotes?.length || 0) - indexableBanknotes.length;
-    console.log(`Sitemap: ${indexableBanknotes.length} indexable banknotes, ${droppedThinCount} dropped (no image)`);
+    const indexableBanknotes = banknotes || [];
+    console.log(`Sitemap: ${indexableBanknotes.length} approved banknotes included`);
 
     if (indexableBanknotes.length) {
       sitemap += '\n  <!-- Banknote detail pages -->\n';

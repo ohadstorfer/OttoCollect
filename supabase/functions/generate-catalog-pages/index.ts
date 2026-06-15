@@ -129,14 +129,12 @@ serve(async (req)=>{
       console.error('Error fetching banknotes:', error);
       throw error;
     }
-    // Only consider banknotes that have at least one front image. Aligned with
-    // the sitemap filter: we don't generate static HTML or related-link targets
-    // for URLs Google won't see anyway.
-    const allBanknotes: any[] = (rawBanknotes || []).filter((b: any) =>
-      !!(b.front_picture_watermarked || b.front_picture_thumbnail)
-    );
-    const droppedThinCount = (rawBanknotes?.length || 0) - allBanknotes.length;
-    console.log(`Banknotes: ${rawBanknotes?.length || 0} fetched, ${allBanknotes.length} indexable, ${droppedThinCount} dropped (no image)`);
+    // Generate static HTML for every approved banknote, with or without a front
+    // image (the imageless "thin" filter was intentionally removed). Aligned with
+    // the sitemap, which now also includes all approved banknotes.
+    const allBanknotes: any[] = (rawBanknotes || []).filter((b: any) => b.is_approved);
+    const droppedUnapprovedCount = (rawBanknotes?.length || 0) - allBanknotes.length;
+    console.log(`Banknotes: ${rawBanknotes?.length || 0} fetched, ${allBanknotes.length} approved/indexable, ${droppedUnapprovedCount} dropped (not approved)`);
     let banknotes: any[] = allBanknotes;
     if (incremental) {
       banknotes = banknotes.filter((b: any) => b.updated_at && b.updated_at >= since!);
@@ -475,13 +473,13 @@ serve(async (req)=>{
     try {
       if (incremental) {
         // Targeted: only banknotes touched since `since` that are now
-        // non-indexable (e.g. their image was removed). Hard deletions are
-        // handled by the full regeneration that runs on country visibility
-        // changes — the row is gone so the incremental query can't see it.
+        // non-indexable (i.e. lost approval). Hard deletions are handled by the
+        // full regeneration that runs on country visibility changes — the row is
+        // gone so the incremental query can't see it.
         const nowThin = (rawBanknotes || [])
           .filter((b: any) =>
             b.updated_at && b.updated_at >= since! &&
-            !(b.front_picture_watermarked || b.front_picture_thumbnail))
+            !b.is_approved)
           .map((b: any) => `catalog-banknote-${b.id}.html`);
         if (nowThin.length > 0) {
           const { error: rmErr } = await supabase.storage.from('static-pages').remove(nowThin);

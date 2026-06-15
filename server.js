@@ -51,19 +51,19 @@ async function dbHas(table, column, value) {
   }
 }
 
-// Returns true if a banknote is INDEXABLE — approved AND has at least one front
-// image. This mirrors the exact inclusion criteria of both the sitemap and the
-// static-page generator, so it identifies banknotes that *should* have a static
-// file but may not yet (the static bucket is regenerated on a cron, while the
-// sitemap is real-time — so a freshly-approved banknote can be advertised in the
-// sitemap before its static HTML exists). For those we serve the React shell
-// (200, JS-rendered into the real page) instead of a hard 404, which would
-// otherwise surface as "Submitted URL not found (404)" in Search Console.
-// Imageless / unapproved banknotes still fail this check and get the 404, so the
-// original anti-duplicate behaviour for thin banknotes is preserved.
+// Returns true if a banknote is INDEXABLE — approved. This mirrors the exact
+// inclusion criteria of both the sitemap and the static-page generator, so it
+// identifies banknotes that *should* have a static file but may not yet (the
+// static bucket is regenerated on a cron, while the sitemap is real-time — so a
+// freshly-approved banknote can be advertised in the sitemap before its static
+// HTML exists). For those we serve the React shell (200, JS-rendered into the
+// real page) instead of a hard 404, which would otherwise surface as "Submitted
+// URL not found (404)" in Search Console. The imageless "thin" filter was
+// intentionally removed, so all approved banknotes are indexable regardless of
+// whether they have a front image; only unapproved/deleted banknotes get the 404.
 async function banknoteIsIndexable(id) {
   try {
-    const url = `${SUPABASE_REST_URL}/detailed_banknotes?id=eq.${encodeURIComponent(id)}&select=is_approved,front_picture_watermarked,front_picture_thumbnail&limit=1`;
+    const url = `${SUPABASE_REST_URL}/detailed_banknotes?id=eq.${encodeURIComponent(id)}&select=is_approved&limit=1`;
     const r = await fetch(url, {
       headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: `Bearer ${SUPABASE_PUBLIC_KEY}` },
     });
@@ -73,7 +73,7 @@ async function banknoteIsIndexable(id) {
     }
     const rows = await r.json();
     const row = Array.isArray(rows) && rows[0];
-    return !!(row && row.is_approved && (row.front_picture_watermarked || row.front_picture_thumbnail));
+    return !!(row && row.is_approved);
   } catch (e) {
     console.error('banknoteIsIndexable threw:', e);
     return false;
@@ -205,16 +205,15 @@ app.get('/sitemap.xml', async (req, res) => {
 
 // Banknote detail pages
 // Banknote pages: the pre-rendered SSR file is the primary source of truth. The
-// regen function only generates files for approved banknotes with at least one
-// image — imageless banknotes (~38% of the catalog, 251 rows) and the sitemap
-// explicitly omit them. So for crawlers, "no static file" usually means "not
-// indexable". BUT the sitemap is real-time while the static bucket is
-// regenerated on a cron, so a freshly approved+imaged banknote can be in the
-// sitemap before its static HTML exists. To avoid surfacing "Submitted URL not
-// found (404)" for those, we fall back to the React shell (200, JS-rendered)
-// ONLY when the banknote genuinely qualifies for indexing (approved + has a
-// front image). Imageless/unapproved banknotes still 404 (noindex,follow),
-// preserving the original anti-duplicate behaviour. Humans always get the app.
+// regen function generates files for every approved banknote (with or without an
+// image — the imageless "thin" filter was intentionally removed), matching the
+// sitemap. So for crawlers, "no static file" usually means "not indexable". BUT
+// the sitemap is real-time while the static bucket is regenerated on a cron, so a
+// freshly approved banknote can be in the sitemap before its static HTML exists.
+// To avoid surfacing "Submitted URL not found (404)" for those, we fall back to
+// the React shell (200, JS-rendered) ONLY when the banknote genuinely qualifies
+// for indexing (approved). Unapproved/deleted banknotes still 404 (noindex,follow).
+// Humans always get the app.
 app.get('/catalog-banknote/:id', async (req, res) => {
   const isCrawler = CRAWLER_REGEX.test(req.get('User-Agent') || '');
   if (!isCrawler) {
@@ -223,11 +222,10 @@ app.get('/catalog-banknote/:id', async (req, res) => {
 
   const file = `catalog-banknote-${req.params.id}.html`;
   // Indexability is the gate, NOT "does a static file exist". A static file can
-  // be STALE: a banknote can lose its image (or its approval, or be deleted)
-  // after its HTML was generated, but the orphaned file lingers in the bucket
-  // until the next purge. Serving that orphan with HTTP 200 makes a now-thin /
-  // imageless banknote look indexable to Google → "Crawled - currently not
-  // indexed". So we re-verify indexability live and only serve the static file
+  // be STALE: a banknote can lose its approval (or be deleted) after its HTML was
+  // generated, but the orphaned file lingers in the bucket until the next purge.
+  // Serving that orphan with HTTP 200 makes an unapproved banknote look indexable
+  // to Google. So we re-verify indexability live and only serve the static file
   // when the banknote still qualifies. Fetch both in parallel to keep latency
   // ~equal to the download alone.
   const [download, indexable] = await Promise.all([
@@ -238,8 +236,8 @@ app.get('/catalog-banknote/:id', async (req, res) => {
     banknoteIsIndexable(req.params.id),
   ]);
 
-  // Not indexable (imageless / unapproved / deleted) → hard 404 noindex, even if
-  // a stale static file still exists in the bucket.
+  // Not indexable (unapproved / deleted) → hard 404 noindex, even if a stale
+  // static file still exists in the bucket.
   if (!indexable) {
     return send404Html(res, 'The banknote you are looking for does not exist or has been removed.');
   }
