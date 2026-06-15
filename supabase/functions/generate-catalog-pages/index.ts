@@ -108,17 +108,33 @@ serve(async (req)=>{
     // visible are regenerated, plus the country pages of affected countries.
     // Used by the weekly cron to keep recent edits in sync without rebuilding
     // forum/blog/marketplace pages.
+    //
+    // Optional country-chunk mode. Body shape: {countries: ["Turkey", ...]}.
+    // Regenerates only those (visible) countries' banknote + catalog pages,
+    // skipping the heavy forum/blog/marketplace/guide/static sections like
+    // incremental does. Lets a large catalog be (re)built in batches that each
+    // fit the 150s gateway timeout. Never purges (it doesn't see the full set).
     let since: string | null = null;
+    let onlyCountries: string[] | null = null;
     try {
       const body = await req.clone().json();
       if (body && typeof body.since === 'string' && body.since.length > 0) {
         since = body.since;
       }
+      if (body && Array.isArray(body.countries)) {
+        const cleaned = body.countries.filter((c: any) => typeof c === 'string' && c.length > 0);
+        if (cleaned.length > 0) onlyCountries = cleaned;
+      }
     } catch (_) {
       // No body or invalid JSON — full mode.
     }
-    const incremental = since !== null;
-    console.log(incremental ? `Incremental mode: since=${since}` : 'Full regeneration mode');
+    const chunk = onlyCountries !== null;
+    const incrementalBySince = since !== null;
+    // `incremental` switches the heavy non-banknote sections off and restricts to
+    // visible countries; country-chunk mode wants that same lightweight behaviour.
+    const incremental = incrementalBySince || chunk;
+    console.log(chunk ? `Country-chunk mode: ${onlyCountries!.join(', ')}`
+      : incrementalBySince ? `Incremental mode: since=${since}` : 'Full regeneration mode');
 
     console.log('Fetching all approved banknotes...');
     // Always fetch the full set so we can build a cross-reference index for the
@@ -136,7 +152,9 @@ serve(async (req)=>{
     const droppedUnapprovedCount = (rawBanknotes?.length || 0) - allBanknotes.length;
     console.log(`Banknotes: ${rawBanknotes?.length || 0} fetched, ${allBanknotes.length} approved/indexable, ${droppedUnapprovedCount} dropped (not approved)`);
     let banknotes: any[] = allBanknotes;
-    if (incremental) {
+    if (chunk) {
+      banknotes = banknotes.filter((b: any) => onlyCountries!.includes(b.country));
+    } else if (incrementalBySince) {
       banknotes = banknotes.filter((b: any) => b.updated_at && b.updated_at >= since!);
     }
     console.log(`${banknotes.length} banknotes to (re)generate this run`);
@@ -471,7 +489,11 @@ serve(async (req)=>{
     // to crawlers.
     let purgedPages: string[] = [];
     try {
-      if (incremental) {
+      if (chunk) {
+        // Country-chunk mode only adds/refreshes pages for the named countries;
+        // it must not purge anything (it doesn't see the full indexable set).
+        purgedPages = [];
+      } else if (incrementalBySince) {
         // Targeted: only banknotes touched since `since` that are now
         // non-indexable (i.e. lost approval). Hard deletions are handled by the
         // full regeneration that runs on country visibility changes — the row is
