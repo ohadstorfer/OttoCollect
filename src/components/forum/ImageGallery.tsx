@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { X } from 'lucide-react';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 
 interface ImageGalleryProps {
   images: string[];
@@ -130,13 +131,40 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images }) => {
               <X size={20} />
             </button>
             
-            <div className="flex justify-center items-center min-h-[200px] max-h-[80vh] p-4">
+            <div
+              className="flex justify-center items-center min-h-[200px] max-h-[80vh] p-4"
+              style={{ touchAction: 'none' }}
+            >
               {selectedImage && (
-                <img 
-                  src={selectedImage} 
-                  alt="Full size image" 
-                  className="max-w-full max-h-[80vh] object-contain animate-scale-in"
-                />
+                <TransformWrapper
+                  key={selectedImage}
+                  initialScale={1}
+                  minScale={1}
+                  maxScale={3}
+                  centerOnInit
+                  centerZoomedOut
+                  limitToBounds
+                  doubleClick={{ mode: 'toggle', step: 1 }}
+                  wheel={{ step: 0.15 }}
+                  pinch={{ step: 5 }}
+                >
+                  <TransformComponent
+                    wrapperStyle={{ touchAction: 'none', width: '100%', maxHeight: '80vh' }}
+                    contentStyle={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <img
+                      src={selectedImage}
+                      alt="Full size image"
+                      className="max-w-full max-h-[80vh] object-contain select-none"
+                      draggable={false}
+                    />
+                  </TransformComponent>
+                </TransformWrapper>
               )}
             </div>
             

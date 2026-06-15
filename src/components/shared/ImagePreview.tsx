@@ -150,9 +150,11 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
                 >
                   <ZoomOut className="h-4 w-4" />
                 </Button>
-                <span className="text-sm px-2">
-                  {Math.round(scale * 100)}%
-                </span>
+                {!isMobile && (
+                  <span className="text-sm px-2">
+                    {Math.round(scale * 100)}%
+                  </span>
+                )}
                 <Button
                   variant="outline"
                   size="icon"
