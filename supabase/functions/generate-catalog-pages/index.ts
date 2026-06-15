@@ -145,12 +145,15 @@ serve(async (req)=>{
       console.error('Error fetching banknotes:', error);
       throw error;
     }
-    // Generate static HTML for every approved banknote, with or without a front
-    // image (the imageless "thin" filter was intentionally removed). Aligned with
-    // the sitemap, which now also includes all approved banknotes.
-    const allBanknotes: any[] = (rawBanknotes || []).filter((b: any) => b.is_approved);
-    const droppedUnapprovedCount = (rawBanknotes?.length || 0) - allBanknotes.length;
-    console.log(`Banknotes: ${rawBanknotes?.length || 0} fetched, ${allBanknotes.length} approved/indexable, ${droppedUnapprovedCount} dropped (not approved)`);
+    // Restrict to approved banknotes in VISIBLE countries. The imageless "thin"
+    // filter was intentionally removed, but hidden countries stay out of the index
+    // (aligned with the sitemap + server.js gate). Fetch the visible-country set
+    // once up front for the filter.
+    const { data: visibleCountriesData } = await supabase.from('countries').select('name').eq('is_visible', true);
+    const visibleCountrySet = new Set((visibleCountriesData || []).map((c: any) => c.name));
+    const allBanknotes: any[] = (rawBanknotes || []).filter((b: any) => b.is_approved && visibleCountrySet.has(b.country));
+    const droppedCount = (rawBanknotes?.length || 0) - allBanknotes.length;
+    console.log(`Banknotes: ${rawBanknotes?.length || 0} fetched, ${allBanknotes.length} approved+visible/indexable, ${droppedCount} dropped (unapproved or hidden country)`);
     let banknotes: any[] = allBanknotes;
     if (chunk) {
       banknotes = banknotes.filter((b: any) => onlyCountries!.includes(b.country));
@@ -346,12 +349,10 @@ serve(async (req)=>{
       });
     }
     console.log(`Found ${marketplaceItems.length} marketplace items to process`);
-    // Fetch countries data (visible-only in incremental mode)
+    // Always fetch visible countries only — hidden countries are excluded from the
+    // index, so we never generate their catalog page.
     console.log('Fetching countries...');
-    let countryQuery = supabase.from('countries').select('*');
-    if (incremental) {
-      countryQuery = countryQuery.eq('is_visible', true);
-    }
+    const countryQuery = supabase.from('countries').select('*').eq('is_visible', true);
     const { data: countries, error: countriesError } = await countryQuery;
     if (countriesError) {
       console.error('Error fetching countries:', countriesError);

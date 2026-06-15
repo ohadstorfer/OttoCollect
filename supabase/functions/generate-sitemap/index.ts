@@ -160,11 +160,15 @@ Deno.serve(async (req) => {
   </url>
 `;
 
-    // Fetch countries dynamically
+    // Fetch visible countries dynamically. Hidden countries are excluded from the
+    // index — their catalog page isn't public, so neither it nor their banknotes
+    // belong in the sitemap.
     const { data: countries } = await supabase
       .from('countries')
       .select('name, updated_at')
+      .eq('is_visible', true)
       .order('display_order');
+    const visibleCountryNames = new Set((countries || []).map((c: any) => c.name));
 
     if (countries) {
       sitemap += '\n  <!-- Country-specific catalog pages -->\n';
@@ -255,16 +259,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch banknotes dynamically. All approved banknotes are included, with or
-    // without a front image (the imageless "thin" filter was intentionally removed).
+    // Fetch banknotes dynamically. All approved banknotes in VISIBLE countries are
+    // included, with or without a front image (the imageless "thin" filter was
+    // intentionally removed); banknotes in hidden countries are excluded.
     const { data: banknotes } = await supabase
       .from('detailed_banknotes')
-      .select('id, updated_at')
+      .select('id, updated_at, country')
       .eq('is_approved', true)
       .order('extended_pick_number');
 
-    const indexableBanknotes = banknotes || [];
-    console.log(`Sitemap: ${indexableBanknotes.length} approved banknotes included`);
+    const indexableBanknotes = (banknotes || []).filter((b: any) => visibleCountryNames.has(b.country));
+    console.log(`Sitemap: ${indexableBanknotes.length} approved banknotes in visible countries included`);
 
     if (indexableBanknotes.length) {
       sitemap += '\n  <!-- Banknote detail pages -->\n';

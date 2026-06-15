@@ -51,19 +51,52 @@ async function dbHas(table, column, value) {
   }
 }
 
-// Returns true if a banknote is INDEXABLE — approved. This mirrors the exact
-// inclusion criteria of both the sitemap and the static-page generator, so it
-// identifies banknotes that *should* have a static file but may not yet (the
-// static bucket is regenerated on a cron, while the sitemap is real-time — so a
-// freshly-approved banknote can be advertised in the sitemap before its static
-// HTML exists). For those we serve the React shell (200, JS-rendered into the
-// real page) instead of a hard 404, which would otherwise surface as "Submitted
-// URL not found (404)" in Search Console. The imageless "thin" filter was
-// intentionally removed, so all approved banknotes are indexable regardless of
-// whether they have a front image; only unapproved/deleted banknotes get the 404.
+// Set of visible country names, cached for 60s. Anon RLS does NOT hide hidden
+// countries, so visibility must be checked explicitly. Returns null when it
+// can't be determined (no cache + fetch failed) so callers can fail-open on the
+// visibility dimension rather than 404 the whole catalog over a transient blip.
+let _visibleCountries = { set: null, ts: 0 };
+async function getVisibleCountryNames() {
+  const now = Date.now();
+  if (_visibleCountries.set && now - _visibleCountries.ts < 60000) return _visibleCountries.set;
+  try {
+    const url = `${SUPABASE_REST_URL}/countries?is_visible=eq.true&select=name`;
+    const r = await fetch(url, {
+      headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: `Bearer ${SUPABASE_PUBLIC_KEY}` },
+    });
+    if (!r.ok) {
+      console.error(`getVisibleCountryNames HTTP ${r.status}`);
+      return _visibleCountries.set;
+    }
+    const rows = await r.json();
+    const set = new Set((Array.isArray(rows) ? rows : []).map((x) => x.name));
+    _visibleCountries = { set, ts: now };
+    return set;
+  } catch (e) {
+    console.error('getVisibleCountryNames threw:', e);
+    return _visibleCountries.set;
+  }
+}
+async function countryIsVisible(name) {
+  const set = await getVisibleCountryNames();
+  if (!set) return true; // undeterminable → don't over-block; existence still gated by dbHas
+  return set.has(name);
+}
+
+// Returns true if a banknote is INDEXABLE — approved AND in a visible country.
+// This mirrors the exact inclusion criteria of both the sitemap and the static-
+// page generator, so it identifies banknotes that *should* have a static file but
+// may not yet (the static bucket is regenerated on a cron, while the sitemap is
+// real-time — so a freshly-approved banknote can be advertised in the sitemap
+// before its static HTML exists). For those we serve the React shell (200, JS-
+// rendered into the real page) instead of a hard 404, which would otherwise
+// surface as "Submitted URL not found (404)" in Search Console. The imageless
+// "thin" filter was intentionally removed, so all approved banknotes in visible
+// countries are indexable regardless of image; unapproved/deleted banknotes and
+// banknotes in hidden countries get the 404.
 async function banknoteIsIndexable(id) {
   try {
-    const url = `${SUPABASE_REST_URL}/detailed_banknotes?id=eq.${encodeURIComponent(id)}&select=is_approved&limit=1`;
+    const url = `${SUPABASE_REST_URL}/detailed_banknotes?id=eq.${encodeURIComponent(id)}&select=is_approved,country&limit=1`;
     const r = await fetch(url, {
       headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: `Bearer ${SUPABASE_PUBLIC_KEY}` },
     });
@@ -73,7 +106,10 @@ async function banknoteIsIndexable(id) {
     }
     const rows = await r.json();
     const row = Array.isArray(rows) && rows[0];
-    return !!(row && row.is_approved);
+    if (!row || !row.is_approved) return false;
+    const visible = await getVisibleCountryNames();
+    if (!visible) return true; // undeterminable visibility → approved gate already passed
+    return visible.has(row.country);
   } catch (e) {
     console.error('banknoteIsIndexable threw:', e);
     return false;
@@ -84,8 +120,14 @@ async function banknoteIsIndexable(id) {
 // fall through to a real 404 when the entity is gone, otherwise serve the
 // React shell. Centralises the same flow used by all our dynamic routes.
 async function serveEntityPage(req, res, opts) {
-  // opts: { staticFileName?, dbTable, dbColumn, dbValue, missingMessage }
+  // opts: { staticFileName?, dbTable, dbColumn, dbValue, missingMessage, indexableCheck? }
   const isCrawler = CRAWLER_REGEX.test(req.get('User-Agent') || '');
+
+  // Optional indexability gate: a non-indexable entity (e.g. a hidden country)
+  // gets a hard 404 for crawlers even if a stale static file still exists.
+  if (isCrawler && opts.indexableCheck && !(await opts.indexableCheck())) {
+    return send404Html(res, opts.missingMessage);
+  }
 
   if (isCrawler && opts.staticFileName) {
     try {
@@ -504,6 +546,7 @@ app.get('/catalog/:country', (req, res) => {
     dbTable: 'countries',
     dbColumn: 'name',
     dbValue: country,
+    indexableCheck: () => countryIsVisible(country),
     missingMessage: `The catalog for "${country}" does not exist.`,
   });
 });
