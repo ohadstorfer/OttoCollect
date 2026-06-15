@@ -8,8 +8,19 @@ import { useBanknoteContext } from '@/context/BanknoteContext';
 import { CollectionItem } from '@/types';
 import { formatDate } from '@/utils/formatters';
 import { Button } from '@/components/ui/button';
-import { Edit } from 'lucide-react';
+import { Edit, EyeOff } from 'lucide-react';
 import { Dialog, DialogContentWithScroll } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 import CollectionItemForm from '@/components/collection/CollectionItemForm';
 import { useToast } from '@/hooks/use-toast';
 import { BanknoteImage } from '@/components/banknote/BanknoteImage';
@@ -20,9 +31,23 @@ import { CollectionItemTranslationButton } from '@/components/collection/Collect
 
 interface BanknoteCollectionDetailProps {
   isOwner: boolean;
+  hideImages?: boolean;
+  hasImages?: boolean;
+  isTogglingVisibility?: boolean;
+  showVisibilityDialog?: boolean;
+  setShowVisibilityDialog?: (open: boolean) => void;
+  onToggleImageVisibility?: () => void;
 }
 
-const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isOwner }) => {
+const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({
+  isOwner,
+  hideImages = false,
+  hasImages = false,
+  isTogglingVisibility = false,
+  showVisibilityDialog = false,
+  setShowVisibilityDialog,
+  onToggleImageVisibility,
+}) => {
   const { t } = useTranslation(['collection']);
   const { id } = useParams<{ id: string }>();
   const { banknoteId } = useBanknoteContext();
@@ -474,7 +499,59 @@ const BanknoteCollectionDetail: React.FC<BanknoteCollectionDetailProps> = ({ isO
                   <span className="text-base leading-tight">{formatDate(collectionItem.purchaseDate)}</span>
                 </div>
               )}
+
+              {hasImages && (
+                <div className="flex items-center justify-between gap-x-2 border-b border-gray-100 py-2">
+                  <div
+                    className={`flex items-center gap-2 transition duration-200 ${
+                      hideImages ? 'opacity-100' : 'opacity-50'
+                    }`}
+                  >
+                    <EyeOff
+                      className={`h-4 w-4 ${hideImages ? 'text-foreground' : 'text-muted-foreground'}`}
+                    />
+                    <span
+                      className={`text-sm leading-tight ${
+                        hideImages ? 'font-medium text-foreground' : 'text-muted-foreground'
+                      }`}
+                    >
+                      {t('item.imagesVisibleToYou')}
+                    </span>
+                  </div>
+                  <Switch
+                    checked={hideImages}
+                    onCheckedChange={() => setShowVisibilityDialog?.(true)}
+                    disabled={isTogglingVisibility}
+                    aria-label={t('item.imagesVisibleToYou')}
+                  />
+                </div>
+              )}
             </div>
+
+            {hasImages && (
+              <AlertDialog open={showVisibilityDialog} onOpenChange={(open) => setShowVisibilityDialog?.(open)}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      <span>{hideImages ? t('item.makeImagesPublic') : t('item.makeImagesPrivate')}</span>
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {hideImages ? t('item.makeImagesPublicConfirm') : t('item.makeImagesPrivateConfirm')}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={isTogglingVisibility}>{t('item.cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={onToggleImageVisibility} disabled={isTogglingVisibility}>
+                      {isTogglingVisibility
+                        ? t('item.updating')
+                        : hideImages
+                          ? t('item.makePublic')
+                          : t('item.makePrivate')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         )}
       </div>

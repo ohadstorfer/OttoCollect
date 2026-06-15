@@ -454,7 +454,10 @@ export async function generateAdminExcel(options: AdminExportOptions): Promise<A
     'signatures_front', 'signatures_back', 'signature_pictures',
     'seal_names', 'seal_pictures',
     'watermark_picture', 'other_element_pictures',
-    'front_picture', 'back_picture',
+    // front_picture / back_picture are intentionally NOT exported: they hold the
+    // uploaded image URLs. The importer only updates columns present in the file,
+    // so omitting them means re-uploading this export leaves the stored picture
+    // URLs untouched (instead of overwriting/clearing them).
     'sultan_name', 'tughra_picture', 'printer',
     'type', 'category', 'rarity', 'security_element',
     'colors', 'serial_numbering',

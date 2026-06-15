@@ -282,6 +282,10 @@
   "informationAboutCollectorsCopy": "Bu koleksiyoncunun banknot kopyası hakkında bilgi",
   "deleteImage": "Resmi Sil",
   "deleteImageConfirmation": "Bu resmi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+  "deleteTheseImages": "Bu resimleri sil",
+  "deleteThisImage": "Bu resmi sil",
+  "deleteImages": "Resimleri Sil",
+  "deleteImagesConfirm": "Her iki resmi de silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
   "translation": {
     "detecting": "Dil tespit ediliyor",
     "translating": "Çevriliyor",

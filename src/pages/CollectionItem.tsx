@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogContentWithScroll } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
-import { ArrowLeft, Star, ImagePlus, Edit, Trash, Trash2, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { ArrowLeft, Star, ImagePlus, Edit, Trash, Trash2, ArrowRight } from "lucide-react";
 import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
@@ -64,7 +64,6 @@ export default function CollectionItem() {
   const [hasPendingSuggestion, setHasPendingSuggestion] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [imageToDelete, setImageToDelete] = useState<'obverse' | 'reverse' | null>(null);
   const [isDeletingImage, setIsDeletingImage] = useState(false);
   const [isTogglingVisibility, setIsTogglingVisibility] = useState(false);
   const [showVisibilityDialog, setShowVisibilityDialog] = useState(false);
@@ -361,15 +360,16 @@ export default function CollectionItem() {
     }
   };
 
-  const handleDeleteImage = async () => {
-    if (!imageToDelete || !collectionItem) return;
-    
+  const handleDeleteAllImages = async () => {
+    if (!collectionItem) return;
+
     setIsDeletingImage(true);
     try {
       const { error } = await supabase
         .from('collection_items')
         .update({
-          [`${imageToDelete}_image`]: null
+          obverse_image: null,
+          reverse_image: null,
         })
         .eq('id', collectionItem.id);
 
@@ -384,9 +384,8 @@ export default function CollectionItem() {
         if (fresh) pushCollectionPatch(user.id, { kind: 'update', item: fresh });
         else markCollectionDirty(user.id);
       }
-      setImageToDelete(null);
     } catch (error) {
-      console.error('Error deleting image:', error);
+      console.error('Error deleting images:', error);
       toast.error(t('item.failedToDeleteImage'));
     } finally {
       setIsDeletingImage(false);
@@ -574,62 +573,11 @@ export default function CollectionItem() {
                     </div>
                   ) : displayImages.length > 0 ? (
                     <div className="relative">
-                      {(isOwner || isShowingPrivateAsAdmin) && (
+                      {isShowingPrivateAsAdmin && (
                         <div className="absolute top-2 left-2 z-10">
-                          {isShowingPrivateAsAdmin ? (
-                            <div className="bg-white/90 rounded-sm px-2 py-1 shadow-sm border">
-                              <p className="text-xs text-muted-foreground">{t('item.privateImagesAdmin')}</p>
-                            </div>
-                          ) : (
-                          <AlertDialog open={showVisibilityDialog} onOpenChange={setShowVisibilityDialog}>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="bg-white hover:bg-white/90 text-xs flex items-center gap-1 shadow-sm border"
-                              >
-                                {Boolean(collectionItem?.hide_images) ? (
-                                  <>
-                                    <EyeOff className="h-3 w-3" />
-                                    <span>{t('item.imagesVisibleToYou')}</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Eye className="h-3 w-3" />
-                                    <span>{t('item.imagesVisibleToAll')}</span>
-                                  </>
-                                )}
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  {collectionItem?.hide_images 
-                                    ? t('item.makeImagesPublic') 
-                                    : t('item.makeImagesPrivate')}
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  {collectionItem?.hide_images
-                                    ? t('item.makeImagesPublicConfirm')
-                                    : t('item.makeImagesPrivateConfirm')}
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel disabled={isTogglingVisibility}>{t('item.cancel')}</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={handleToggleImageVisibility}
-                                  disabled={isTogglingVisibility}
-                                >
-                                  {isTogglingVisibility 
-                                    ? t('item.updating') 
-                                    : collectionItem?.hide_images
-                                      ? t('item.makePublic')
-                                      : t('item.makePrivate')}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                          )}
+                          <div className="bg-white/90 rounded-sm px-2 py-1 shadow-sm border">
+                            <p className="text-xs text-muted-foreground">{t('item.privateImagesAdmin')}</p>
+                          </div>
                         </div>
                       )}
                       {displayImages.length === 2 ? (
@@ -644,42 +592,6 @@ export default function CollectionItem() {
                               <div className="grid grid-cols-2 gap-3">
                       {displayImages.map((url, index) => (
                                   <div key={index} className="relative">
-                                    {canDeleteImages && (
-                                      <div className="absolute top-2 right-2 z-10">
-                                        <AlertDialog>
-                                          <AlertDialogTrigger asChild>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
-                                            >
-                                              <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                          </AlertDialogTrigger>
-                                          <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                              <AlertDialogTitle>{t('item.deleteImage')}</AlertDialogTitle>
-                                              <AlertDialogDescription>
-                                                {t('item.deleteImageConfirm')}
-                                              </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                              <AlertDialogCancel disabled={isDeletingImage}>{t('item.cancel')}</AlertDialogCancel>
-                                              <AlertDialogAction
-                                                onClick={() => {
-                                                  setImageToDelete(index === 0 ? 'obverse' : 'reverse');
-                                                  handleDeleteImage();
-                                                }}
-                                                className="bg-red-600 hover:bg-red-700"
-                                                disabled={isDeletingImage}
-                                              >
-                                                {isDeletingImage ? t('item.deleting') : t('item.delete')}
-                                              </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                          </AlertDialogContent>
-                                        </AlertDialog>
-                                      </div>
-                                    )}
                                     <div
                                       className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                                       onClick={() => openImageViewer(url)}
@@ -703,42 +615,6 @@ export default function CollectionItem() {
                             <div className="flex flex-col space-y-3">
                               {displayImages.map((url, index) => (
                                 <div key={index} className="relative">
-                          {canDeleteImages && (
-                            <div className="absolute top-2 right-2 z-10">
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>{t('item.deleteImage')}</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      {t('item.deleteImageConfirm')}
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel disabled={isDeletingImage}>{t('item.cancel')}</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => {
-                                        setImageToDelete(index === 0 ? 'obverse' : 'reverse');
-                                        handleDeleteImage();
-                                      }}
-                                      className="bg-red-600 hover:bg-red-700"
-                                      disabled={isDeletingImage}
-                                    >
-                                      {isDeletingImage ? t('item.deleting') : t('item.delete')}
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
-                          )}
                           <div
                             className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                             onClick={() => openImageViewer(url)}
@@ -760,42 +636,6 @@ export default function CollectionItem() {
                         // For more than 2 images, stack them vertically
                         displayImages.map((url, index) => (
                           <div key={index} className="w-full relative">
-                            {canDeleteImages && (
-                              <div className="absolute top-2 right-2 z-10">
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="text-red-600 hover:text-red-700 hover:bg-red-100/50 bg-white/80"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>{t('item.deleteImage')}</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        {t('item.deleteImageConfirm')}
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel disabled={isDeletingImage}>{t('item.cancel')}</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => {
-                                          setImageToDelete(index === 0 ? 'obverse' : 'reverse');
-                                          handleDeleteImage();
-                                        }}
-                                        className="bg-red-600 hover:bg-red-700"
-                                        disabled={isDeletingImage}
-                                      >
-                                        {isDeletingImage ? t('item.deleting') : t('item.delete')}
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            )}
                             <div
                               className="w-full cursor-pointer hover:opacity-90 transition-opacity"
                               onClick={() => openImageViewer(url)}
@@ -810,6 +650,44 @@ export default function CollectionItem() {
                             </div>
                           </div>
                         ))
+                      )}
+
+                      {canDeleteImages && (
+                        <div className="mt-2 flex justify-center">
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 py-0 text-xs text-red-600 hover:text-red-700 hover:bg-red-100/60 flex items-center gap-1.5"
+                                disabled={isDeletingImage}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                <span>{displayImages.length > 1 ? t('item.deleteTheseImages') : t('item.deleteThisImage')}</span>
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  <span>{displayImages.length > 1 ? t('item.deleteImages') : t('item.deleteImage')}</span>
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {displayImages.length > 1 ? t('item.deleteImagesConfirm') : t('item.deleteImageConfirm')}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel disabled={isDeletingImage}>{t('item.cancel')}</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={handleDeleteAllImages}
+                                  className="bg-red-600 hover:bg-red-700"
+                                  disabled={isDeletingImage}
+                                >
+                                  {isDeletingImage ? t('item.deleting') : t('item.delete')}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       )}
                     </div>
                   ) : (
@@ -862,7 +740,15 @@ export default function CollectionItem() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <BanknoteCollectionDetail isOwner={isOwner} />
+                <BanknoteCollectionDetail
+                  isOwner={isOwner}
+                  hideImages={Boolean(collectionItem?.hide_images)}
+                  hasImages={hasCustomImages}
+                  isTogglingVisibility={isTogglingVisibility}
+                  showVisibilityDialog={showVisibilityDialog}
+                  setShowVisibilityDialog={setShowVisibilityDialog}
+                  onToggleImageVisibility={handleToggleImageVisibility}
+                />
               </CardContent>
             </Card>
 
