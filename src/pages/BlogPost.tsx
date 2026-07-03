@@ -244,9 +244,9 @@ const BlogPostPage = () => {
 
   const canDeletePost = useMemo(() => {
     if (!user || !post) return false;
-    const isAdmin = user.role?.includes('Admin');
+    const isSuperAdmin = user.role === 'Super Admin';
     const isAuthor = post.authorId === user.id;
-    return isAdmin || isAuthor;
+    return isSuperAdmin || isAuthor;
   }, [user, post]);
 
   const handleDeletePost = async () => {

@@ -11,7 +11,7 @@ export default function CreateGuidePost() {
   const { user } = useAuth();
   const { id } = useParams();
 
-  const isAdmin = user ? user.role === 'Super Admin' || !!user.role?.includes('Admin') : false;
+  const isAdmin = user ? user.role === 'Super Admin' : false;
   const tf = (key: string, fallback: string) => {
     const v = t(key);
     return v === key ? fallback : v;

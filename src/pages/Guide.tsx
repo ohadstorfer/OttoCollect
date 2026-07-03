@@ -28,7 +28,7 @@ const Guide = () => {
   const [groups, setGroups] = useState<QaCategoryGroup[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const isAdmin = user ? user.role === 'Super Admin' || !!user.role?.includes('Admin') : false;
+  const isAdmin = user ? user.role === 'Super Admin' : false;
   const tf = useMemo(
     () => (key: string, fallback: string) => {
       const v = t(key);

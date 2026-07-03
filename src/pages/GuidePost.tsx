@@ -24,7 +24,7 @@ export default function GuidePost() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
 
-  const isAdmin = user ? user.role === 'Super Admin' || !!user.role?.includes('Admin') : false;
+  const isAdmin = user ? user.role === 'Super Admin' : false;
   const tf = (key: string, fallback: string) => {
     const v = t(key);
     return v === key ? fallback : v;
