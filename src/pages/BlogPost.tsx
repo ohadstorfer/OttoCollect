@@ -661,7 +661,7 @@ const BlogPostPage = () => {
                           </div>
 
                           {/* Comment Actions */}
-                          {((user?.id === comment.authorId) || user?.role?.includes('Admin')) && (
+                          {((user?.id === comment.authorId) || user?.role === 'Super Admin') && (
                             <div className="flex gap-2 justify-end">
                               {user?.id === comment.authorId && (
                                 <Button
