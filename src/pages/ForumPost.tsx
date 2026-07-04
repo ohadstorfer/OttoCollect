@@ -211,7 +211,7 @@ const renderComment = (
                         <Reply className="h-3 w-3" />
                       </Button>
                     )}
-                    {((props.user?.id === comment.authorId) || props.user?.role?.includes('Admin')) && (
+                    {((props.user?.id === comment.authorId) || props.user?.role === 'Super Admin') && (
                       <>
                         {props.user?.id === comment.authorId && (
                           <Button
