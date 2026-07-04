@@ -17,7 +17,7 @@ import { Download, Image as ImageIcon, RotateCcw, Save, Play, Search, ExternalLi
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { fetchCountries } from '@/services/countryService';
+import { fetchCountries, fetchCategoriesByCountryId } from '@/services/countryService';
 import {
   generateWatermarkedCanvas,
   regenerateWatermarkedInPlace,
@@ -40,6 +40,14 @@ interface CountryOption {
   id: string;
   name: string;
 }
+
+interface CategoryOption {
+  id: string;
+  name: string;
+}
+
+// Sentinel value for the "All categories" choice (Radix Select disallows empty values).
+const ALL_CATEGORIES = 'all';
 
 interface RegenStats {
   processed: number;
@@ -120,6 +128,8 @@ const WatermarkPreview: React.FC = () => {
   // Per-country settings + bulk regeneration state.
   const [countries, setCountries] = useState<CountryOption[]>([]);
   const [selectedCountryId, setSelectedCountryId] = useState<string>('');
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>(ALL_CATEGORIES);
   const [savingSettings, setSavingSettings] = useState(false);
   const [scanResult, setScanResult] = useState<{ targets: WatermarkTarget[]; skipped: number } | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -134,6 +144,11 @@ const WatermarkPreview: React.FC = () => {
   const [testStats, setTestStats] = useState<RegenStats>({ processed: 0, errors: 0, total: 0 });
 
   const selectedCountryName = countries.find((c) => c.id === selectedCountryId)?.name ?? '';
+  // The category name to filter by, or null when "All" is selected.
+  const selectedCategoryName =
+    selectedCategory === ALL_CATEGORIES
+      ? null
+      : categories.find((c) => c.id === selectedCategory)?.name ?? null;
 
   // Load the country list; for a country admin, lock to their own country.
   useEffect(() => {
@@ -150,16 +165,30 @@ const WatermarkPreview: React.FC = () => {
     })();
   }, [hasAdminAccess, isCountryAdmin, user?.role]);
 
-  // When the country changes, load its saved settings and reset regen state.
+  // When the country changes, load its category list and reset the category to
+  // "All". The settings load is handled by the effect below (keyed on both).
+  useEffect(() => {
+    if (!selectedCountryId) return;
+    setSelectedCategory(ALL_CATEGORIES);
+    (async () => {
+      const cats = await fetchCategoriesByCountryId(selectedCountryId);
+      setCategories(cats.map((c) => ({ id: c.id, name: c.name })));
+    })();
+  }, [selectedCountryId]);
+
+  // Load the settings for the selected country + category (category null = the
+  // country-wide default). Also clears any stale scan count for the old scope.
   useEffect(() => {
     if (!selectedCountryId) return;
     (async () => {
-      const saved = await fetchWatermarkSettings(selectedCountryId);
+      const categoryId = selectedCategory === ALL_CATEGORIES ? null : selectedCategory;
+      const saved = await fetchWatermarkSettings(selectedCountryId, categoryId);
       setSettings(saved);
       setScanResult(null);
       setRegenStats({ processed: 0, errors: 0, total: 0 });
     })();
-  }, [selectedCountryId]);
+  }, [selectedCountryId, selectedCategory]);
+
   const [landscapeImage, setLandscapeImage] = useState<LoadedImage | null>(null);
   const [portraitImage, setPortraitImage] = useState<LoadedImage | null>(null);
   const [landscapePreview, setLandscapePreview] = useState<PreviewState | null>(null);
@@ -232,8 +261,37 @@ const WatermarkPreview: React.FC = () => {
 
   const resetSettings = () => setSettings(DEFAULT_WATERMARK_SETTINGS);
 
-  const handleSaveSettings = async () => {
-    if (!selectedCountryId) {
+  // Human-readable label for the current save/apply scope.
+  const scopeLabel = selectedCategoryName
+    ? `${selectedCountryName} · ${selectedCategoryName}`
+    : `${selectedCountryName} (all categories)`;
+
+  // Sequentially re-applies the current settings to every target, reporting
+  // progress via setStats. Sequential on purpose: re-encoding + uploading many
+  // images at once would exhaust browser memory and saturate the connection.
+  const regenerateTargets = async (
+    targets: WatermarkTarget[],
+    setStats: (s: RegenStats) => void
+  ): Promise<RegenStats> => {
+    const stats: RegenStats = { processed: 0, errors: 0, total: targets.length };
+    setStats({ ...stats });
+    for (const target of targets) {
+      try {
+        await regenerateWatermarkedInPlace(target.originalUrl, target.watermarkedUrl, settings);
+        stats.processed += 1;
+      } catch (err) {
+        console.error('Failed to regenerate watermark:', target.watermarkedUrl, err);
+        stats.errors += 1;
+      }
+      setStats({ ...stats });
+    }
+    return stats;
+  };
+
+  // Saves the settings for the selected country/category AND regenerates every
+  // watermarked photo in that scope, in one action.
+  const handleSaveAndApply = async () => {
+    if (!selectedCountryId || !selectedCountryName) {
       toast({
         title: 'Select a country',
         description: 'Choose a country before saving settings.',
@@ -241,15 +299,36 @@ const WatermarkPreview: React.FC = () => {
       });
       return;
     }
+    const categoryId = selectedCategory === ALL_CATEGORIES ? null : selectedCategory;
     setSavingSettings(true);
     try {
-      await saveWatermarkSettings(selectedCountryId, settings);
-      toast({ title: 'Saved', description: `Watermark settings saved for ${selectedCountryName}.` });
+      // Find what would be affected first, so the confirmation shows a count.
+      const result = await collectCountryWatermarkTargets(selectedCountryName, selectedCategoryName);
+      setScanResult(result);
+      const ok = window.confirm(
+        `Save watermark settings for ${scopeLabel} and regenerate ${result.targets.length} existing photo(s)?\n\n` +
+          'Files are overwritten in place (same URL); the CDN cache may take up to a minute to refresh.'
+      );
+      if (!ok) return;
+
+      await saveWatermarkSettings(selectedCountryId, settings, categoryId);
+
+      if (result.targets.length === 0) {
+        toast({ title: 'Saved', description: `Settings saved for ${scopeLabel}. No existing photos to regenerate.` });
+        return;
+      }
+      setIsRegenerating(true);
+      const stats = await regenerateTargets(result.targets, setRegenStats);
+      toast({
+        title: 'Saved & applied',
+        description: `${scopeLabel} — Processed: ${stats.processed}, Errors: ${stats.errors}`,
+      });
     } catch (err) {
-      console.error('Failed to save watermark settings:', err);
-      toast({ title: 'Error', description: 'Could not save settings.', variant: 'destructive' });
+      console.error('Failed to save & apply watermark settings:', err);
+      toast({ title: 'Error', description: 'Could not save & apply settings.', variant: 'destructive' });
     } finally {
       setSavingSettings(false);
+      setIsRegenerating(false);
     }
   };
 
@@ -258,7 +337,7 @@ const WatermarkPreview: React.FC = () => {
     setIsScanning(true);
     setScanResult(null);
     try {
-      const result = await collectCountryWatermarkTargets(selectedCountryName);
+      const result = await collectCountryWatermarkTargets(selectedCountryName, selectedCategoryName);
       setScanResult(result);
       setRegenStats({ processed: 0, errors: 0, total: result.targets.length });
     } catch (err) {
@@ -272,20 +351,7 @@ const WatermarkPreview: React.FC = () => {
   const handleRegenerate = async () => {
     if (!scanResult || scanResult.targets.length === 0) return;
     setIsRegenerating(true);
-    const stats: RegenStats = { processed: 0, errors: 0, total: scanResult.targets.length };
-    setRegenStats({ ...stats });
-    // Sequential on purpose: re-encoding + uploading many images at once would
-    // exhaust browser memory and saturate the connection.
-    for (const target of scanResult.targets) {
-      try {
-        await regenerateWatermarkedInPlace(target.originalUrl, target.watermarkedUrl, settings);
-        stats.processed += 1;
-      } catch (err) {
-        console.error('Failed to regenerate watermark:', target.watermarkedUrl, err);
-        stats.errors += 1;
-      }
-      setRegenStats({ ...stats });
-    }
+    const stats = await regenerateTargets(scanResult.targets, setRegenStats);
     setIsRegenerating(false);
     toast({
       title: 'Regeneration complete',
@@ -313,18 +379,7 @@ const WatermarkPreview: React.FC = () => {
   const handleTestRegenerate = async () => {
     if (!testScanResult || testScanResult.targets.length === 0) return;
     setIsTestRegenerating(true);
-    const stats: RegenStats = { processed: 0, errors: 0, total: testScanResult.targets.length };
-    setTestStats({ ...stats });
-    for (const target of testScanResult.targets) {
-      try {
-        await regenerateWatermarkedInPlace(target.originalUrl, target.watermarkedUrl, settings);
-        stats.processed += 1;
-      } catch (err) {
-        console.error('Failed to regenerate watermark (test):', target.watermarkedUrl, err);
-        stats.errors += 1;
-      }
-      setTestStats({ ...stats });
-    }
+    const stats = await regenerateTargets(testScanResult.targets, setTestStats);
     setIsTestRegenerating(false);
     toast({
       title: 'Test regeneration complete',
@@ -468,49 +523,85 @@ const WatermarkPreview: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle><span>Country</span></CardTitle>
+          <CardTitle><span>Country &amp; category</span></CardTitle>
         </CardHeader>
         <CardContent>
-          {isCountryAdmin ? (
-            <p className="text-sm text-muted-foreground">
-              Managing watermark settings for <strong>{selectedCountryName || '…'}</strong>
-            </p>
-          ) : (
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+            {isCountryAdmin ? (
+              <p className="text-sm text-muted-foreground">
+                Managing watermark settings for <strong>{selectedCountryName || '…'}</strong>
+              </p>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="watermark-country-select">Select a country</Label>
+                <Select value={selectedCountryId} onValueChange={setSelectedCountryId}>
+                  <SelectTrigger id="watermark-country-select" className="w-64">
+                    <SelectValue placeholder="Select a country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map((country) => (
+                      <SelectItem key={country.id} value={country.id}>
+                        {country.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="watermark-country-select">Select a country</Label>
-              <Select value={selectedCountryId} onValueChange={setSelectedCountryId}>
-                <SelectTrigger id="watermark-country-select" className="w-64">
-                  <SelectValue placeholder="Select a country" />
+              <Label htmlFor="watermark-category-select">Category</Label>
+              <Select
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+                disabled={!selectedCountryId}
+              >
+                <SelectTrigger id="watermark-category-select" className="w-64">
+                  <SelectValue placeholder="All categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  {countries.map((country) => (
-                    <SelectItem key={country.id} value={country.id}>
-                      {country.name}
+                  <SelectItem value={ALL_CATEGORIES}>All categories</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle><span>Watermark settings</span></CardTitle>
-          <div className="flex gap-2">
+        <CardHeader className="flex flex-row items-start justify-between gap-4">
+          <div>
+            <CardTitle><span>Watermark settings</span></CardTitle>
+            <p className="text-muted-foreground text-sm mt-1">
+              Editing settings for{' '}
+              <strong>{selectedCountryName || 'the selected country'}</strong>
+              {selectedCategoryName && <> · <strong>{selectedCategoryName}</strong></>}.
+              {' '}Saving applies them to the existing photos of this{' '}
+              {selectedCategoryName ? 'category' : 'country'}.
+            </p>
+          </div>
+          <div className="flex gap-2 shrink-0">
             <Button onClick={resetSettings} variant="outline" size="sm" className="gap-2">
               <RotateCcw className="h-4 w-4" />
               Reset to defaults
             </Button>
             <Button
-              onClick={handleSaveSettings}
-              disabled={!selectedCountryId || savingSettings}
+              onClick={handleSaveAndApply}
+              disabled={!selectedCountryId || savingSettings || isRegenerating}
               size="sm"
               className="gap-2"
             >
               <Save className="h-4 w-4" />
-              {savingSettings ? 'Saving…' : 'Save for country'}
+              {savingSettings || isRegenerating
+                ? 'Applying…'
+                : selectedCategoryName
+                ? 'Save & apply to category'
+                : 'Save & apply to country'}
             </Button>
           </div>
         </CardHeader>
@@ -538,9 +629,14 @@ const WatermarkPreview: React.FC = () => {
             <CardTitle><span>Regenerate watermarks for this country</span></CardTitle>
             <p className="text-muted-foreground text-sm mt-1">
               Re-applies the saved settings to every existing watermarked photo of{' '}
-              <strong>{selectedCountryName || 'the selected country'}</strong> — catalog,
-              unlisted, and collection items. Files are overwritten in place (same URL);
-              the CDN cache may take up to a minute to refresh.
+              <strong>{selectedCountryName || 'the selected country'}</strong>
+              {selectedCategoryName ? (
+                <> in category <strong>{selectedCategoryName}</strong></>
+              ) : (
+                <> (all categories)</>
+              )}{' '}
+              — catalog, unlisted, and collection items. Files are overwritten in place
+              (same URL); the CDN cache may take up to a minute to refresh.
             </p>
           </div>
           <div className="flex gap-2">

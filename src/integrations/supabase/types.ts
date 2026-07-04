@@ -2530,6 +2530,7 @@ export type Database = {
       }
       watermark_settings: {
         Row: {
+          category_id: string | null
           country_id: string
           id: string
           opacity: number
@@ -2543,6 +2544,7 @@ export type Database = {
           width_ratio_portrait: number
         }
         Insert: {
+          category_id?: string | null
           country_id: string
           id?: string
           opacity: number
@@ -2556,6 +2558,7 @@ export type Database = {
           width_ratio_portrait: number
         }
         Update: {
+          category_id?: string | null
           country_id?: string
           id?: string
           opacity?: number
@@ -2572,8 +2575,15 @@ export type Database = {
           {
             foreignKeyName: "watermark_settings_country_id_fkey"
             columns: ["country_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "watermark_settings_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "banknote_category_definitions"
             referencedColumns: ["id"]
           },
         ]

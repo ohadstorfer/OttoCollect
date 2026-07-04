@@ -38,38 +38,64 @@ function rowToSettings(row: {
   };
 }
 
-/**
- * Returns the watermark settings saved for a country, or the app defaults when
- * no row exists yet.
- */
-export async function fetchWatermarkSettings(countryId: string): Promise<WatermarkSettings> {
-  const { data, error } = await supabase
-    .from('watermark_settings')
-    .select(
-      'width_ratio_portrait, width_ratio_landscape, padding_x_ratio_portrait, padding_y_ratio_portrait, padding_x_ratio_landscape, padding_y_ratio_landscape, opacity'
-    )
-    .eq('country_id', countryId)
-    .maybeSingle();
+const SETTINGS_COLUMNS =
+  'width_ratio_portrait, width_ratio_landscape, padding_x_ratio_portrait, padding_y_ratio_portrait, padding_x_ratio_landscape, padding_y_ratio_landscape, opacity';
 
+// Reads a single settings row for (country, category); category null = country-wide.
+async function fetchSettingsRow(
+  countryId: string,
+  categoryId: string | null
+): Promise<WatermarkSettings | null> {
+  let query = supabase
+    .from('watermark_settings')
+    .select(SETTINGS_COLUMNS)
+    .eq('country_id', countryId);
+  query = categoryId ? query.eq('category_id', categoryId) : query.is('category_id', null);
+
+  const { data, error } = await query.maybeSingle();
   if (error) {
     console.error('Error fetching watermark settings:', error);
-    return DEFAULT_WATERMARK_SETTINGS;
+    return null;
   }
-  return data ? rowToSettings(data) : DEFAULT_WATERMARK_SETTINGS;
+  return data ? rowToSettings(data) : null;
 }
 
 /**
- * Inserts or updates the watermark settings for a country.
+ * Returns the watermark settings to show for a country/category, with a
+ * fallback chain: the category's own row → the country-wide row → app defaults.
+ *
+ * @param countryId The country to read settings for.
+ * @param categoryId A specific category, or null/omitted for the country-wide row.
+ */
+export async function fetchWatermarkSettings(
+  countryId: string,
+  categoryId: string | null = null
+): Promise<WatermarkSettings> {
+  if (categoryId) {
+    const categorySettings = await fetchSettingsRow(countryId, categoryId);
+    if (categorySettings) return categorySettings;
+    // Fall back to the country-wide default when the category has no row yet.
+  }
+  const countrySettings = await fetchSettingsRow(countryId, null);
+  return countrySettings ?? DEFAULT_WATERMARK_SETTINGS;
+}
+
+/**
+ * Inserts or updates the watermark settings for a country/category.
+ *
+ * @param categoryId A specific category, or null for the country-wide default.
  */
 export async function saveWatermarkSettings(
   countryId: string,
-  settings: WatermarkSettings
+  settings: WatermarkSettings,
+  categoryId: string | null = null
 ): Promise<void> {
   const { data: userData } = await supabase.auth.getUser();
 
   const { error } = await supabase.from('watermark_settings').upsert(
     {
       country_id: countryId,
+      category_id: categoryId,
       width_ratio_portrait: settings.widthRatioPortrait,
       width_ratio_landscape: settings.widthRatioLandscape,
       padding_x_ratio_portrait: settings.paddingXRatioPortrait,
@@ -80,7 +106,7 @@ export async function saveWatermarkSettings(
       updated_at: new Date().toISOString(),
       updated_by: userData?.user?.id ?? null,
     },
-    { onConflict: 'country_id' }
+    { onConflict: 'country_id,category_id' }
   );
 
   if (error) throw error;
@@ -115,17 +141,23 @@ function chunk<T>(arr: T[], size: number): T[][] {
  * collection items that reference either of them.
  *
  * @param countryName The country name string (matches the `country` column).
+ * @param categoryName Optional category name to narrow the scope to a single
+ *   category within the country (matches the `category` column). When omitted or
+ *   null, every category is included.
  */
 export async function collectCountryWatermarkTargets(
-  countryName: string
+  countryName: string,
+  categoryName?: string | null
 ): Promise<WatermarkScanResult> {
   const result: WatermarkScanResult = { targets: [], skipped: 0 };
 
-  // 1. Catalog banknotes for this country.
-  const { data: catalog, error: catalogError } = await supabase
+  // 1. Catalog banknotes for this country (optionally narrowed to one category).
+  let catalogQuery = supabase
     .from('detailed_banknotes')
     .select('id, front_picture, front_picture_watermarked, back_picture, back_picture_watermarked')
     .eq('country', countryName);
+  if (categoryName) catalogQuery = catalogQuery.eq('category', categoryName);
+  const { data: catalog, error: catalogError } = await catalogQuery;
   if (catalogError) throw catalogError;
 
   const catalogIds: string[] = [];
@@ -135,11 +167,13 @@ export async function collectCountryWatermarkTargets(
     addPair(result, b.back_picture, b.back_picture_watermarked);
   }
 
-  // 2. Unlisted banknotes for this country.
-  const { data: unlisted, error: unlistedError } = await supabase
+  // 2. Unlisted banknotes for this country (optionally narrowed to one category).
+  let unlistedQuery = supabase
     .from('unlisted_banknotes')
     .select('id, front_picture, front_picture_watermarked, back_picture, back_picture_watermarked')
     .eq('country', countryName);
+  if (categoryName) unlistedQuery = unlistedQuery.eq('category', categoryName);
+  const { data: unlisted, error: unlistedError } = await unlistedQuery;
   if (unlistedError) throw unlistedError;
 
   const unlistedIds: string[] = [];
