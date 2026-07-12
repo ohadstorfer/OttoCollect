@@ -328,14 +328,26 @@ export interface WishlistItem {
   created_at: string;
 }
 
+export type ListingType = 'sale' | 'auction';
+
 export interface MarketplaceItem {
   id: string;
   seller_id: string;
   collection_item_id: string;
   banknote_id: string;
-  status: 'Available' | 'Sold' | 'Reserved';
-  external_listing_url?: string;
+  status: 'Available' | 'Sold' | 'Reserved' | 'Draft';
+  external_listing_url?: string | null;
   is_url_approved?: boolean;
+  listing_type?: ListingType;
+  public_remark?: string | null;
+  is_sold?: boolean;
+  sold_at?: string | null;
+  auction_at?: string | null;
+  auction_timezone?: string | null;
+  lot_number?: string | null;
+  start_price?: number | null;
+  estimated_price?: string | null;
+  realized_price?: number | null;
   created_at: string;
   updated_at: string;
   // Additional properties returned by the service
