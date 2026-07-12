@@ -17,6 +17,8 @@ import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatAuctionDateTime, getListingHostname } from "@/lib/marketplaceListing";
+import { MarketplaceListingDialog } from "@/components/marketplace/MarketplaceListingDialog";
 
 const MarketplaceItemDetailUnlisted = () => {
   console.log('Rendering MarketplaceItemDetailUnlisted component');
@@ -28,6 +30,7 @@ const MarketplaceItemDetailUnlisted = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [isListingDialogOpen, setIsListingDialogOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -42,43 +45,43 @@ const MarketplaceItemDetailUnlisted = () => {
     };
   }, [t]);
 
-  useEffect(() => {
-    const fetchItem = async () => {
-      if (!id) {
-        console.log('No ID provided in params');
+  const fetchItem = async () => {
+    if (!id) {
+      console.log('No ID provided in params');
+      return;
+    }
+
+    console.log('Starting to fetch marketplace item with ID:', id);
+    setLoading(true);
+    try {
+      // We're getting the marketplace item by its ID directly
+      const fetchedItem = await getMarketplaceItemById(id);
+      console.log('Fetched marketplace item result:', fetchedItem);
+
+      if (!fetchedItem) {
+        console.error('Item not found or no longer available');
+        setError(tWithFallback('status.itemNotFound', 'Item not found or no longer available'));
         return;
       }
 
-      console.log('Starting to fetch marketplace item with ID:', id);
-      setLoading(true);
-      try {
-        // We're getting the marketplace item by its ID directly
-        const fetchedItem = await getMarketplaceItemById(id);
-        console.log('Fetched marketplace item result:', fetchedItem);
+      console.log('Setting marketplace item in state:', fetchedItem);
+      setItem(fetchedItem);
 
-        if (!fetchedItem) {
-          console.error('Item not found or no longer available');
-          setError(tWithFallback('status.itemNotFound', 'Item not found or no longer available'));
-          return;
-        }
+    } catch (err) {
+      console.error("Error fetching marketplace item:", err);
+      setError(tWithFallback('status.failedToLoadItem', 'Failed to load marketplace item'));
+      toast({
+        title: tWithFallback('status.error', 'Error'),
+        description: tWithFallback('status.couldNotLoadDetails', 'Could not load the marketplace item details'),
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+      console.log('Finished loading marketplace item');
+    }
+  };
 
-        console.log('Setting marketplace item in state:', fetchedItem);
-        setItem(fetchedItem);
-
-      } catch (err) {
-        console.error("Error fetching marketplace item:", err);
-        setError(tWithFallback('status.failedToLoadItem', 'Failed to load marketplace item'));
-        toast({
-          title: tWithFallback('status.error', 'Error'),
-          description: tWithFallback('status.couldNotLoadDetails', 'Could not load the marketplace item details'),
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-        console.log('Finished loading marketplace item');
-      }
-    };
-
+  useEffect(() => {
     fetchItem();
   }, [id, toast]);
 
@@ -146,6 +149,9 @@ const MarketplaceItemDetailUnlisted = () => {
   console.log('Rendering marketplace item details with data:', item);
   const { collectionItem, seller, status } = item;
   const { banknote, condition, salePrice, publicNote, privateNote, obverseImage, reverseImage } = collectionItem;
+
+  const isAuction = item.listing_type === 'auction';
+  const showSource = Boolean(item.external_listing_url && item.is_url_approved);
 
   console.log('Banknote data for detail view:', banknote);
   console.log('Image sources:', { obverseImage, reverseImage, banknoteImages: banknote.imageUrls });
@@ -220,7 +226,7 @@ const MarketplaceItemDetailUnlisted = () => {
 
                 </div>
 
-                {user && user.id !== seller.id && (
+                {!isAuction && user && user.id !== seller.id && (
                   <div>
                     <ContactSeller
                       sellerId={seller.id}
@@ -230,12 +236,19 @@ const MarketplaceItemDetailUnlisted = () => {
                     />
                   </div>
                 )}
-                
+
                 {user && user.id === seller.id && (
-                  <div>
-                    <Button 
-                      variant="destructive" 
-                      size="sm" 
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsListingDialogOpen(true)}
+                    >
+                      {t('listing.editItem')}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
                       onClick={handleRemoveFromMarketplace}
                       disabled={isRemoving}
                     >
@@ -275,7 +288,9 @@ const MarketplaceItemDetailUnlisted = () => {
                 </div>
 
                 <div className="text-3xl font-bold text-ottoman-500">
-                  <span className={`${direction === 'rtl' ? 'text-left' : 'text-right'}`}> ${salePrice} </span>
+                  {!isAuction && salePrice != null && (
+                    <span className={`${direction === 'rtl' ? 'text-left' : 'text-right'}`}> ${salePrice} </span>
+                  )}
                 </div>
               </div>
               <div className={`mb-2 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
@@ -283,6 +298,43 @@ const MarketplaceItemDetailUnlisted = () => {
                   {tWithFallback('item.unlistedBanknote', 'Unlisted Banknote')}
                 </span>
               </div>
+
+              <p className="text-base font-semibold text-foreground mt-1">
+                <span>{isAuction ? t('listing.auctionItem') : t('listing.buyNowItem')}</span>
+              </p>
+              {item.public_remark && (
+                <p className="text-sm text-muted-foreground mt-2">{item.public_remark}</p>
+              )}
+              {isAuction && (
+                <div className="mt-3 space-y-1 text-sm">
+                  {item.auction_at && (
+                    <div className="rounded border bg-muted/40 px-3 py-2">
+                      <p className="text-xs text-muted-foreground">{t('listing.auctionDateTime')}</p>
+                      <p className="font-bold">{formatAuctionDateTime(item.auction_at, item.auction_timezone ?? null)}</p>
+                    </div>
+                  )}
+                  {item.lot_number && <p>{t('listing.lot')}: {item.lot_number}</p>}
+                  {item.start_price != null && <p>{t('listing.startPrice')}: ${item.start_price}</p>}
+                  {item.estimated_price && <p>{t('listing.estimatedPrice')}: ${item.estimated_price}</p>}
+                  {item.realized_price != null && <p>{t('listing.realizedPrice')}: ${item.realized_price}</p>}
+                </div>
+              )}
+              {showSource && (
+                <div className="mt-3">
+                  <Button
+                    className="w-full sm:w-auto bg-ottoman-600 hover:bg-ottoman-700 text-white font-semibold"
+                    onClick={() => window.open(item.external_listing_url!, '_blank', 'noopener,noreferrer')}
+                  >
+                    {t('listing.viewSource')}
+                  </Button>
+                  {getListingHostname(item.external_listing_url) && (
+                    <p className="text-sm text-ottoman-700 dark:text-ottoman-300 mt-1">
+                      {getListingHostname(item.external_listing_url)}
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center gap-2 mb-4">
 
 
@@ -346,6 +398,15 @@ const MarketplaceItemDetailUnlisted = () => {
            </Card>
         </div>
       </div>
+
+      {item.collectionItem?.id && (
+        <MarketplaceListingDialog
+          open={isListingDialogOpen}
+          onOpenChange={setIsListingDialogOpen}
+          collectionItemId={item.collectionItem.id}
+          onSaved={() => fetchItem()}
+        />
+      )}
     </div>
   );
 };
