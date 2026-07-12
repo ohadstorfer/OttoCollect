@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { MarketplaceItem as MarketplaceItemType } from "@/types";
-import { SortAsc, AlertCircle, RefreshCw } from "lucide-react";
+import { SortAsc, AlertCircle, RefreshCw, Archive } from "lucide-react";
+import { isListingArchived } from "@/lib/marketplaceListing";
 import MarketplaceItem from "@/components/marketplace/MarketplaceItem";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -43,6 +44,7 @@ const Marketplace = () => {
   const [availableCategories, setAvailableCategories] = useState<FilterOption[]>([]);
   const [availableTypes, setAvailableTypes] = useState<FilterOption[]>([]);
   const [availableCountries, setAvailableCountries] = useState<FilterOption[]>([]);
+  const [view, setView] = useState<'active' | 'archive'>('active');
 
 
 
@@ -131,15 +133,22 @@ const Marketplace = () => {
     loadMarketplaceItems();
   }, [loadMarketplaceItems]);
 
+  // Split into active vs. archived listings before the filter pipeline so
+  // filters/sorting operate only on the items relevant to the current view.
+  const visibleItems = useMemo(
+    () => marketplaceItems.filter((i) => (view === 'archive') === isListingArchived(i)),
+    [marketplaceItems, view]
+  );
+
   // Transform marketplace items to have the banknote property at the top level
   // This allows useBanknoteFilter to work correctly, while preserving collectionItem for price sorting
   const marketplaceItemsForFilter = useMemo(() => {
-    return marketplaceItems.map(item => ({
+    return visibleItems.map(item => ({
       ...item,
       banknote: item.collectionItem?.banknote,
       collectionItem: item.collectionItem // Preserve collectionItem for price/date sorting
     }));
-  }, [marketplaceItems]);
+  }, [visibleItems]);
 
   const {
     filteredItems,
@@ -196,15 +205,18 @@ const Marketplace = () => {
   }, [error, handleRefresh, t]);
 
   const emptySection = useMemo(() => {
+    const hasActiveFilters = filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search || filters.countries?.length > 0 || filters.sort?.length > 0);
     return (
       <Card className="text-center py-20 dark:bg-dark-600/50 bg-white/90 dark:border-ottoman-900/30 border-ottoman-200/70">
         <h3 className="text-2xl font-serif font-semibold dark:text-ottoman-200 text-ottoman-800 mb-2">
           <span>{tWithFallback('status.noItems', 'No Items Found')}</span>
         </h3>
         <p className="dark:text-ottoman-400 text-ottoman-600 mb-6">
-          {filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search || filters.countries?.length > 0 || filters.sort?.length > 0)
-            ? tWithFallback('status.noItemsFiltered', 'No items match your current filters. Try adjusting your criteria.')
-            : tWithFallback('status.noItemsDescription', 'There are currently no items available in the marketplace')}
+          {view === 'archive' && !hasActiveFilters
+            ? t('listing.noArchivedItems')
+            : hasActiveFilters
+              ? tWithFallback('status.noItemsFiltered', 'No items match your current filters. Try adjusting your criteria.')
+              : tWithFallback('status.noItemsDescription', 'There are currently no items available in the marketplace')}
         </p>
         <div className="space-x-4">
           <Button
@@ -214,7 +226,7 @@ const Marketplace = () => {
             <RefreshCw className="h-4 w-4 mr-2" />
             {tWithFallback('actions.refresh', 'Refresh')}
           </Button>
-          {filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search || filters.countries?.length > 0 || filters.sort?.length > 0) && (
+          {hasActiveFilters && (
             <Button
               variant="outline"
               onClick={() => setFilters({ categories: [], types: [], search: "", sort: ["newest"], countries: [] })}
@@ -225,7 +237,7 @@ const Marketplace = () => {
         </div>
       </Card>
     );
-  }, [handleRefresh, filters, setFilters, t]);
+  }, [handleRefresh, filters, setFilters, t, view]);
 
   const marketplaceItemsSection = useMemo(() => {
   if (!filteredItems || filteredItems.length === 0) {
@@ -300,7 +312,25 @@ const Marketplace = () => {
                 availableTypes={availableTypes}
                 availableCountries={availableCountries}
               />
-            
+
+            <div className="flex justify-center gap-2 my-3">
+              <Button
+                variant={view === 'active' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setView('active')}
+              >
+                {t('listing.activeTab')}
+              </Button>
+              <Button
+                variant={view === 'archive' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setView('archive')}
+              >
+                <Archive className="w-4 h-4 mr-1" />
+                {t('listing.archiveTab')}
+              </Button>
+            </div>
+
             {contentSection}
             
           </div>
