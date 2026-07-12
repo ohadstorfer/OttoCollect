@@ -206,13 +206,18 @@ const Marketplace = () => {
 
   const emptySection = useMemo(() => {
     const hasActiveFilters = filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search || filters.countries?.length > 0 || filters.sort?.length > 0);
+    // The archive itself may be empty (no archived listings at all) regardless of
+    // filter state — sort is always seeded with a default value, so hasActiveFilters
+    // alone can never distinguish "nothing archived" from "filters hid everything".
+    const isArchiveEmpty = view === 'archive' && visibleItems.length === 0;
+    const showClearFilters = hasActiveFilters && !isArchiveEmpty;
     return (
       <Card className="text-center py-20 dark:bg-dark-600/50 bg-white/90 dark:border-ottoman-900/30 border-ottoman-200/70">
         <h3 className="text-2xl font-serif font-semibold dark:text-ottoman-200 text-ottoman-800 mb-2">
           <span>{tWithFallback('status.noItems', 'No Items Found')}</span>
         </h3>
         <p className="dark:text-ottoman-400 text-ottoman-600 mb-6">
-          {view === 'archive' && !hasActiveFilters
+          {isArchiveEmpty
             ? t('listing.noArchivedItems')
             : hasActiveFilters
               ? tWithFallback('status.noItemsFiltered', 'No items match your current filters. Try adjusting your criteria.')
@@ -226,7 +231,7 @@ const Marketplace = () => {
             <RefreshCw className="h-4 w-4 mr-2" />
             {tWithFallback('actions.refresh', 'Refresh')}
           </Button>
-          {hasActiveFilters && (
+          {showClearFilters && (
             <Button
               variant="outline"
               onClick={() => setFilters({ categories: [], types: [], search: "", sort: ["newest"], countries: [] })}
@@ -237,7 +242,7 @@ const Marketplace = () => {
         </div>
       </Card>
     );
-  }, [handleRefresh, filters, setFilters, t, view]);
+  }, [handleRefresh, filters, setFilters, t, view, visibleItems]);
 
   const marketplaceItemsSection = useMemo(() => {
   if (!filteredItems || filteredItems.length === 0) {
