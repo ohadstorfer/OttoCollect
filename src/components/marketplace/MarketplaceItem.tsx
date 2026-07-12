@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/context/LanguageContext";
+import { formatAuctionDateTime, getListingHostname } from '@/lib/marketplaceListing';
 
 interface MarketplaceItemProps {
   item: MarketplaceItemType;
@@ -61,7 +62,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
     return languageSpecificField || field;
   };
   
-  const { collectionItem, seller, status } = item;
+  const { collectionItem, seller } = item;
   
   // Safety check - if collectionItem or banknote is undefined, render a placeholder
   if (!collectionItem || !collectionItem.banknote) {
@@ -76,9 +77,18 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
  
   
   const { banknote, condition, salePrice, publicNote } = collectionItem;
-  
- 
-  
+
+  const isAuction = item.listing_type === 'auction';
+  const showSource = Boolean(item.external_listing_url && item.is_url_approved);
+  const sourceHostname = getListingHostname(item.external_listing_url);
+  const auctionDateTime = item.auction_at
+    ? formatAuctionDateTime(item.auction_at, item.auction_timezone ?? null)
+    : null;
+  const handleViewSource = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    window.open(item.external_listing_url!, '_blank', 'noopener,noreferrer');
+  };
+
   const handleViewDetails = () => {
     if (!user) {
       setShowAuthDialog(true);
@@ -92,20 +102,6 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   const handleAuthNavigate = () => {
     setShowAuthDialog(false);
     navigate('/auth');
-  };
-  
-  const getStatusBadge = () => {
-    
-    switch (status) {
-      case "Available":
-        return <Badge variant="primary">{tWithFallback('item.status.available', 'Available')}</Badge>;
-      case "Reserved":
-        return <Badge variant="secondary">{tWithFallback('item.status.reserved', 'Reserved')}</Badge>;
-      case "Sold":
-        return <Badge variant="destructive">{tWithFallback('item.status.sold', 'Sold')}</Badge>;
-      default:
-        return null;
-    }
   };
   
   const sellerRank = (seller?.rank || "Newbie") as UserRank;
@@ -139,13 +135,17 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
             />
           </div>
           
-          <div className="absolute top-0 left-0 bg-ottoman-600/90 text-white px-3 py-1 flex items-center font-semibold">
-            ${salePrice}
-          </div>
-          
-          <div className="absolute top-2 right-2">
-            {getStatusBadge()}
-          </div>
+          {!isAuction && salePrice != null && (
+            <div className="absolute top-0 left-0 bg-ottoman-700/95 text-white px-3 py-1 flex items-center text-lg font-bold">
+              ${salePrice}
+            </div>
+          )}
+
+          {item.is_sold && (
+            <div className="absolute top-2 right-2">
+              <Badge variant="destructive">{t('listing.sold')}</Badge>
+            </div>
+          )}
         </div>
         
         <CardHeader className="pt-2.5 pb-0 px-4">
@@ -163,7 +163,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
                   )}
                   </div>
 
-                  <p className="text-sm text-ottoman-300">
+                  <p className="text-base text-ottoman-600 dark:text-ottoman-300">
                     {getLocalizedField(banknote.country, 'country')}
                     {banknote.country && banknote.year && ', '}
                     {banknote.year}
@@ -187,25 +187,60 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
         </CardHeader>
         
         <CardContent className={`pt-0 pb-1 px-4 ${direction === "rtl" ? "text-right" : "text-left"}`}>
-          {publicNote && (
-            <p className="text-sm text-ottoman-200 line-clamp-2 mb-2">
-              {publicNote}
+          {(item.public_remark || publicNote) && (
+            <p className="text-sm text-ottoman-700 dark:text-ottoman-200 line-clamp-2 mb-2">
+              {item.public_remark || publicNote}
             </p>
           )}
-          
+
+          {isAuction && (
+            <div className="mt-2 space-y-0.5 text-sm">
+              {auctionDateTime && (
+                <div className="rounded border border-ottoman-200 dark:border-ottoman-700 bg-muted/40 px-2 py-1">
+                  <p className="text-xs text-muted-foreground">{t('listing.auctionDateTime')}</p>
+                  <p className="font-bold">{auctionDateTime}</p>
+                </div>
+              )}
+              {item.lot_number && <p>{t('listing.lot')}: {item.lot_number}</p>}
+              {item.start_price != null && <p>{t('listing.startPrice')}: ${item.start_price}</p>}
+              {item.estimated_price && <p>{t('listing.estimatedPrice')}: ${item.estimated_price}</p>}
+              {item.realized_price != null && <p>{t('listing.realizedPrice')}: ${item.realized_price}</p>}
+            </div>
+          )}
+
           {seller && (
             <div className="flex items-center gap-2 mt-2">
-              <span className="text-xs text-ottoman-400">{tWithFallback('item.seller', 'Seller')}:</span>
+              <span className="text-sm text-ottoman-600 dark:text-ottoman-400">{tWithFallback('item.seller', 'Seller')}:</span>
               <div className="flex items-center gap-1">
-                <span className="text-sm text-ottoman-200">{seller.username}</span>
+                <span className="text-base text-ottoman-700 dark:text-ottoman-200">{seller.username}</span>
                 <Badge variant="user" rank={sellerRank} role={seller.role} className="ml-1" />
               </div>
             </div>
           )}
         </CardContent>
-        
-        <CardFooter className="pt-2 pb-0 px-4 flex justify-between">
-          <ContactSellerButton item={item} />
+
+        <CardFooter className="pt-2 pb-3 px-4 flex flex-col items-stretch gap-1">
+          {showSource && (
+            <>
+              <Button
+                className="w-full bg-ottoman-600 hover:bg-ottoman-700 text-white font-semibold"
+                onClick={handleViewSource}
+              >
+                {t('listing.viewSource')}
+              </Button>
+              {sourceHostname && (
+                <p className="text-center text-sm text-ottoman-700 dark:text-ottoman-300">{sourceHostname}</p>
+              )}
+            </>
+          )}
+          <p className="text-center text-base font-semibold text-foreground">
+            {isAuction ? t('listing.auctionItem') : t('listing.buyNowItem')}
+          </p>
+          {!isAuction && (
+            <div className="flex justify-between pt-1" onClick={(e) => e.stopPropagation()}>
+              <ContactSellerButton item={item} />
+            </div>
+          )}
         </CardFooter>
       </Card>
 
