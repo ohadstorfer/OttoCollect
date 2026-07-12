@@ -17,3 +17,10 @@ alter table public.marketplace_items
 alter table public.marketplace_items
   add constraint marketplace_items_listing_type_check
   check (listing_type in ('sale', 'auction'));
+
+-- Drafts are stored as status='Draft'; widen the existing status check.
+alter table public.marketplace_items
+  drop constraint if exists valid_status;
+alter table public.marketplace_items
+  add constraint valid_status
+  check (status in ('Available', 'Reserved', 'Sold', 'Draft'));
