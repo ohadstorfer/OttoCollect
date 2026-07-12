@@ -4,6 +4,8 @@ import { MarketplaceItem, UserRank, User, BanknoteCondition } from "@/types";
 import { fetchCollectionItem } from "./collectionService";
 import { normalizeBanknoteData } from "@/services/collectionService";
 import { mapBanknoteFromDatabase } from "@/services/banknoteService";
+import { isListingArchived } from '@/lib/marketplaceListing';
+import type { ListingType } from '@/types';
 
 // Add user type adaptations to fix typescript errors
 const adaptSellerToUserType = (seller: { 
@@ -141,6 +143,18 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
             sellerId: item.seller_id,
             seller,
             status: item.status,
+            external_listing_url: item.external_listing_url,
+            is_url_approved: item.is_url_approved,
+            listing_type: (item.listing_type ?? 'sale') as ListingType,
+            public_remark: item.public_remark,
+            is_sold: item.is_sold ?? false,
+            sold_at: item.sold_at,
+            auction_at: item.auction_at,
+            auction_timezone: item.auction_timezone,
+            lot_number: item.lot_number,
+            start_price: item.start_price,
+            estimated_price: item.estimated_price,
+            realized_price: item.realized_price,
             createdAt: item.created_at,
             updatedAt: item.updated_at
           } as MarketplaceItem;
@@ -150,7 +164,7 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
         }
       })
     );
-    
+
     const validItems = enrichedItems.filter(item => item !== null) as MarketplaceItem[];
     return validItems;
   } catch (error) {
@@ -240,6 +254,98 @@ export async function addToMarketplace(
     return true;
   } catch (error) {
     console.error("Error in addToMarketplace:", error);
+    return false;
+  }
+}
+
+export interface ListingInput {
+  listingType: ListingType;
+  salePrice: number | null;
+  publicRemark: string | null;
+  externalListingUrl: string | null;
+  isUrlApproved: boolean;
+  isSold: boolean;
+  auctionAt: string | null;
+  auctionTimezone: string | null;
+  lotNumber: string | null;
+  startPrice: number | null;
+  estimatedPrice: string | null;
+  realizedPrice: number | null;
+}
+
+/**
+ * Creates or updates the marketplace listing for a collection item.
+ * publish=false saves it as a Draft (hidden from the marketplace,
+ * collection item not flagged for sale).
+ */
+export async function saveMarketplaceListing(
+  collectionItemId: string,
+  sellerId: string,
+  input: ListingInput,
+  publish: boolean
+): Promise<boolean> {
+  try {
+    const { data: collectionItem, error: ciError } = await supabase
+      .from('collection_items')
+      .select('id, banknote_id, is_unlisted_banknote')
+      .eq('id', collectionItemId)
+      .single();
+    if (ciError || !collectionItem) throw ciError ?? new Error('Collection item not found');
+
+    const { data: existing } = await supabase
+      .from('marketplace_items')
+      .select('id, sold_at')
+      .eq('collection_item_id', collectionItemId)
+      .maybeSingle();
+
+    const row: Record<string, unknown> = {
+      listing_type: input.listingType,
+      public_remark: input.publicRemark,
+      external_listing_url: input.externalListingUrl,
+      is_url_approved: input.isUrlApproved,
+      is_sold: input.listingType === 'sale' ? input.isSold : false,
+      sold_at:
+        input.listingType === 'sale' && input.isSold
+          ? existing?.sold_at ?? new Date().toISOString()
+          : null,
+      auction_at: input.listingType === 'auction' ? input.auctionAt : null,
+      auction_timezone: input.listingType === 'auction' ? input.auctionTimezone : null,
+      lot_number: input.listingType === 'auction' ? input.lotNumber : null,
+      start_price: input.listingType === 'auction' ? input.startPrice : null,
+      estimated_price: input.listingType === 'auction' ? input.estimatedPrice : null,
+      realized_price: input.listingType === 'auction' ? input.realizedPrice : null,
+      status: publish ? 'Available' : 'Draft',
+      updated_at: new Date().toISOString(),
+    };
+
+    if (existing) {
+      const { error } = await supabase
+        .from('marketplace_items')
+        .update(row as any)
+        .eq('id', existing.id);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from('marketplace_items').insert({
+        ...(row as any),
+        collection_item_id: collectionItemId,
+        seller_id: sellerId,
+        banknote_id: collectionItem.is_unlisted_banknote ? null : collectionItem.banknote_id,
+      });
+      if (error) throw error;
+    }
+
+    const { error: updateError } = await supabase
+      .from('collection_items')
+      .update({
+        is_for_sale: publish,
+        sale_price: input.listingType === 'sale' ? input.salePrice : null,
+      })
+      .eq('id', collectionItemId);
+    if (updateError) throw updateError;
+
+    return true;
+  } catch (error) {
+    console.error('Error in saveMarketplaceListing:', error);
     return false;
   }
 }
@@ -374,6 +480,16 @@ export async function getMarketplaceItemById(id: string): Promise<MarketplaceIte
       status: data.status,
       external_listing_url: data.external_listing_url,
       is_url_approved: data.is_url_approved,
+      listing_type: (data.listing_type ?? 'sale') as ListingType,
+      public_remark: data.public_remark,
+      is_sold: data.is_sold ?? false,
+      sold_at: data.sold_at,
+      auction_at: data.auction_at,
+      auction_timezone: data.auction_timezone,
+      lot_number: data.lot_number,
+      start_price: data.start_price,
+      estimated_price: data.estimated_price,
+      realized_price: data.realized_price,
       createdAt: data.created_at,
       updatedAt: data.updated_at
     } as MarketplaceItem;
@@ -439,6 +555,16 @@ export async function getMarketplaceItemForCollectionItem(
       status: data.status,
       external_listing_url: data.external_listing_url,
       is_url_approved: data.is_url_approved,
+      listing_type: (data.listing_type ?? 'sale') as ListingType,
+      public_remark: data.public_remark,
+      is_sold: data.is_sold ?? false,
+      sold_at: data.sold_at,
+      auction_at: data.auction_at,
+      auction_timezone: data.auction_timezone,
+      lot_number: data.lot_number,
+      start_price: data.start_price,
+      estimated_price: data.estimated_price,
+      realized_price: data.realized_price,
       createdAt: data.created_at,
       updatedAt: data.updated_at
     } as MarketplaceItem;
@@ -632,6 +758,18 @@ export async function fetchNewestMarketplaceItems(limit: number = 6): Promise<Ma
             sellerId: item.seller_id,
             seller,
             status: item.status,
+            external_listing_url: item.external_listing_url,
+            is_url_approved: item.is_url_approved,
+            listing_type: (item.listing_type ?? 'sale') as ListingType,
+            public_remark: item.public_remark,
+            is_sold: item.is_sold ?? false,
+            sold_at: item.sold_at,
+            auction_at: item.auction_at,
+            auction_timezone: item.auction_timezone,
+            lot_number: item.lot_number,
+            start_price: item.start_price,
+            estimated_price: item.estimated_price,
+            realized_price: item.realized_price,
             createdAt: item.created_at,
             updatedAt: item.updated_at
           } as MarketplaceItem;
@@ -641,9 +779,9 @@ export async function fetchNewestMarketplaceItems(limit: number = 6): Promise<Ma
         }
       })
     );
-    
+
     const validItems = enrichedItems.filter(item => item !== null) as MarketplaceItem[];
-    return validItems;
+    return validItems.filter((i) => !isListingArchived(i));
   } catch (error) {
     console.error("Error in fetchNewestMarketplaceItems:", error);
     return [];
