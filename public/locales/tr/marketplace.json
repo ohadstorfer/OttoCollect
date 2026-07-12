@@ -81,6 +81,9 @@
     "detailedInformation": "Bu banknot hakkında detaylı bilgi",
     "sellersNote": "Satıcının Notu",
     "unlistedBanknote": "Listelenmemiş Banknot",
+    "requestApproval": "Onay İste",
+    "approvalRequested": "Onay İstendi",
+    "approvalRequestedDescription": "Talebiniz gönderildi. Bir yönetici inceleyecek.",
     "status": {
       "available": "Mevcut",
       "reserved": "Rezerve",

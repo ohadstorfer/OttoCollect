@@ -80,6 +80,9 @@
     "detailedInformation": "Detailed information about this banknote",
     "sellersNote": "Seller's Note",
     "unlistedBanknote": "Unlisted Banknote",
+    "requestApproval": "Request Approval",
+    "approvalRequested": "Approval Requested",
+    "approvalRequestedDescription": "Your request has been submitted. An admin will review it.",
     "status": {
       "available": "Available",
       "reserved": "Reserved",

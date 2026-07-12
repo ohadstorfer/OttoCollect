@@ -81,6 +81,9 @@
     "detailedInformation": "معلومات مفصلة حول هذه الورقة النقدية",
     "sellersNote": "ملاحظة البائع",
     "unlistedBanknote": "ورقة نقدية غير مدرجة",
+    "requestApproval": "طلب الموافقة",
+    "approvalRequested": "تم طلب الموافقة",
+    "approvalRequestedDescription": "تم إرسال طلبك. سيقوم المسؤول بمراجعته.",
     "status": {
       "available": "متاح",
       "reserved": "محجوز",
