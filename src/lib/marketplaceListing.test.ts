@@ -59,6 +59,15 @@ describe('formatAuctionDateTime', () => {
       'March 1st, 2026 10:00 UTC+0:00'
     );
   });
+  it('omits the tz suffix and formats at UTC when tz is invalid or null', () => {
+    expect(formatAuctionDateTime('2026-07-18T18:00:00.000Z', 'nope')).toBe('July 18th, 2026 18:00');
+    expect(formatAuctionDateTime('2026-07-18T18:00:00.000Z', null)).toBe('July 18th, 2026 18:00');
+  });
+  it('handles 11th-13th ordinals', () => {
+    expect(formatAuctionDateTime('2026-03-11T10:00:00.000Z', 'UTC+0:00')).toBe('March 11th, 2026 10:00 UTC+0:00');
+    expect(formatAuctionDateTime('2026-03-12T10:00:00.000Z', 'UTC+0:00')).toBe('March 12th, 2026 10:00 UTC+0:00');
+    expect(formatAuctionDateTime('2026-03-13T10:00:00.000Z', 'UTC+0:00')).toBe('March 13th, 2026 10:00 UTC+0:00');
+  });
 });
 
 describe('archive rules', () => {
@@ -86,6 +95,12 @@ describe('archive rules', () => {
   });
   it('treats missing listing_type as sale', () => {
     expect(isListingArchived({}, now)).toBe(false);
+  });
+  it('exactly 7 days after end is NOT yet archived; just over is', () => {
+    const exactly = { listing_type: 'auction' as const, auction_at: new Date(now - 7 * DAY).toISOString() };
+    const over = { listing_type: 'auction' as const, auction_at: new Date(now - 7 * DAY - 1).toISOString() };
+    expect(isListingArchived(exactly, now)).toBe(false);
+    expect(isListingArchived(over, now)).toBe(true);
   });
 });
 

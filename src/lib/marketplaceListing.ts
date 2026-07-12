@@ -87,11 +87,11 @@ function ordinal(n: number): string {
 export function formatAuctionDateTime(auctionAt: string, tz: string | null): string | null {
   const ts = new Date(auctionAt).getTime();
   if (Number.isNaN(ts)) return null;
-  const offset = parseUtcOffset(tz) ?? 0;
-  const d = new Date(ts + offset * 60 * 1000);
+  const offset = parseUtcOffset(tz);
+  const d = new Date(ts + (offset ?? 0) * 60 * 1000);
   const pad = (n: number) => String(n).padStart(2, '0');
   const label = `${MONTHS[d.getUTCMonth()]} ${ordinal(d.getUTCDate())}, ${d.getUTCFullYear()} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
-  return tz ? `${label} ${tz}` : label;
+  return offset !== null && tz ? `${label} ${tz}` : label;
 }
 
 export function getListingHostname(url?: string | null): string | null {
