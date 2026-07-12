@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogContentWithScroll } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import CollectionItemForm from "@/components/collection/CollectionItemForm";
-import { ArrowLeft, Star, ImagePlus, Edit, Trash, Trash2, ArrowRight } from "lucide-react";
+import { ArrowLeft, Star, ImagePlus, Edit, Trash, Trash2, ArrowRight, Tag } from "lucide-react";
 import BanknoteCollectionDetail from "./BanknoteCollectionDetail";
 import { BanknoteProvider } from "@/context/BanknoteContext";
 import { BanknoteCatalogDetailMinimized } from "@/components/BanknoteCatalogDetailMinimized";
@@ -23,6 +23,7 @@ import ImagePreview from "@/components/shared/ImagePreview";
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from "@/context/LanguageContext";
 import { markCollectionDirty, pushCollectionPatch } from "@/lib/collectionRefresh";
+import { MarketplaceListingDialog } from "@/components/marketplace/MarketplaceListingDialog";
 
 
 interface LabelValuePairProps {
@@ -47,7 +48,7 @@ const LabelValuePair: React.FC<LabelValuePairProps> = ({ label, value, icon, ico
 };
 
 export default function CollectionItem() {
-  const { t } = useTranslation(['collection']);
+  const { t } = useTranslation(['collection', 'marketplace']);
   const { currentLanguage } = useLanguage();
   
   // All hooks first!
@@ -60,6 +61,7 @@ export default function CollectionItem() {
   const queryClient = useQueryClient();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isListingDialogOpen, setIsListingDialogOpen] = useState(false);
   const [isSubmittingImages, setIsSubmittingImages] = useState(false);
   const [hasPendingSuggestion, setHasPendingSuggestion] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -85,6 +87,9 @@ export default function CollectionItem() {
 
   // Determine if the current user is the owner of this item (define early for use in effects)
   const isOwner = user?.id === collectionItem?.userId;
+
+  // Rank gate for creating/managing a marketplace listing
+  const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
 
   // Check if images should be hidden for non-owners
   const shouldHideImages = !isOwner && collectionItem?.hide_images && user?.role !== 'Super Admin';
@@ -721,6 +726,16 @@ export default function CollectionItem() {
                         <span className="sr-only">{t('item.delete')}</span>
                       </Button>
                       <Button
+                        title={collectionItem?.isForSale ? t('listing.editItem', { ns: 'marketplace' }) : t('listing.sellThisItem', { ns: 'marketplace' })}
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center gap-1"
+                        onClick={() => setIsListingDialogOpen(true)}
+                        disabled={isDeleting || isLimitedRank}
+                      >
+                        <Tag className="w-4 h-4" />
+                      </Button>
+                      <Button
                         title={t('item.editCollectionItem')}
                         variant="ghost"
                         size="sm"
@@ -779,6 +794,14 @@ export default function CollectionItem() {
           />
         </DialogContentWithScroll>
       </Dialog>
+
+      {/* Marketplace listing dialog */}
+      <MarketplaceListingDialog
+        open={isListingDialogOpen}
+        onOpenChange={setIsListingDialogOpen}
+        collectionItemId={collectionItem.id}
+        onSaved={handleUpdateSuccess}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

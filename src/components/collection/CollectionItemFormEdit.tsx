@@ -36,12 +36,10 @@ import { useTranslation } from 'react-i18next';
 
 import { BanknoteCondition, DetailedBanknote, CollectionItem } from '@/types';
 import { useAuth } from '@/context/AuthContext';
-import { addToCollection, updateCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
-import { addToMarketplace, removeFromMarketplace } from '@/services/marketplaceService';
-import { fetchApprovedDomains, isUrlApproved, createPendingDomainRequest, normalizeDomain } from '@/services/approvedDomainsService';
-import { supabase } from '@/integrations/supabase/client';
+import { addToCollection, updateCollectionItem, uploadCollectionImage, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
 import { fetchBanknoteById, searchBanknotes } from '@/services/banknoteService';
 import { collectionItemTranslationService, CollectionItemTranslationService } from '@/services/collectionItemTranslationService';
+import { MarketplaceListingDialog } from '@/components/marketplace/MarketplaceListingDialog';
 
 // Define props for CollectionItemForm
 export interface CollectionItemFormProps {
@@ -70,18 +68,6 @@ const createFormSchema = (t: (key: string) => string) => z.object({
   location: z.string().optional(),
   publicNote: z.string().optional(),
   privateNote: z.string().optional(),
-  isForSale: z.boolean().default(false),
-  salePrice: z.union([z.coerce.number().optional(), z.literal('')]),
-  externalListingUrl: z.string().optional().default(''),
-}).refine((data) => {
-  // If isForSale is true, salePrice must be provided and greater than 0
-  if (data.isForSale) {
-    return data.salePrice && data.salePrice > 0;
-  }
-  return true;
-}, {
-  message: t('item.salePriceRequired'),
-  path: ["salePrice"]
 });
 
 interface ImageVersions {
@@ -100,7 +86,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
   // Use collectionItem prop if provided, otherwise use item
   const currentItem = collectionItem || item;
 
-  const { t, i18n } = useTranslation(['collection']);
+  const { t, i18n } = useTranslation(['collection', 'marketplace']);
 
   // Don't render until i18n is initialized
   if (!i18n.isInitialized) {
@@ -153,9 +139,7 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
   );
 
   const isLimitedRank = authUser ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(authUser.rank || '') : false;
-  const [approvedDomains, setApprovedDomains] = useState<string[]>([]);
-  const [externalUrlError, setExternalUrlError] = useState<string>('');
-  const [approvalRequested, setApprovalRequested] = useState(false);
+  const [isListingDialogOpen, setIsListingDialogOpen] = useState(false);
 
   // Create form schema with translations
   const formSchema = createFormSchema(t);
@@ -177,32 +161,8 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       location: currentItem?.location || 'In my collection',
       publicNote: currentItem?.publicNote || '',
       privateNote: currentItem?.privateNote || '',
-      isForSale: currentItem?.isForSale || false,
-      salePrice: currentItem?.salePrice || '',
-      externalListingUrl: '',
     }
   });
-
-  // Load approved domains and existing external URL
-  useEffect(() => {
-    fetchApprovedDomains().then(domains => {
-      setApprovedDomains(domains.map(d => d.domain));
-    });
-
-    // If editing an existing item that's for sale, load the marketplace item's external URL
-    if (currentItem?.id && currentItem?.isForSale) {
-      supabase
-        .from('marketplace_items')
-        .select('external_listing_url')
-        .eq('collection_item_id', currentItem.id)
-        .maybeSingle()
-        .then(({ data }) => {
-          if (data?.external_listing_url) {
-            form.setValue('externalListingUrl', data.external_listing_url);
-          }
-        });
-    }
-  }, []);
 
   // Search for banknotes as user types
   useEffect(() => {
@@ -331,16 +291,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
       return;
     }
 
-    // Validate external listing URL format (but don't block on unapproved domains)
-    if (values.isForSale && values.externalListingUrl && values.externalListingUrl.trim()) {
-      try {
-        new URL(values.externalListingUrl);
-      } catch {
-        setExternalUrlError(t('item.invalidUrl', 'Please enter a valid URL (e.g. https://www.ebay.com/itm/123)'));
-        return;
-      }
-    }
-
     setIsSubmitting(true);
     try {
       // Process and upload images if changed
@@ -374,7 +324,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
 
       // Convert empty strings to null for numeric fields
       const purchasePrice = values.purchasePrice === '' ? null : Number(values.purchasePrice);
-      const salePrice = values.salePrice === '' ? null : Number(values.salePrice);
 
       const updateData = {
         condition,
@@ -388,8 +337,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
         location: values.location || null,
         public_note: values.publicNote || null,
         private_note: values.privateNote || null,
-        is_for_sale: values.isForSale,
-        sale_price: salePrice,
       };
 
       if (currentItem) {
@@ -456,33 +403,6 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
             obverseProcessedImages,
             reverseProcessedImages
           );
-        }
-
-        // Handle marketplace listing
-        if (values.isForSale && !currentItem.isForSale) {
-          // Item was just marked for sale - add to marketplace
-          await addToMarketplace(currentItem.id, authUser.id);
-          toast({
-            title: t('item.itemAddedToMarketplaceSuccess'),
-            description: t('item.itemAddedToMarketplaceDescription'),
-          });
-        } else if (!values.isForSale && currentItem.isForSale) {
-          // Item was removed from sale - remove from marketplace
-          await removeFromMarketplace(currentItem.id);
-          toast({
-            title: t('item.itemRemovedFromMarketplaceSuccess'),
-            description: t('item.itemRemovedFromMarketplaceDescription'),
-          });
-        }
-
-        // Update external listing URL on marketplace item if for sale
-        if (values.isForSale) {
-          const urlToSave = values.externalListingUrl?.trim() || null;
-          const urlApproved = urlToSave ? isUrlApproved(urlToSave, approvedDomains) : true;
-          await supabase
-            .from('marketplace_items')
-            .update({ external_listing_url: urlToSave, is_url_approved: urlApproved })
-            .eq('collection_item_id', currentItem.id);
         }
 
         if (onUpdate) onUpdate(currentItem, hasImageChanged);
@@ -1060,130 +980,18 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
 
               <div className="w-full h-px bg-muted my-6" />
 
-              {/* For Sale Switch */}
-              <FormField
-                control={form.control}
-                name="isForSale"
-                render={({ field }) => (
-                  <FormItem className={`flex items-center justify-between rounded-lg border p-4 ${i18n.dir() === 'rtl' ? 'flex-row-reverse' : 'flex-row'}`}>
-                      <div className={`space-y-0.5 ${i18n.dir() === 'rtl' ? 'text-right' : 'text-left'}`}>
-                      <FormLabel className="text-base">{t('item.forSale')}</FormLabel>
-                      <FormDescription>
-                        {isLimitedRank
-                          ? t('item.rankInsufficient')
-                          : t('item.forSaleDescription')}
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={isLimitedRank}
-                        aria-readonly={isLimitedRank}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              {/* Sale Price - Only show if For Sale is checked */}
-              {form.watch("isForSale") && (
-                <FormField
-                  control={form.control}
-                  name="salePrice"
-                  render={({ field: { onChange, ...field } }) => (
-                    <FormItem>
-                      <FormLabel>{t('item.salePrice')}</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2">
-                            $
-                          </span>
-                          <Input
-                            {...field}
-                            className="pl-6"
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val === '' || /^[0-9]*\.?[0-9]*$/.test(val)) {
-                                onChange(val);
-                              }
-                            }}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              {/* External Listing URL - Only show if For Sale is checked */}
-              {form.watch("isForSale") && (
-                <FormField
-                  control={form.control}
-                  name="externalListingUrl"
-                  render={({ field }) => {
-                    const urlValue = field.value?.trim() || '';
-                    let urlIsValid = false;
-                    let urlIsApproved = true;
-                    if (urlValue) {
-                      try { new URL(urlValue); urlIsValid = true; } catch { urlIsValid = false; }
-                      if (urlIsValid) urlIsApproved = isUrlApproved(urlValue, approvedDomains);
-                    }
-                    return (
-                      <FormItem>
-                        <FormLabel>{t('item.externalListingUrl', 'External Listing URL')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="https://www.ebay.com/itm/..."
-                            onChange={(e) => {
-                              field.onChange(e);
-                              setExternalUrlError('');
-                            }}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          {t('item.externalListingUrlDescription', 'Optional: Add a link to this item on an approved external marketplace (e.g. eBay, Amazon).')}
-                        </FormDescription>
-                        {externalUrlError && (
-                          <p className="text-sm font-medium text-destructive">{externalUrlError}</p>
-                        )}
-                        {urlValue && urlIsValid && !urlIsApproved && (
-                          <div className="flex items-center gap-2 p-2 rounded bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
-                            <p className="text-sm text-yellow-800 dark:text-yellow-200 flex-1">
-                              {t('item.domainNotApproved', 'This domain is not currently approved. You can still save, but the link won\'t be visible until approved.')}
-                            </p>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              disabled={approvalRequested}
-                              onClick={async () => {
-                                if (!authUser?.id) return;
-                                const domain = normalizeDomain(urlValue);
-                                const success = await createPendingDomainRequest(authUser.id, domain, urlValue);
-                                if (success) {
-                                  setApprovalRequested(true);
-                                  toast({
-                                    title: t('item.approvalRequested', 'Approval Requested'),
-                                    description: t('item.approvalRequestedDescription', 'Your request has been submitted. An admin will review it.'),
-                                  });
-                                }
-                              }}
-                            >
-                              {approvalRequested
-                                ? t('item.approvalRequested', 'Approval Requested')
-                                : t('item.requestApproval', 'Request Approval')}
-                            </Button>
-                          </div>
-                        )}
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
-                />
-              )}
+              {/* Marketplace listing is managed in its own dialog */}
+              <div className={`flex items-center justify-between rounded-lg border p-4 ${i18n.dir() === 'rtl' ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`space-y-0.5 ${i18n.dir() === 'rtl' ? 'text-right' : 'text-left'}`}>
+                  <span className="text-base font-medium">{t('listing.manageListing', { ns: 'marketplace' })}</span>
+                  <p className="text-sm text-muted-foreground">
+                    {isLimitedRank ? t('item.rankInsufficient') : t('item.forSaleDescription')}
+                  </p>
+                </div>
+                <Button type="button" variant="outline" disabled={isLimitedRank} onClick={() => setIsListingDialogOpen(true)}>
+                  {currentItem?.isForSale ? t('listing.editItem', { ns: 'marketplace' }) : t('listing.sellThisItem', { ns: 'marketplace' })}
+                </Button>
+              </div>
 
             </div>
 
@@ -1241,6 +1049,16 @@ const CollectionItemFormEdit: React.FC<CollectionItemFormProps> = ({
               await handleCroppedImage(url);
             }}
             title={`Edit ${selectedImageToCrop.type === 'obverse' ? 'Front' : 'Back'} Image`}
+          />
+        )}
+
+        {/* Marketplace listing dialog */}
+        {currentItem && (
+          <MarketplaceListingDialog
+            open={isListingDialogOpen}
+            onOpenChange={setIsListingDialogOpen}
+            collectionItemId={currentItem.id}
+            onSaved={() => onUpdate?.(currentItem, false)}
           />
         )}
       </CardContent>

@@ -11,9 +11,9 @@ import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormDescription, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CollectionItem } from '@/types';
-import { updateUnlistedBanknoteWithCollectionItem, uploadCollectionImage, createMarketplaceItem, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
-import { addToMarketplace, removeFromMarketplace } from '@/services/marketplaceService';
+import { updateUnlistedBanknoteWithCollectionItem, uploadCollectionImage, processAndUploadImage, updateCollectionItemImages } from '@/services/collectionService';
 import { collectionItemTranslationService, CollectionItemTranslationService } from '@/services/collectionItemTranslationService';
+import { MarketplaceListingDialog } from '@/components/marketplace/MarketplaceListingDialog';
 import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Upload, CalendarIcon } from 'lucide-react';
@@ -49,8 +49,6 @@ const createFormSchema = (t: any) => z.object({
   purchasePrice: z.union([z.coerce.number().optional(), z.literal('')]),
   purchaseDate: z.date().optional(),
   location: z.string().optional(),
-  isForSale: z.boolean().default(false),
-  salePrice: z.union([z.coerce.number().optional(), z.literal('')]),
 
   // Banknote fields
   faceValueInt: z.union([z.coerce.number(), z.string().regex(/^\d+$/)]),
@@ -83,15 +81,6 @@ const createFormSchema = (t: any) => z.object({
   signature_files: z.array(z.custom<ImageFile>()).optional(),
   signatures_front_files: z.array(z.custom<ImageFile>()).optional(),
   signatures_back_files: z.array(z.custom<ImageFile>()).optional(),
-}).refine((data) => {
-  // If isForSale is true, salePrice must be provided and greater than 0
-  if (data.isForSale) {
-    return data.salePrice && data.salePrice > 0;
-  }
-  return true;
-}, {
-  message: t('salePriceRequired'),
-  path: ["salePrice"]
 });
 
 interface EditUnlistedBanknoteDialogProps {
@@ -126,8 +115,6 @@ interface UnlistedBanknoteUpdateParams {
   location?: string;
   purchase_price?: number;
   purchase_date?: string;
-  is_for_sale?: boolean;
-  sale_price?: number;
   obverse_image?: string;
   reverse_image?: string;
   seal_names?: string;
@@ -140,7 +127,7 @@ export default function EditUnlistedBanknoteDialog({
   onUpdate,
   collectionItem
 }: EditUnlistedBanknoteDialogProps) {
-  const { t, i18n } = useTranslation(['collection']);
+  const { t, i18n } = useTranslation(['collection', 'marketplace']);
 
   // Don't render until i18n is initialized
   if (!i18n.isInitialized) {
@@ -182,6 +169,7 @@ export default function EditUnlistedBanknoteDialog({
   const { types, loading: loadingTypes } = useCountryTypeDefs(collectionItem.banknote?.country || '');
 
   const isLimitedRank = user ? ['Newbie Collector', 'Beginner Collector', 'Mid Collector'].includes(user.rank || '') : false;
+  const [isListingDialogOpen, setIsListingDialogOpen] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -206,8 +194,6 @@ export default function EditUnlistedBanknoteDialog({
       purchasePrice: collectionItem.purchasePrice || '',
       purchaseDate: collectionItem.purchaseDate ? new Date(collectionItem.purchaseDate) : undefined,
       location: collectionItem.location || 'In my collection',
-      isForSale: collectionItem.isForSale || false,
-      salePrice: collectionItem.salePrice || '',
       type: (collectionItem as any).type || '',
       prefix: (collectionItem as any).prefix || '',
       other_element_files: [],
@@ -441,8 +427,6 @@ export default function EditUnlistedBanknoteDialog({
         location: values.location,
         purchase_price: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
         purchase_date: values.purchaseDate ? format(values.purchaseDate, 'yyyy-MM-dd') : undefined,
-        is_for_sale: values.isForSale,
-        sale_price: values.salePrice === '' ? undefined : Number(values.salePrice),
         obverse_image: obverseProcessedImages?.original,
         reverse_image: reverseProcessedImages?.original,
         type: values.type,
@@ -550,34 +534,9 @@ export default function EditUnlistedBanknoteDialog({
         );
       }
 
-      // Handle marketplace listing
-      if (values.isForSale && !collectionItem.isForSale) {
-        // Item was just marked for sale - add to marketplace
-        await addToMarketplace(collectionItem.id, user.id);
-      } else if (!values.isForSale && collectionItem.isForSale) {
-        // Item was removed from sale - remove from marketplace
-        await removeFromMarketplace(collectionItem.id);
-      }
-
-      // If item is marked for sale, create marketplace item
-      if (values.isForSale) {
-        await createMarketplaceItem({
-          collectionItemId: collectionItem.id,
-          sellerId: user.id,
-          banknoteId: collectionItem.banknote?.id || ''
-        });
-      }
-
-      // Check if item was just added to marketplace for sale
-      const wasJustAddedToMarketplace = values.isForSale && !collectionItem.isForSale;
-      
       toast({
-        title: wasJustAddedToMarketplace 
-          ? t('item.itemAddedToMarketplaceSuccess', 'Item added to marketplace successfully!')
-          : t('success'),
-        description: wasJustAddedToMarketplace
-          ? t('item.itemAddedToMarketplaceDescription', 'Your item is now available for sale in the marketplace.')
-          : t('banknoteUpdatedSuccess'),
+        title: t('success'),
+        description: t('banknoteUpdatedSuccess'),
       });
 
       await onUpdate();
@@ -1476,60 +1435,18 @@ export default function EditUnlistedBanknoteDialog({
                   )}
                 />
 
-                {/* For Sale Switch */}
-                <FormField
-                  control={form.control}
-                  name="isForSale"
-                  render={({ field }) => (
-                    <FormItem className={`flex flex-row items-center justify-between rounded-lg border p-4 ${i18n.dir() === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                      <div className={`space-y-0.5 ${i18n.dir() === 'rtl' ? 'text-right' : ''}`}>
-                        <FormLabel className="text-base">{t('forSale')}</FormLabel>
-                        <FormDescription>
-                          {isLimitedRank 
-                            ? t('rankInsufficient')
-                            : t('forSaleDescription')}
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          disabled={isLimitedRank}
-                          aria-readonly={isLimitedRank}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                {/* Sale Price */}
-                {form.watch("isForSale") && (
-                  <FormField
-                    control={form.control}
-                    name="salePrice"
-                    render={({ field: { onChange, ...field } }) => (
-                      <FormItem>
-                        <FormLabel>{t('salePrice')}</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
-                            <Input
-                              {...field}
-                              className="pl-6"
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === '' || /^[0-9]*\.?[0-9]*$/.test(val)) {
-                                  onChange(val);
-                                }
-                              }}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                {/* Marketplace listing is managed in its own dialog */}
+                <div className={`flex items-center justify-between rounded-lg border p-4 ${i18n.dir() === 'rtl' ? 'flex-row-reverse' : 'flex-row'}`}>
+                  <div className={`space-y-0.5 ${i18n.dir() === 'rtl' ? 'text-right' : 'text-left'}`}>
+                    <span className="text-base font-medium">{t('listing.manageListing', { ns: 'marketplace' })}</span>
+                    <p className="text-sm text-muted-foreground">
+                      {isLimitedRank ? t('rankInsufficient') : t('forSaleDescription')}
+                    </p>
+                  </div>
+                  <Button type="button" variant="outline" disabled={isLimitedRank} onClick={() => setIsListingDialogOpen(true)}>
+                    {collectionItem.isForSale ? t('listing.editItem', { ns: 'marketplace' }) : t('listing.sellThisItem', { ns: 'marketplace' })}
+                  </Button>
+                </div>
 
                 {/* Save/Cancel Buttons */}
                 <div className="flex justify-end space-x-2">
@@ -1572,6 +1489,14 @@ export default function EditUnlistedBanknoteDialog({
           title={`Edit ${selectedImageToCrop.type === 'obverse' ? 'Front' : 'Back'} Image`}
         />
       )}
+
+      {/* Marketplace listing dialog */}
+      <MarketplaceListingDialog
+        open={isListingDialogOpen}
+        onOpenChange={setIsListingDialogOpen}
+        collectionItemId={collectionItem.id}
+        onSaved={() => onUpdate()}
+      />
     </Dialog>
   );
-} 
+}
