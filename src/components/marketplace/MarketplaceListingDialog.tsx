@@ -230,7 +230,7 @@ export function MarketplaceListingDialog({
           <div className="py-8 text-center text-sm text-muted-foreground">…</div>
         ) : (
           <div className="space-y-4">
-            <RadioGroup value={listingType} onValueChange={(v) => setListingType(v as ListingType)}>
+            <RadioGroup value={listingType} onValueChange={(v) => { setListingType(v as ListingType); setErrors([]); }}>
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="sale" id="listing-sale" />
                 <Label htmlFor="listing-sale">{t('listing.saleOption')}</Label>

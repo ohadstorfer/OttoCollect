@@ -130,9 +130,11 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
                 <h3 className="font-serif font-semibold text-lg text-parchment-400">
                   <span>{item.collectionItem.banknote.denomination} ({item.collectionItem.banknote.year})</span>
                 </h3>
-                <span className="flex items-center text-ottoman-100 font-semibold bg-ottoman-600/50 px-2 py-0.5 rounded text-sm">
-                  ${item.collectionItem.salePrice}
-                </span>
+                {item.listing_type !== 'auction' && item.collectionItem?.salePrice != null && (
+                  <span className="flex items-center text-ottoman-100 font-semibold bg-ottoman-600/50 px-2 py-0.5 rounded text-sm">
+                    ${item.collectionItem.salePrice}
+                  </span>
+                )}
               </div>
 
               {/* Item Country */}
@@ -218,9 +220,11 @@ const MarketplaceHighlights = ({ items, loading = false }: MarketplaceHighlights
                 <h3 className="font-serif font-semibold text-lg text-parchment-400">
                   <span>{currentItem.collectionItem.banknote.denomination} ({currentItem.collectionItem.banknote.year})</span>
                 </h3>
-                <span className="text-ottoman-100 font-semibold bg-ottoman-600/50 px-2 py-0.5 rounded text-sm">
-                  ${currentItem.collectionItem.salePrice}
-                </span>
+                {currentItem.listing_type !== 'auction' && currentItem.collectionItem?.salePrice != null && (
+                  <span className="text-ottoman-100 font-semibold bg-ottoman-600/50 px-2 py-0.5 rounded text-sm">
+                    ${currentItem.collectionItem.salePrice}
+                  </span>
+                )}
               </div>
 
 

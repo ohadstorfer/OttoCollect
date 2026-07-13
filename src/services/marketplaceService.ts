@@ -292,11 +292,14 @@ export async function saveMarketplaceListing(
       .single();
     if (ciError || !collectionItem) throw ciError ?? new Error('Collection item not found');
 
-    const { data: existing } = await supabase
+    const { data: existing, error: existingError } = await supabase
       .from('marketplace_items')
       .select('id, sold_at')
       .eq('collection_item_id', collectionItemId)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle();
+    if (existingError) throw existingError;
 
     const row: Record<string, unknown> = {
       listing_type: input.listingType,
@@ -507,15 +510,17 @@ export async function getMarketplaceItemForCollectionItem(
       .from('marketplace_items')
       .select('*')
       .eq('collection_item_id', collectionItemId)
-      .single();
-      
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
     if (error) {
       if (error.code === 'PGRST116') { // No rows returned
         return null;
       }
       throw error;
     }
-    
+
     if (!data) return null;
     
     // Get collection item details
