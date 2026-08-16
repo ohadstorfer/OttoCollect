@@ -258,12 +258,16 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
                   <p className="font-bold">{auctionDateTime}</p>
                 </div>
               )}
-              {item.lot_number && <p>{t('listing.lot')}: {item.lot_number}</p>}
-              {item.start_price != null && <p>{t('listing.startPrice')}: {formatListingPrice(item.start_price, item.currency)}</p>}
-              {item.estimated_price && <p>{t('listing.estimatedPrice')}: {formatListingPrice(item.estimated_price, item.currency)}</p>}
-              {realizedState != null && (
-                <p className="font-bold">{t('listing.realizedPrice')}: {formatListingPrice(realizedState, item.currency)}</p>
-              )}
+              {/* Inline row that wraps: short values sit side by side on a wide
+                  card instead of each taking a full line. */}
+              <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+                {item.lot_number && <span>{t('listing.lot')}: {item.lot_number}</span>}
+                {item.start_price != null && <span>{t('listing.startPrice')}: {formatListingPrice(item.start_price, item.currency)}</span>}
+                {item.estimated_price && <span>{t('listing.estimatedPrice')}: {formatListingPrice(item.estimated_price, item.currency)}</span>}
+                {realizedState != null && (
+                  <span className="font-bold">{t('listing.realizedPrice')}: {formatListingPrice(realizedState, item.currency)}</span>
+                )}
+              </div>
             </div>
           )}
 
