@@ -11,6 +11,11 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { TimePicker } from '@/components/ui/time-picker';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -41,6 +46,24 @@ interface MarketplaceListingDialogProps {
 }
 
 const NUMERIC = /^[0-9]*\.?[0-9]*$/;
+
+// The auction date is stored as a "YYYY-MM-DD" string; the Calendar works with
+// Date objects. Convert using local date parts (never Date's UTC parsing) so the
+// day the user picks is the day that gets stored, regardless of timezone.
+const parseDateString = (s: string): Date | undefined => {
+  if (!s) return undefined;
+  const [y, m, d] = s.split('-').map(Number);
+  if (!y || !m || !d) return undefined;
+  return new Date(y, m - 1, d);
+};
+const formatDateString = (date: Date): string => {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
+const startOfToday = (): Date => {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+};
 
 export function MarketplaceListingDialog({
   open, onOpenChange, collectionItemId, onSaved,
@@ -168,15 +191,23 @@ export function MarketplaceListingDialog({
     setErrors(errs);
     if (errs.length > 0) return;
     setSaving(true);
-    const ok = await saveMarketplaceListing(collectionItemId, user.id, buildInput(), publish);
+    const result = await saveMarketplaceListing(collectionItemId, user.id, buildInput(), publish);
     setSaving(false);
-    if (ok) {
-      toast({ title: publish ? t('listing.published') : t('listing.draftSaved') });
-      onOpenChange(false);
-      onSaved?.();
-    } else {
+    if (result === 'error') {
       toast({ title: t('listing.saveError'), variant: 'destructive' });
+      return;
     }
+    toast({
+      title:
+        result === 'pending-url'
+          ? t('listing.waitingUrlApproval')
+          : result === 'published'
+            ? t('listing.published')
+            : t('listing.draftSaved'),
+      description: result === 'pending-url' ? t('listing.waitingUrlApprovalNotice') : undefined,
+    });
+    onOpenChange(false);
+    onSaved?.();
   };
 
   const handleDelete = async () => {
@@ -217,7 +248,7 @@ export function MarketplaceListingDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <DialogHeader>
+        <DialogHeader className="pt-4">
           <DialogTitle>
             <span>
               {t('listing.manageListing')}
@@ -274,13 +305,39 @@ export function MarketplaceListingDialog({
             ) : (
               <div className="space-y-4 rounded-lg border p-4">
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
+                  <div className="space-y-1 flex flex-col">
                     <Label>{t('listing.auctionDate')} *</Label>
-                    <Input type="date" value={auctionDate} onChange={(e) => setAuctionDate(e.target.value)} />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className={`w-full justify-start text-left font-normal transition-transform active:scale-[0.99] ${!auctionDate && 'text-muted-foreground'}`}
+                        >
+                          {auctionDate
+                            ? format(parseDateString(auctionDate)!, 'PPP')
+                            : <span>{t('listing.pickADate', 'Pick a date')}</span>}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={parseDateString(auctionDate)}
+                          onSelect={(date) => setAuctionDate(date ? formatDateString(date) : '')}
+                          disabled={(date) => date < startOfToday()}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-1 flex flex-col">
                     <Label>{t('listing.auctionTime')} *</Label>
-                    <Input type="time" value={auctionTime} onChange={(e) => setAuctionTime(e.target.value)} />
+                    <TimePicker
+                      value={auctionTime}
+                      onChange={setAuctionTime}
+                      placeholder={t('listing.pickATime', '--:--')}
+                    />
                   </div>
                 </div>
                 <div className="space-y-1">

@@ -5,7 +5,8 @@ import { fetchCollectionItem } from "./collectionService";
 import { normalizeBanknoteData } from "@/services/collectionService";
 import { mapBanknoteFromDatabase } from "@/services/banknoteService";
 import { isListingArchived } from '@/lib/marketplaceListing';
-import type { ListingType } from '@/types';
+import { createPendingDomainRequest, normalizeDomain } from '@/services/approvedDomainsService';
+import type { ListingCurrency, ListingType } from '@/types';
 
 // Add user type adaptations to fix typescript errors
 const adaptSellerToUserType = (seller: { 
@@ -27,10 +28,11 @@ const adaptSellerToUserType = (seller: {
   };
 };
 
-export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
+export async function fetchMarketplaceItems(currentUserId?: string): Promise<MarketplaceItem[]> {
   try {
-    
-    // Fetch marketplace items with status 'Available'
+
+    // Fetch published items plus Draft/PendingUrl rows; the latter are kept
+    // only when they belong to currentUserId (pinned owner block, spec §8.3).
     const { data: marketplaceItems, error } = await supabase
       .from('marketplace_items')
       .select(`
@@ -51,8 +53,8 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
           unlisted_banknotes:unlisted_banknotes_id (*)
         )
       `)
-      .eq('status', 'Available');
-      
+      .in('status', ['Available', 'Draft', 'PendingUrl']);
+
     if (error) {
       console.error("Error fetching marketplace items:", error);
       throw error;
@@ -72,9 +74,13 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
           if (!collectionItem) {
             return null;
           }
-          
-          // Verify that the collection item is actually for sale
-          if (!collectionItem.is_for_sale) {
+
+          // Draft / PendingUrl rows are visible only to their owner.
+          if (item.status !== 'Available' && item.seller_id !== currentUserId) {
+            return null;
+          }
+          // Published items must still be flagged for sale on the collection item.
+          if (item.status === 'Available' && !collectionItem.is_for_sale) {
             return null;
           }
 
@@ -146,6 +152,11 @@ export async function fetchMarketplaceItems(): Promise<MarketplaceItem[]> {
             external_listing_url: item.external_listing_url,
             is_url_approved: item.is_url_approved,
             listing_type: (item.listing_type ?? 'sale') as ListingType,
+            currency: (item.currency ?? 'USD') as ListingCurrency,
+            reference_code: item.reference_code,
+            published_at: item.published_at,
+            archived_at: item.archived_at,
+            pending_url_domain: item.pending_url_domain,
             public_remark: item.public_remark,
             is_sold: item.is_sold ?? false,
             sold_at: item.sold_at,
@@ -260,6 +271,7 @@ export async function addToMarketplace(
 
 export interface ListingInput {
   listingType: ListingType;
+  currency: ListingCurrency;
   salePrice: number | null;
   publicRemark: string | null;
   externalListingUrl: string | null;
@@ -273,17 +285,21 @@ export interface ListingInput {
   realizedPrice: number | null;
 }
 
+export type SaveListingResult = 'published' | 'draft' | 'pending-url' | 'error';
+
 /**
  * Creates or updates the marketplace listing for a collection item.
  * publish=false saves it as a Draft (hidden from the marketplace,
  * collection item not flagged for sale).
+ * Publishing an auction whose URL is not yet approved holds it as
+ * 'PendingUrl' (spec §5.3): not on sale, auto-published by approve_domain().
  */
 export async function saveMarketplaceListing(
   collectionItemId: string,
   sellerId: string,
   input: ListingInput,
   publish: boolean
-): Promise<boolean> {
+): Promise<SaveListingResult> {
   try {
     const { data: collectionItem, error: ciError } = await supabase
       .from('collection_items')
@@ -294,15 +310,34 @@ export async function saveMarketplaceListing(
 
     const { data: existing, error: existingError } = await supabase
       .from('marketplace_items')
-      .select('id, sold_at')
+      .select('id, sold_at, status, reference_code, published_at')
       .eq('collection_item_id', collectionItemId)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
     if (existingError) throw existingError;
 
+    const holdForUrl =
+      publish &&
+      input.listingType === 'auction' &&
+      Boolean(input.externalListingUrl) &&
+      !input.isUrlApproved;
+    const status = !publish ? 'Draft' : holdForUrl ? 'PendingUrl' : 'Available';
+
+    // Reference code (PDF §12): assigned once, on the first transition out of Draft.
+    let referenceCode = (existing as any)?.reference_code ?? null;
+    if (status !== 'Draft' && !referenceCode) {
+      const { data: ref, error: refError } = await (supabase.rpc as any)(
+        'next_marketplace_reference',
+        { p_listing_type: input.listingType }
+      );
+      if (refError) console.error('Error allocating reference code:', refError);
+      else referenceCode = ref ?? null;
+    }
+
     const row: Record<string, unknown> = {
       listing_type: input.listingType,
+      currency: input.currency,
       public_remark: input.publicRemark,
       external_listing_url: input.externalListingUrl,
       is_url_approved: input.isUrlApproved,
@@ -317,10 +352,20 @@ export async function saveMarketplaceListing(
       start_price: input.listingType === 'auction' ? input.startPrice : null,
       estimated_price: input.listingType === 'auction' ? input.estimatedPrice : null,
       realized_price: input.listingType === 'auction' ? input.realizedPrice : null,
-      status: publish ? 'Available' : 'Draft',
+      status,
+      pending_url_domain:
+        holdForUrl && input.externalListingUrl ? normalizeDomain(input.externalListingUrl) : null,
+      reference_code: referenceCode,
+      published_at:
+        status === 'Available'
+          ? (existing as any)?.published_at ?? new Date().toISOString()
+          : (existing as any)?.published_at ?? null,
+      // Saving/re-publishing always brings the listing back from the archive.
+      archived_at: null,
       updated_at: new Date().toISOString(),
     };
 
+    let marketplaceItemId = existing?.id ?? null;
     if (existing) {
       const { error } = await supabase
         .from('marketplace_items')
@@ -328,29 +373,82 @@ export async function saveMarketplaceListing(
         .eq('id', existing.id);
       if (error) throw error;
     } else {
-      const { error } = await supabase.from('marketplace_items').insert({
-        ...(row as any),
-        collection_item_id: collectionItemId,
-        seller_id: sellerId,
-        banknote_id: collectionItem.is_unlisted_banknote ? null : collectionItem.banknote_id,
-      });
+      const { data: inserted, error } = await supabase
+        .from('marketplace_items')
+        .insert({
+          ...(row as any),
+          collection_item_id: collectionItemId,
+          seller_id: sellerId,
+          banknote_id: collectionItem.is_unlisted_banknote ? null : collectionItem.banknote_id,
+        })
+        .select('id')
+        .single();
       if (error) throw error;
+      marketplaceItemId = (inserted as any)?.id ?? null;
     }
 
     const { error: updateError } = await supabase
       .from('collection_items')
       .update({
-        is_for_sale: publish,
+        is_for_sale: status === 'Available',
         sale_price: input.listingType === 'sale' ? input.salePrice : null,
       })
       .eq('id', collectionItemId);
     if (updateError) throw updateError;
 
-    return true;
+    if (holdForUrl && input.externalListingUrl) {
+      // Best-effort: queue the domain for Super-Admin approval (spec §5.3 step 2).
+      await createPendingDomainRequest(
+        sellerId,
+        normalizeDomain(input.externalListingUrl),
+        input.externalListingUrl,
+        input.listingType,
+        marketplaceItemId ?? undefined
+      );
+      return 'pending-url';
+    }
+    return publish ? 'published' : 'draft';
   } catch (error) {
     console.error('Error in saveMarketplaceListing:', error);
-    return false;
+    return 'error';
   }
+}
+
+/** Owner-only inline toggle on Buy-now items (spec §8.2). RLS enforces sellership. */
+export async function setListingSold(marketplaceItemId: string, isSold: boolean): Promise<boolean> {
+  const { error } = await supabase
+    .from('marketplace_items')
+    .update({
+      is_sold: isSold,
+      sold_at: isSold ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
+    } as any)
+    .eq('id', marketplaceItemId);
+  if (error) console.error('Error in setListingSold:', error);
+  return !error;
+}
+
+/** Owner-only inline entry after an auction ends (spec §8.2). */
+export async function setRealizedPrice(
+  marketplaceItemId: string,
+  price: number | null
+): Promise<boolean> {
+  const { error } = await supabase
+    .from('marketplace_items')
+    .update({ realized_price: price, updated_at: new Date().toISOString() } as any)
+    .eq('id', marketplaceItemId);
+  if (error) console.error('Error in setRealizedPrice:', error);
+  return !error;
+}
+
+/** Owner-chosen archive (spec §9): non-destructive, item moves below the active list. */
+export async function archiveListing(marketplaceItemId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('marketplace_items')
+    .update({ archived_at: new Date().toISOString(), updated_at: new Date().toISOString() } as any)
+    .eq('id', marketplaceItemId);
+  if (error) console.error('Error in archiveListing:', error);
+  return !error;
 }
 
 export async function removeFromMarketplace(
@@ -484,6 +582,11 @@ export async function getMarketplaceItemById(id: string): Promise<MarketplaceIte
       external_listing_url: data.external_listing_url,
       is_url_approved: data.is_url_approved,
       listing_type: (data.listing_type ?? 'sale') as ListingType,
+      currency: (data.currency ?? 'USD') as ListingCurrency,
+      reference_code: data.reference_code,
+      published_at: data.published_at,
+      archived_at: data.archived_at,
+      pending_url_domain: data.pending_url_domain,
       public_remark: data.public_remark,
       is_sold: data.is_sold ?? false,
       sold_at: data.sold_at,
@@ -561,6 +664,11 @@ export async function getMarketplaceItemForCollectionItem(
       external_listing_url: data.external_listing_url,
       is_url_approved: data.is_url_approved,
       listing_type: (data.listing_type ?? 'sale') as ListingType,
+      currency: (data.currency ?? 'USD') as ListingCurrency,
+      reference_code: data.reference_code,
+      published_at: data.published_at,
+      archived_at: data.archived_at,
+      pending_url_domain: data.pending_url_domain,
       public_remark: data.public_remark,
       is_sold: data.is_sold ?? false,
       sold_at: data.sold_at,
@@ -766,6 +874,11 @@ export async function fetchNewestMarketplaceItems(limit: number = 6): Promise<Ma
             external_listing_url: item.external_listing_url,
             is_url_approved: item.is_url_approved,
             listing_type: (item.listing_type ?? 'sale') as ListingType,
+            currency: (item.currency ?? 'USD') as ListingCurrency,
+            reference_code: item.reference_code,
+            published_at: item.published_at,
+            archived_at: item.archived_at,
+            pending_url_domain: item.pending_url_domain,
             public_remark: item.public_remark,
             is_sold: item.is_sold ?? false,
             sold_at: item.sold_at,

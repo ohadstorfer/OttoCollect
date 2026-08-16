@@ -100,6 +100,8 @@ export interface PendingDomainRequest {
   domain: string;
   requested_by: string;
   requested_url: string;
+  listing_type?: string | null;
+  marketplace_item_id?: string | null;
   created_at: string;
   // Joined profile data (optional)
   profiles?: { username: string; avatar_url: string | null } | null;
@@ -107,15 +109,24 @@ export interface PendingDomainRequest {
 
 /**
  * Creates a pending domain approval request.
+ * listingType/marketplaceItemId identify the sale that triggered it (spec §6a).
  */
 export async function createPendingDomainRequest(
   userId: string,
   domain: string,
-  fullUrl: string
+  fullUrl: string,
+  listingType?: string,
+  marketplaceItemId?: string
 ): Promise<boolean> {
   const { error } = await supabase
     .from('pending_domain_requests')
-    .insert({ domain: normalizeDomain(domain), requested_by: userId, requested_url: fullUrl });
+    .insert({
+      domain: normalizeDomain(domain),
+      requested_by: userId,
+      requested_url: fullUrl,
+      listing_type: listingType ?? null,
+      marketplace_item_id: marketplaceItemId ?? null,
+    } as any);
 
   if (error) {
     console.error('Error creating pending domain request:', error);
@@ -156,34 +167,75 @@ export async function deletePendingRequestsByDomain(domain: string): Promise<boo
   return true;
 }
 
+export interface RejectedDomain {
+  id: string;
+  domain: string;
+  requested_url: string | null;
+  requested_by: string | null;
+  listing_type: string | null;
+  rejected_by: string | null;
+  rejected_at: string;
+  profiles?: { username: string; avatar_url: string | null } | null;
+}
+
 /**
- * Approves a domain: adds to approved_domains, batch-updates is_url_approved on
- * marketplace_items and profiles, and cleans up pending requests.
+ * Approves a domain via the Super-Admin security-definer RPC. The RPC adds the
+ * domain, attaches links on other sellers' listings/profiles (host-suffix
+ * match), promotes PendingUrl auctions, and clears pending requests — all of
+ * which client-side writes cannot do under RLS (spec §6.2).
  */
-export async function approvePendingDomain(domain: string): Promise<boolean> {
+export async function approveDomain(domain: string): Promise<boolean> {
   const normalized = normalizeDomain(domain);
   if (!normalized) return false;
-
-  // 1. Add to approved_domains
-  const added = await addApprovedDomain(normalized);
-  if (!added) return false;
-
-  // 2. Batch-update marketplace_items where external_listing_url matches this domain
-  await supabase
-    .from('marketplace_items')
-    .update({ is_url_approved: true })
-    .ilike('external_listing_url', `%${normalized}%`);
-
-  // 3. Batch-update profiles where personal_website_url matches this domain
-  await supabase
-    .from('profiles')
-    .update({ is_url_approved: true })
-    .ilike('personal_website_url', `%${normalized}%`);
-
-  // 4. Clean up pending requests
-  await deletePendingRequestsByDomain(normalized);
-
+  const { error } = await (supabase.rpc as any)('approve_domain', { p_domain: normalized });
+  if (error) {
+    console.error('Error approving domain:', error);
+    return false;
+  }
   return true;
+}
+
+/** Rejects a domain: pending rows are logged to rejected_domains, then removed. */
+export async function rejectDomain(domain: string): Promise<boolean> {
+  const normalized = normalizeDomain(domain);
+  if (!normalized) return false;
+  const { error } = await (supabase.rpc as any)('reject_domain', { p_domain: normalized });
+  if (error) {
+    console.error('Error rejecting domain:', error);
+    return false;
+  }
+  return true;
+}
+
+/** Moves a rejected domain's requests back to the pending list. */
+export async function restoreRejectedDomain(domain: string): Promise<boolean> {
+  const normalized = normalizeDomain(domain);
+  if (!normalized) return false;
+  const { error } = await (supabase.rpc as any)('restore_rejected_domain', { p_domain: normalized });
+  if (error) {
+    console.error('Error restoring rejected domain:', error);
+    return false;
+  }
+  return true;
+}
+
+/** Fetches the rejected-domains log (Super-Admin dashboard, spec §6a). */
+export async function fetchRejectedDomains(): Promise<RejectedDomain[]> {
+  const { data, error } = await supabase
+    .from('rejected_domains' as any)
+    .select('*, profiles:requested_by (username, avatar_url)')
+    .order('rejected_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching rejected domains:', error);
+    return [];
+  }
+  return (data as unknown as RejectedDomain[]) || [];
+}
+
+/** @deprecated use approveDomain — kept as an alias for older call sites. */
+export async function approvePendingDomain(domain: string): Promise<boolean> {
+  return approveDomain(domain);
 }
 
 /**
