@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useEffectOnActive } from "keepalive-for-react";
 import { Button } from "@/components/ui/button";
 import { MarketplaceItem as MarketplaceItemType } from "@/types";
 import { AlertCircle, RefreshCw, Archive } from "lucide-react";
@@ -141,6 +142,16 @@ const Marketplace = () => {
 
     loadMarketplaceItems();
   }, [loadMarketplaceItems]);
+
+  // /marketplace is kept alive (see config/keepAlive.ts), so navigating away and
+  // back does NOT remount this page and the mount effect above never re-runs.
+  // Without this, a listing promoted elsewhere — e.g. an admin approving its URL,
+  // which flips it from PendingUrl to Available — would keep showing its stale
+  // status until a full browser reload. skipMount avoids double-fetching on the
+  // first render.
+  useEffectOnActive(() => {
+    loadMarketplaceItems();
+  }, [loadMarketplaceItems], true);
 
   useEffect(() => {
     fetchCountries().then((data) =>
