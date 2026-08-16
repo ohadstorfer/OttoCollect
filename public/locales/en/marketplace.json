@@ -118,7 +118,6 @@
     "estimatedPrice": "Estimated",
     "estimatedPlaceholder": "e.g. 150-300",
     "realizedPrice": "Realized price",
-    "realizedPriceDescription": "You can enter the final price after the auction ends",
     "archiveAfterAuction": "Item will move to Archive 1 week after the auction",
     "mustBeFilled": "* Must be filled in",
     "publish": "Publish",

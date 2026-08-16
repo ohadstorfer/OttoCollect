@@ -52,7 +52,7 @@ Legend: ✅ done · 🟡 partial · ❌ missing
 | 3 | Auction: URL required + approved | ✅ | `validate()` blocks publish |
 | 3 | Auction: **unapproved URL → queued, auto-publishes on approval** | ❌ | today publish is *refused* with a validation error |
 | 3 | Auction: no Contact Seller | ✅ | `MarketplaceItem.tsx:239`, `MarketplaceItemDetail.tsx:489` |
-| 3 | Auction: **Realized price editable without entering edit mode** | 🟡 | field exists, but only inside the edit dialog |
+| 3 | Auction: **Realized price editable without entering edit mode** | ✅ | entered on the item display (card + detail) once the auction has ended; **not** a field of the create/edit form |
 | 3 | Auction: auto-archive 1 week after auction date | ✅ | `isListingArchived` (derived at read time) |
 | 4 | Publish / Save draft / Cancel | ✅ | dialog footer |
 | 4 | **Missing required fields highlighted in red *in the form*** | 🟡 | errors listed as text under the form, fields not marked |
@@ -523,7 +523,14 @@ Both currently require opening the edit dialog; spec wants them **on the item di
 - Buy-now, owner: `☐ Mark as Item Sold` — toggling writes `is_sold` + `sold_at`
   immediately (no dialog, optimistic, toast on failure).
 - Auction, owner, after `auction_at` has passed: `After sale, enter Price Realized:`
-  `[input] [Update]` — writes `realized_price` (+ `currency`) directly.
+  `[input] [Update]` — writes `realized_price` (+ `currency`) directly. The input is
+  prefilled with the stored value so an entered price can be corrected, not only added.
+
+**Price Realized is deliberately absent from the listing form.** Per §3/§8c it is a
+post-sale result, not a listing parameter, so it appears only here. `ListingInput`
+therefore carries no `realizedPrice`, and `saveMarketplaceListing` leaves the column
+untouched for auctions (clearing it only when the listing stops being an auction) —
+otherwise editing a listing after the sale would silently wipe the entered price.
 
 Both surfaces: the marketplace card **and** the detail page (`§8` says "at the bottom of
 the item's information display", which the mockups show on the card).

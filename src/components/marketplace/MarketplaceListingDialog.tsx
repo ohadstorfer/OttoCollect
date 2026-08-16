@@ -102,7 +102,6 @@ export function MarketplaceListingDialog({
   const [lotNumber, setLotNumber] = useState('');
   const [startPrice, setStartPrice] = useState('');
   const [estimatedPrice, setEstimatedPrice] = useState('');
-  const [realizedPrice, setRealizedPrice] = useState('');
 
   const clearFieldError = (key: string) =>
     setFieldErrors((prev) => {
@@ -149,7 +148,6 @@ export function MarketplaceListingDialog({
         setLotNumber(item.lot_number ?? '');
         setStartPrice(item.start_price != null ? String(item.start_price) : '');
         setEstimatedPrice(item.estimated_price ?? '');
-        setRealizedPrice(item.realized_price != null ? String(item.realized_price) : '');
         setAuctionTz(item.auction_timezone ?? '');
         setAuctionDate(date);
         setAuctionTime(time);
@@ -160,7 +158,6 @@ export function MarketplaceListingDialog({
           date, time, item.auction_timezone ?? '', item.lot_number ?? '',
           item.start_price != null ? String(item.start_price) : '',
           item.estimated_price ?? '',
-          item.realized_price != null ? String(item.realized_price) : '',
           consent,
         ];
       } else {
@@ -168,8 +165,8 @@ export function MarketplaceListingDialog({
         setCurrency('USD');
         setSalePrice(''); setPublicRemark(''); setUrl(''); setIsSold(false);
         setAuctionDate(''); setAuctionTime(''); setAuctionTz('');
-        setLotNumber(''); setStartPrice(''); setEstimatedPrice(''); setRealizedPrice('');
-        vals = ['sale', 'USD', '', '', '', false, '', '', '', '', '', '', '', consent];
+        setLotNumber(''); setStartPrice(''); setEstimatedPrice('');
+        vals = ['sale', 'USD', '', '', '', false, '', '', '', '', '', '', consent];
       }
       setSnapshot(JSON.stringify(vals));
     }).finally(() => { if (!cancelled) setLoading(false); });
@@ -180,7 +177,7 @@ export function MarketplaceListingDialog({
   const currentSerialized = JSON.stringify([
     listingType, currency, salePrice, publicRemark, url, isSold,
     auctionDate, auctionTime, auctionTz, lotNumber, startPrice, estimatedPrice,
-    realizedPrice, chatConsent,
+    chatConsent,
   ]);
   const isDirty = snapshot !== '' && currentSerialized !== snapshot;
 
@@ -243,7 +240,6 @@ export function MarketplaceListingDialog({
     lotNumber: lotNumber.trim() || null,
     startPrice: startPrice ? parseFloat(startPrice) : null,
     estimatedPrice: estimatedPrice.trim() || null,
-    realizedPrice: realizedPrice ? parseFloat(realizedPrice) : null,
   });
 
   const handleSave = async (publish: boolean) => {
@@ -498,11 +494,8 @@ export function MarketplaceListingDialog({
                     <Input value={estimatedPrice} onChange={(e) => setEstimatedPrice(e.target.value)} placeholder={t('listing.estimatedPlaceholder')} />
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <Label>{t('listing.realizedPrice')} ({currency})</Label>
-                  <Input value={realizedPrice} onChange={numericInput(setRealizedPrice)} />
-                  <p className="text-xs text-muted-foreground">{t('listing.realizedPriceDescription')}</p>
-                </div>
+                {/* Price Realized is NOT part of this form (spec §8c): the owner
+                    enters it on the item display once the auction has ended. */}
                 <div className="space-y-1">
                   <Label>{t('listing.publicRemark')}</Label>
                   <Textarea value={publicRemark} onChange={(e) => setPublicRemark(e.target.value)} />

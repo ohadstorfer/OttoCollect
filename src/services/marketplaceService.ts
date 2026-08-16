@@ -282,7 +282,6 @@ export interface ListingInput {
   lotNumber: string | null;
   startPrice: number | null;
   estimatedPrice: string | null;
-  realizedPrice: number | null;
 }
 
 export type SaveListingResult = 'published' | 'draft' | 'pending-url' | 'error';
@@ -351,7 +350,11 @@ export async function saveMarketplaceListing(
       lot_number: input.listingType === 'auction' ? input.lotNumber : null,
       start_price: input.listingType === 'auction' ? input.startPrice : null,
       estimated_price: input.listingType === 'auction' ? input.estimatedPrice : null,
-      realized_price: input.listingType === 'auction' ? input.realizedPrice : null,
+      // realized_price is never set from this form (spec §8c) — it is entered on
+      // the item display after the auction ends, via setRealizedPrice(). Editing
+      // an auction listing must therefore leave the stored value untouched; only
+      // switching away from 'auction' clears it.
+      ...(input.listingType === 'auction' ? {} : { realized_price: null }),
       status,
       pending_url_domain:
         holdForUrl && input.externalListingUrl ? normalizeDomain(input.externalListingUrl) : null,

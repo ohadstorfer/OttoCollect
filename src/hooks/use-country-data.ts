@@ -11,7 +11,7 @@ import { fetchSultanOrdersByCountryId, SultanOrder } from "@/services/sultanOrde
 
 interface UseCountryDataProps {
   countryName: string;
-  navigate: (path: string) => void;
+  navigate: (path: string, options?: { replace?: boolean }) => void;
 }
 
 interface UseCountryDataResult {
@@ -45,11 +45,24 @@ export const useCountryData = ({
   const hasLoadedPreferences = useRef<boolean>(false);
   const isGroupModeChanging = useRef<boolean>(false);
   const initialLoadComplete = useRef<boolean>(false);
-  
+  // Guards the "country not found" redirect so it fires exactly once. This page
+  // is kept alive (see keepAlive.ts), so the effect re-runs whenever `user`
+  // changes (auth init, token refresh, tab focus). Without this guard a stale
+  // not-found instance (e.g. an SEO-indexed /catalog/Lebanon) would re-issue
+  // navigate('/catalog') on every auth event, yanking the user off whatever
+  // catalog they had opened.
+  const redirectedNotFound = useRef<boolean>(false);
+
   useEffect(() => {
     const loadCountryData = async () => {
       if (!countryName) {
         console.log("CountryDetail: No country name provided");
+        return;
+      }
+
+      // Already redirected this instance for a missing country — don't re-fetch
+      // or re-navigate on subsequent effect runs.
+      if (redirectedNotFound.current) {
         return;
       }
 
@@ -60,12 +73,8 @@ export const useCountryData = ({
         const countryData = await fetchCountryByName(decodedCountryName);
 
         if (!countryData) {
-          toast({
-            title: "Error",
-            description: `Country "${decodedCountryName}" not found.`,
-            variant: "destructive",
-          });
-          navigate('/catalog');
+          redirectedNotFound.current = true;
+          navigate('/catalog', { replace: true });
           return;
         }
 

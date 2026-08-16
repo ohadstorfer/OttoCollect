@@ -44,7 +44,10 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   // Optimistic owner-only inline controls (spec §8.2).
   const [soldState, setSoldState] = useState(Boolean(item.is_sold));
   const [realizedState, setRealizedState] = useState<number | null>(item.realized_price ?? null);
-  const [realizedInput, setRealizedInput] = useState('');
+  // Prefilled so the owner can correct an already-entered price, not only add one.
+  const [realizedInput, setRealizedInput] = useState(
+    item.realized_price != null ? String(item.realized_price) : ''
+  );
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -121,7 +124,6 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
     const ok = await setRealizedPrice(item.id, price);
     if (ok) {
       setRealizedState(price);
-      setRealizedInput('');
     } else {
       toast({ title: t('listing.saveError'), variant: 'destructive' });
     }

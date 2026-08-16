@@ -164,6 +164,8 @@ const MarketplaceItemDetailUnlisted = () => {
   const isAuction = item.listing_type === 'auction';
   const isOwner = Boolean(user?.id && seller && user.id === seller.id);
   const auctionEnded = isAuction && isListingEnded(item);
+  // Show the stored Price Realized in the input so it can be corrected, not just added.
+  const realizedValue = realizedInput || (item.realized_price != null ? String(item.realized_price) : '');
 
   const handleToggleSold = async (checked: boolean) => {
     const ok = await setListingSold(item.id, checked);
@@ -172,11 +174,10 @@ const MarketplaceItemDetailUnlisted = () => {
   };
 
   const handleUpdateRealized = async () => {
-    const price = parseFloat(realizedInput);
+    const price = parseFloat(realizedValue);
     if (Number.isNaN(price)) return;
     const ok = await setRealizedPrice(item.id, price);
     if (ok) {
-      setRealizedInput('');
       fetchItem();
     } else {
       toast({ title: t('listing.saveError'), variant: 'destructive' });
@@ -407,14 +408,14 @@ const MarketplaceItemDetailUnlisted = () => {
                   <div className="flex gap-2">
                     <Input
                       className="h-8 w-32"
-                      value={realizedInput}
+                      value={realizedValue}
                       onChange={(e) => {
                         if (e.target.value === '' || /^[0-9]*\.?[0-9]*$/.test(e.target.value)) {
                           setRealizedInput(e.target.value);
                         }
                       }}
                     />
-                    <Button size="sm" disabled={!realizedInput} onClick={handleUpdateRealized}>
+                    <Button size="sm" disabled={!realizedValue} onClick={handleUpdateRealized}>
                       {t('listing.update')}
                     </Button>
                   </div>
