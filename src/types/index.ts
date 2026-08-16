@@ -99,6 +99,7 @@ export interface User {
   linkedin_url?: string;
   personal_website_url?: string;
   is_url_approved?: boolean;
+  chat_email_consent?: boolean;
 }
 
 // Add missing Banknote interface
@@ -329,16 +330,22 @@ export interface WishlistItem {
 }
 
 export type ListingType = 'sale' | 'auction';
+export type ListingCurrency = 'USD' | 'EUR';
 
 export interface MarketplaceItem {
   id: string;
   seller_id: string;
   collection_item_id: string;
   banknote_id: string;
-  status: 'Available' | 'Sold' | 'Reserved' | 'Draft';
+  status: 'Available' | 'Sold' | 'Reserved' | 'Draft' | 'PendingUrl';
   external_listing_url?: string | null;
   is_url_approved?: boolean;
   listing_type?: ListingType;
+  currency?: ListingCurrency;
+  reference_code?: string | null;
+  published_at?: string | null;
+  archived_at?: string | null;
+  pending_url_domain?: string | null;
   public_remark?: string | null;
   is_sold?: boolean;
   sold_at?: string | null;
