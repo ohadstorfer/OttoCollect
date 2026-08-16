@@ -238,11 +238,12 @@ const MarketplaceItemDetail = () => {
 
   const sellerRank = seller?.rank || "Newbie";
 
-  // Get display images
-  const displayImages = [
-    obverseImage || banknote.imageUrls?.[0],
-    reverseImage || banknote.imageUrls?.[1]
-  ].filter(Boolean) as string[];
+  // Only the seller's own photos of THIS copy. Falling back to the catalog
+  // images would show a pristine reference scan for a note whose real
+  // condition is unknown — misleading in a sales context, and inconsistent
+  // with the card and the unlisted detail page, which both show a placeholder.
+  // The catalog images remain visible in the Banknote Details section below.
+  const displayImages = [obverseImage, reverseImage].filter(Boolean) as string[];
 
   const openImageViewer = (imageUrl: string) => {
     setSelectedImage(imageUrl);
