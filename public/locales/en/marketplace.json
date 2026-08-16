@@ -104,7 +104,7 @@
     "publicRemark": "Public Remark (Optional)",
     "addWebsiteUrl": "Add your website URL (Optional)",
     "auctionUrl": "Add Auction Item website URL",
-    "auctionUrlRequired": "An approved auction website URL is required to publish",
+    "auctionUrlRequired": "A valid auction website URL is required to publish",
     "urlNotApprovedNotice": "If your website is not approved by OttoCollect, contact: info@ottocollect.com",
     "checkChatNotice": "Please check your OttoCollect chat box from time to time",
     "itemSold": "Item Sold",

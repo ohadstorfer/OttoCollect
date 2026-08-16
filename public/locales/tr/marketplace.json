@@ -105,7 +105,7 @@
     "publicRemark": "Genel Not (İsteğe bağlı)",
     "addWebsiteUrl": "Web sitenizin adresini ekleyin (İsteğe bağlı)",
     "auctionUrl": "Müzayede sayfası adresini ekleyin",
-    "auctionUrlRequired": "Yayınlamak için onaylı bir müzayede sitesi adresi gerekli",
+    "auctionUrlRequired": "Yayınlamak için geçerli bir müzayede sitesi adresi gerekli",
     "urlNotApprovedNotice": "Siteniz OttoCollect tarafından onaylı değilse iletişim: info@ottocollect.com",
     "checkChatNotice": "Lütfen OttoCollect sohbet kutunuzu ara sıra kontrol edin",
     "itemSold": "Satıldı",

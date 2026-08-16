@@ -105,7 +105,7 @@
     "publicRemark": "ملاحظة عامة (اختياري)",
     "addWebsiteUrl": "أضف رابط موقعك (اختياري)",
     "auctionUrl": "أضف رابط صفحة المزاد",
-    "auctionUrlRequired": "يلزم رابط موقع مزاد معتمد للنشر",
+    "auctionUrlRequired": "يلزم رابط موقع مزاد صالح للنشر",
     "urlNotApprovedNotice": "إذا لم يكن موقعك معتمداً لدى OttoCollect تواصل مع: info@ottocollect.com",
     "checkChatNotice": "يرجى مراجعة صندوق محادثات OttoCollect من وقت لآخر",
     "itemSold": "تم البيع",

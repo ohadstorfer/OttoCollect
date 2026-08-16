@@ -121,6 +121,7 @@ import {
   buildMarketplaceSections,
   formatListingPrice,
   formatReferenceCode,
+  normalizeListingUrl,
   UNSOLD_ARCHIVE_MS,
   UPCOMING_AUCTION_WINDOW_MS,
 } from './marketplaceListing';
@@ -244,5 +245,30 @@ describe('buildMarketplaceSections', () => {
     ];
     const sections = buildMarketplaceSections(items as any, countryOrder, now);
     expect(sections.map((s) => s.countryName)).toEqual(['Ottoman Empire', 'Aaa Land', 'Zzz Land']);
+  });
+});
+
+describe('normalizeListingUrl', () => {
+  it('accepts a bare domain by assuming https', () => {
+    expect(normalizeListingUrl('greenappleauction.com')).toBe('https://greenappleauction.com');
+    expect(normalizeListingUrl('  ebay.com/itm/123  ')).toBe('https://ebay.com/itm/123');
+  });
+  it('leaves an explicit scheme untouched', () => {
+    expect(normalizeListingUrl('https://www.ebay.com/itm/1')).toBe('https://www.ebay.com/itm/1');
+    expect(normalizeListingUrl('http://example.com/a?b=c')).toBe('http://example.com/a?b=c');
+  });
+  it('rejects empty, spaced and dotless input', () => {
+    expect(normalizeListingUrl('')).toBeNull();
+    expect(normalizeListingUrl('   ')).toBeNull();
+    expect(normalizeListingUrl('not a url')).toBeNull();
+    expect(normalizeListingUrl('localhost')).toBeNull();
+  });
+  it('rejects non-http schemes', () => {
+    expect(normalizeListingUrl('ftp://files.example.com')).toBeNull();
+    expect(normalizeListingUrl('javascript:alert(1)')).toBeNull();
+  });
+  it('produces a value isUrlApproved/getListingHostname can consume', () => {
+    expect(getListingHostname(normalizeListingUrl('greenappleauction.com'))).toBe('greenappleauction.com');
+    expect(getListingHostname(normalizeListingUrl('www.ebay.com/itm/1'))).toBe('ebay.com');
   });
 });

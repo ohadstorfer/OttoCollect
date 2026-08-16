@@ -128,6 +128,28 @@ export function formatAuctionDateTime(auctionAt: string, tz: string | null): str
   return offset !== null && tz ? `${label} ${tz}` : label;
 }
 
+/**
+ * Accepts what people actually type ("greenappleauction.com") and returns a
+ * usable absolute URL, or null if it cannot be one. Only http(s) is allowed.
+ * The typed form is preserved (no trailing slash added) beyond the scheme.
+ */
+export function normalizeListingUrl(input: string | null | undefined): string | null {
+  const trimmed = (input ?? '').trim();
+  if (!trimmed) return null;
+  const candidate = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) || /^[a-z][a-z0-9+.-]*:/i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+  try {
+    const parsed = new URL(candidate);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
+    // A hostname without a dot ("localhost", "hello") is not a public website.
+    if (!parsed.hostname.includes('.')) return null;
+    return candidate;
+  } catch {
+    return null;
+  }
+}
+
 export function getListingHostname(url?: string | null): string | null {
   if (!url) return null;
   try {

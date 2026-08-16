@@ -38,6 +38,7 @@ import {
 import {
   combineAuctionDateTime,
   splitAuctionDateTime,
+  normalizeListingUrl,
   CURRENCIES,
   CURRENCY_SYMBOL,
   UTC_OFFSETS,
@@ -188,17 +189,17 @@ export function MarketplaceListingDialog({
   };
 
   const urlTrimmed = url.trim();
-  const urlIsValid = useMemo(() => {
-    if (!urlTrimmed) return false;
-    try { new URL(urlTrimmed); return true; } catch { return false; }
-  }, [urlTrimmed]);
+  // Users type bare domains ("greenappleauction.com"); normalize before
+  // validating, matching against approved domains, and storing.
+  const normalizedUrl = useMemo(() => normalizeListingUrl(urlTrimmed), [urlTrimmed]);
+  const urlIsValid = normalizedUrl !== null;
   // isUrlApproved compares against a list of bare domain strings (e.g. "ebay.com"),
   // while fetchApprovedDomains() returns the full ApprovedDomain rows.
   const approvedDomainNames = useMemo(
     () => approvedDomains.map((d) => d.domain),
     [approvedDomains],
   );
-  const urlApproved = urlIsValid && isUrlApproved(urlTrimmed, approvedDomainNames);
+  const urlApproved = normalizedUrl !== null && isUrlApproved(normalizedUrl, approvedDomainNames);
 
   const isDraft = existing?.status === 'Draft';
   const isPublished = existing != null && existing.status !== 'Draft';
@@ -230,7 +231,7 @@ export function MarketplaceListingDialog({
     currency,
     salePrice: listingType === 'sale' && salePrice ? parseFloat(salePrice) : null,
     publicRemark: publicRemark.trim() || null,
-    externalListingUrl: urlTrimmed || null,
+    externalListingUrl: normalizedUrl,
     isUrlApproved: urlApproved,
     isSold: listingType === 'sale' ? isSold : false,
     auctionAt: listingType === 'auction'
@@ -293,8 +294,13 @@ export function MarketplaceListingDialog({
   };
 
   const handleRequestApproval = async () => {
-    if (!user?.id || !urlIsValid) return;
-    const ok = await createPendingDomainRequest(user.id, normalizeDomain(urlTrimmed), urlTrimmed);
+    if (!user?.id || !normalizedUrl) return;
+    const ok = await createPendingDomainRequest(
+      user.id,
+      normalizeDomain(normalizedUrl),
+      normalizedUrl,
+      listingType
+    );
     if (ok) setApprovalRequested(true);
   };
 
