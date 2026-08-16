@@ -114,3 +114,135 @@ describe('getListingHostname', () => {
     expect(getListingHostname('not a url')).toBeNull();
   });
 });
+
+// --- Rev 1.50 additions ---
+
+import {
+  buildMarketplaceSections,
+  formatListingPrice,
+  formatReferenceCode,
+  UNSOLD_ARCHIVE_MS,
+  UPCOMING_AUCTION_WINDOW_MS,
+} from './marketplaceListing';
+
+describe('formatListingPrice', () => {
+  it('formats numbers with the currency symbol', () => {
+    expect(formatListingPrice(85, 'USD')).toBe('$85');
+    expect(formatListingPrice(85, 'EUR')).toBe('€85');
+    expect(formatListingPrice(12.5)).toBe('$12.5');
+  });
+  it('prefixes ranges without parsing them', () => {
+    expect(formatListingPrice('150-300', 'EUR')).toBe('€150-300');
+    expect(formatListingPrice('150-300')).toBe('$150-300');
+  });
+  it('returns null for empty values', () => {
+    expect(formatListingPrice(null)).toBeNull();
+    expect(formatListingPrice(undefined)).toBeNull();
+    expect(formatListingPrice('')).toBeNull();
+  });
+});
+
+describe('formatReferenceCode', () => {
+  it('spaces out a valid code', () => {
+    expect(formatReferenceCode('A20260800001')).toBe('A 2026 08 00001');
+    expect(formatReferenceCode('B20251200008')).toBe('B 2025 12 00008');
+  });
+  it('passes through unknown shapes and nulls out empties', () => {
+    expect(formatReferenceCode('LEGACY-1')).toBe('LEGACY-1');
+    expect(formatReferenceCode(null)).toBeNull();
+    expect(formatReferenceCode(undefined)).toBeNull();
+  });
+});
+
+describe('rev 1.50 archive rules', () => {
+  const now = new Date('2026-08-16T00:00:00Z').getTime();
+  const DAY_ = 24 * 60 * 60 * 1000;
+  it('explicit archived_at always archives', () => {
+    expect(isListingArchived({ archived_at: new Date(now - 1).toISOString() } as any, now)).toBe(true);
+    expect(
+      isListingArchived(
+        { listing_type: 'auction' as const, auction_at: new Date(now + 5 * DAY_).toISOString(), archived_at: new Date(now).toISOString() } as any,
+        now
+      )
+    ).toBe(true);
+  });
+  it('unsold sale archives after 6 months from published_at', () => {
+    const oldSale = { listing_type: 'sale' as const, is_sold: false, published_at: new Date(now - UNSOLD_ARCHIVE_MS - DAY_).toISOString() };
+    const freshSale = { listing_type: 'sale' as const, is_sold: false, published_at: new Date(now - 30 * DAY_).toISOString() };
+    expect(isListingArchived(oldSale as any, now)).toBe(true);
+    expect(isListingArchived(freshSale as any, now)).toBe(false);
+  });
+  it('6-month rule does not apply to auctions', () => {
+    const oldAuction = {
+      listing_type: 'auction' as const,
+      auction_at: new Date(now + 5 * DAY_).toISOString(),
+      published_at: new Date(now - UNSOLD_ARCHIVE_MS - DAY_).toISOString(),
+    };
+    expect(isListingArchived(oldAuction as any, now)).toBe(false);
+  });
+});
+
+describe('buildMarketplaceSections', () => {
+  const now = new Date('2026-08-16T00:00:00Z').getTime();
+  const DAY_ = 24 * 60 * 60 * 1000;
+  const countryOrder = [
+    { id: 'c-ott', name: 'Ottoman Empire', display_order: 0 },
+    { id: 'c-jor', name: 'Jordan', display_order: 1 },
+    { id: 'c-tur', name: 'Turkey', display_order: 4 },
+  ];
+  const mk = (country: string, over: Record<string, unknown>) => ({
+    collectionItem: { banknote: { country } },
+    ...over,
+  });
+
+  it('orders countries by display_order (Ottoman first) and omits empty ones', () => {
+    const items = [
+      mk('Turkey', { listing_type: 'sale', published_at: new Date(now - DAY_).toISOString() }),
+      mk('Ottoman Empire', { listing_type: 'sale', published_at: new Date(now - DAY_).toISOString() }),
+    ];
+    const sections = buildMarketplaceSections(items as any, countryOrder, now);
+    expect(sections.map((s) => s.countryName)).toEqual(['Ottoman Empire', 'Turkey']);
+  });
+
+  it('splits auctions at the 14-day window and sorts by date then reference code', () => {
+    const items = [
+      mk('Jordan', { listing_type: 'auction', auction_at: new Date(now + 20 * DAY_).toISOString(), reference_code: 'A20260800004' }),
+      mk('Jordan', { listing_type: 'auction', auction_at: new Date(now + 3 * DAY_).toISOString(), reference_code: 'A20260800002' }),
+      mk('Jordan', { listing_type: 'auction', auction_at: new Date(now + 3 * DAY_).toISOString(), reference_code: 'A20260800001' }),
+      mk('Jordan', { listing_type: 'auction', auction_at: new Date(now + 10 * DAY_).toISOString(), reference_code: 'A20260800003' }),
+    ];
+    const [jordan] = buildMarketplaceSections(items as any, countryOrder, now);
+    expect(jordan.nearAuctions.map((i: any) => i.reference_code)).toEqual([
+      'A20260800001', 'A20260800002', 'A20260800003',
+    ]);
+    expect(jordan.farAuctions.map((i: any) => i.reference_code)).toEqual(['A20260800004']);
+  });
+
+  it('exactly-14-days is still "near"', () => {
+    const items = [
+      mk('Jordan', { listing_type: 'auction', auction_at: new Date(now + UPCOMING_AUCTION_WINDOW_MS).toISOString(), reference_code: 'A20260800001' }),
+    ];
+    const [jordan] = buildMarketplaceSections(items as any, countryOrder, now);
+    expect(jordan.nearAuctions).toHaveLength(1);
+    expect(jordan.farAuctions).toHaveLength(0);
+  });
+
+  it('orders buy-now newest published first', () => {
+    const items = [
+      mk('Ottoman Empire', { listing_type: 'sale', reference_code: 'B1', published_at: new Date(now - 5 * DAY_).toISOString() }),
+      mk('Ottoman Empire', { listing_type: 'sale', reference_code: 'B2', published_at: new Date(now - 1 * DAY_).toISOString() }),
+    ];
+    const [ott] = buildMarketplaceSections(items as any, countryOrder, now);
+    expect(ott.buyNow.map((i: any) => i.reference_code)).toEqual(['B2', 'B1']);
+  });
+
+  it('puts unknown countries last, alphabetically', () => {
+    const items = [
+      mk('Zzz Land', { listing_type: 'sale', published_at: new Date(now).toISOString() }),
+      mk('Aaa Land', { listing_type: 'sale', published_at: new Date(now).toISOString() }),
+      mk('Ottoman Empire', { listing_type: 'sale', published_at: new Date(now).toISOString() }),
+    ];
+    const sections = buildMarketplaceSections(items as any, countryOrder, now);
+    expect(sections.map((s) => s.countryName)).toEqual(['Ottoman Empire', 'Aaa Land', 'Zzz Land']);
+  });
+});
