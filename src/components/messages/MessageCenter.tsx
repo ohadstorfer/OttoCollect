@@ -5,7 +5,10 @@ import { useAuth } from '@/context/AuthContext';
 import { MessageList } from './MessageList';
 import MessagePanel from './MessagePanel';
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeft, MessageCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { UserRank } from '@/types';
 import { checkUserDailyMessagingLimit } from '@/services/messageService';
@@ -30,8 +33,42 @@ export function MessageCenter({
   const [showMessages, setShowMessages] = useState(!isMobile);
   const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(initialHasReachedDailyLimit);
   const [dailyCount, setDailyCount] = useState(0);
-  const { t } = useTranslation(['messaging']);
+  const { t } = useTranslation(['messaging', 'marketplace']);
   const { direction } = useLanguage();
+  const { toast } = useToast();
+  // Chat→email digest consent (spec §7.1) — profile-level, revocable any time.
+  const [chatConsent, setChatConsent] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    supabase
+      .from('profiles')
+      .select('chat_email_consent')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (!cancelled) setChatConsent(Boolean((data as any)?.chat_email_consent));
+      });
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
+  const handleConsentChange = async (next: boolean) => {
+    if (!user?.id) return;
+    setChatConsent(next); // optimistic
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        chat_email_consent: next,
+        chat_email_consent_at: next ? new Date().toISOString() : null,
+      } as any)
+      .eq('id', user.id);
+    if (error) {
+      console.error('Error saving chat email consent:', error);
+      setChatConsent(!next);
+      toast({ title: t('listing.saveError', { ns: 'marketplace' }), variant: 'destructive' });
+    }
+  };
   const { 
     conversations, 
     currentMessages, 
@@ -158,7 +195,25 @@ export function MessageCenter({
           <span>{t('center.title')}</span>
         </h2>
       </div>
-      
+
+      {user && chatConsent !== null && (
+        <div className="flex items-start gap-2 px-4 py-2 border-b bg-muted/10">
+          <Checkbox
+            id="chat-email-consent"
+            checked={chatConsent}
+            onCheckedChange={(v) => handleConsentChange(v === true)}
+          />
+          <div>
+            <label htmlFor="chat-email-consent" className="text-sm cursor-pointer">
+              {t('listing.chatConsent', { ns: 'marketplace' })}
+            </label>
+            <p className="text-xs text-muted-foreground">
+              {t('listing.chatConsentHint', { ns: 'marketplace' })}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-1 overflow-hidden">
         {/* Conversation List - Hidden on mobile when showing messages */}
         {(!isMobile || !showMessages) && (
