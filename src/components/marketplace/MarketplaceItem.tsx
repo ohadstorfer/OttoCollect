@@ -3,6 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { MarketplaceItem as MarketplaceItemType, UserRank } from "@/types";
 import { Eye, MessageCircle, LogIn, ShoppingBag, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { setListingSold, setRealizedPrice } from "@/services/marketplaceService";
 import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -20,7 +24,13 @@ import { Separator } from "@/components/ui/separator";
 import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/context/LanguageContext";
-import { formatAuctionDateTime, getListingHostname } from '@/lib/marketplaceListing';
+import {
+  formatAuctionDateTime,
+  formatListingPrice,
+  formatReferenceCode,
+  getListingHostname,
+  isListingEnded,
+} from '@/lib/marketplaceListing';
 
 interface MarketplaceItemProps {
   item: MarketplaceItemType;
@@ -31,8 +41,13 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   
   const [isHovering, setIsHovering] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  // Optimistic owner-only inline controls (spec §8.2).
+  const [soldState, setSoldState] = useState(Boolean(item.is_sold));
+  const [realizedState, setRealizedState] = useState<number | null>(item.realized_price ?? null);
+  const [realizedInput, setRealizedInput] = useState('');
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   const { direction, currentLanguage } = useLanguage();
   const { t } = useTranslation(['marketplace']);
   
@@ -79,6 +94,8 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   const { banknote, condition, salePrice, publicNote } = collectionItem;
 
   const isAuction = item.listing_type === 'auction';
+  const isOwner = Boolean(user?.id && user.id === item.sellerId);
+  const auctionEnded = isAuction && isListingEnded(item);
   const showSource = Boolean(item.external_listing_url && item.is_url_approved);
   const sourceHostname = getListingHostname(item.external_listing_url);
   const auctionDateTime = item.auction_at
@@ -87,6 +104,27 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   const handleViewSource = (e: React.MouseEvent) => {
     e.stopPropagation();
     window.open(item.external_listing_url!, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleToggleSold = async (checked: boolean) => {
+    setSoldState(checked);
+    const ok = await setListingSold(item.id, checked);
+    if (!ok) {
+      setSoldState(!checked);
+      toast({ title: t('listing.saveError'), variant: 'destructive' });
+    }
+  };
+
+  const handleUpdateRealized = async () => {
+    const price = parseFloat(realizedInput);
+    if (Number.isNaN(price)) return;
+    const ok = await setRealizedPrice(item.id, price);
+    if (ok) {
+      setRealizedState(price);
+      setRealizedInput('');
+    } else {
+      toast({ title: t('listing.saveError'), variant: 'destructive' });
+    }
   };
 
   const handleViewDetails = () => {
@@ -136,14 +174,31 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
           </div>
           
           {!isAuction && salePrice != null && (
-            <div className="absolute top-0 left-0 bg-ottoman-700/95 text-white px-3 py-1 flex items-center text-lg font-bold">
-              ${salePrice}
+            <div className="absolute top-0 left-0 bg-ottoman-800/95 text-white px-3 py-1 flex items-center text-xl font-bold">
+              {formatListingPrice(salePrice, item.currency)}
             </div>
           )}
 
-          {item.is_sold && (
+          {item.status === 'Draft' && (
             <div className="absolute top-2 right-2">
-              <Badge variant="destructive">{t('listing.sold')}</Badge>
+              <Badge variant="secondary">{t('listing.draft')}</Badge>
+            </div>
+          )}
+          {item.status === 'PendingUrl' && (
+            <div className="absolute top-2 right-2">
+              <Badge variant="secondary">{t('listing.waitingUrlApproval')}</Badge>
+            </div>
+          )}
+
+          {/* Prominent result labels (spec §8b/§8c). */}
+          {!isAuction && soldState && (
+            <div className="absolute bottom-0 inset-x-0 bg-destructive/90 text-destructive-foreground text-center text-lg font-bold py-1">
+              {t('listing.itemSold')}
+            </div>
+          )}
+          {isAuction && realizedState != null && (
+            <div className="absolute bottom-0 inset-x-0 bg-black/80 text-white text-center text-lg font-bold py-1">
+              {t('listing.priceRealizedLabel', { price: formatListingPrice(realizedState, item.currency) })}
             </div>
           )}
         </div>
@@ -153,7 +208,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
             <div>
 
             <div className="flex items-center gap-1">
-              <h3 className="text-lg font-serif font-semibold text-parchment-500">
+              <h3 className="text-xl font-serif font-semibold text-parchment-500">
                 <span> {getLocalizedField(banknote.denomination, 'face_value')} </span>
                 </h3>
                 {banknote.extendedPickNumber && (
@@ -163,7 +218,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
                   )}
                   </div>
 
-                  <p className="text-base text-ottoman-600 dark:text-ottoman-300">
+                  <p className="text-base text-ottoman-800 dark:text-ottoman-200">
                     {getLocalizedField(banknote.country, 'country')}
                     {banknote.country && banknote.year && ', '}
                     {banknote.year}
@@ -202,9 +257,11 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
                 </div>
               )}
               {item.lot_number && <p>{t('listing.lot')}: {item.lot_number}</p>}
-              {item.start_price != null && <p>{t('listing.startPrice')}: ${item.start_price}</p>}
-              {item.estimated_price && <p>{t('listing.estimatedPrice')}: ${item.estimated_price}</p>}
-              {item.realized_price != null && <p>{t('listing.realizedPrice')}: ${item.realized_price}</p>}
+              {item.start_price != null && <p>{t('listing.startPrice')}: {formatListingPrice(item.start_price, item.currency)}</p>}
+              {item.estimated_price && <p>{t('listing.estimatedPrice')}: {formatListingPrice(item.estimated_price, item.currency)}</p>}
+              {realizedState != null && (
+                <p className="font-bold">{t('listing.realizedPrice')}: {formatListingPrice(realizedState, item.currency)}</p>
+              )}
             </div>
           )}
 
@@ -233,12 +290,50 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
               )}
             </>
           )}
-          <p className="text-center text-base font-semibold text-foreground">
+          <p className="text-center text-lg font-bold text-black dark:text-white">
             {isAuction ? t('listing.auctionItem') : t('listing.buyNowItem')}
           </p>
+          {item.reference_code && (
+            <p className="text-center text-xs text-muted-foreground">
+              {t('listing.referenceId')} {formatReferenceCode(item.reference_code)}
+            </p>
+          )}
           {!isAuction && (
             <div className="flex justify-between pt-1" onClick={(e) => e.stopPropagation()}>
               <ContactSellerButton item={item} />
+            </div>
+          )}
+
+          {/* Owner-only inline controls (spec §8.2) */}
+          {isOwner && !isAuction && item.status === 'Available' && (
+            <div className="flex items-center gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+              <Checkbox
+                id={`sold-${item.id}`}
+                checked={soldState}
+                onCheckedChange={(v) => handleToggleSold(v === true)}
+              />
+              <label htmlFor={`sold-${item.id}`} className="text-sm cursor-pointer">
+                {t('listing.markAsSold')}
+              </label>
+            </div>
+          )}
+          {isOwner && isAuction && auctionEnded && (
+            <div className="space-y-1 pt-1" onClick={(e) => e.stopPropagation()}>
+              <p className="text-sm">{t('listing.enterRealizedPrice')}</p>
+              <div className="flex gap-2">
+                <Input
+                  className="h-8"
+                  value={realizedInput}
+                  onChange={(e) => {
+                    if (e.target.value === '' || /^[0-9]*\.?[0-9]*$/.test(e.target.value)) {
+                      setRealizedInput(e.target.value);
+                    }
+                  }}
+                />
+                <Button size="sm" disabled={!realizedInput} onClick={handleUpdateRealized}>
+                  {t('listing.update')}
+                </Button>
+              </div>
             </div>
           )}
         </CardFooter>

@@ -18,7 +18,16 @@ import ImagePreview from "@/components/shared/ImagePreview";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/context/LanguageContext";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { formatAuctionDateTime, getListingHostname } from "@/lib/marketplaceListing";
+import {
+  formatAuctionDateTime,
+  formatListingPrice,
+  formatReferenceCode,
+  getListingHostname,
+  isListingEnded,
+} from "@/lib/marketplaceListing";
+import { archiveListing, setListingSold, setRealizedPrice } from "@/services/marketplaceService";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { MarketplaceListingDialog } from "@/components/marketplace/MarketplaceListingDialog";
 
 const MarketplaceItemDetail = () => {
@@ -32,6 +41,8 @@ const MarketplaceItemDetail = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageOrientations, setImageOrientations] = useState<Record<number, 'vertical' | 'horizontal'>>({});
   const [isRemoving, setIsRemoving] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [realizedInput, setRealizedInput] = useState('');
   const [isListingDialogOpen, setIsListingDialogOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -187,7 +198,39 @@ const MarketplaceItemDetail = () => {
   const { banknote, condition, salePrice, publicNote, privateNote, obverseImage, reverseImage } = collectionItem;
 
   const isAuction = item.listing_type === 'auction';
+  const isOwner = Boolean(user?.id && seller && user.id === seller.id);
+  const auctionEnded = isAuction && isListingEnded(item);
   const showSource = Boolean(item.external_listing_url && item.is_url_approved);
+
+  const handleToggleSold = async (checked: boolean) => {
+    const ok = await setListingSold(item.id, checked);
+    if (ok) fetchItem();
+    else toast({ title: t('listing.saveError'), variant: 'destructive' });
+  };
+
+  const handleUpdateRealized = async () => {
+    const price = parseFloat(realizedInput);
+    if (Number.isNaN(price)) return;
+    const ok = await setRealizedPrice(item.id, price);
+    if (ok) {
+      setRealizedInput('');
+      fetchItem();
+    } else {
+      toast({ title: t('listing.saveError'), variant: 'destructive' });
+    }
+  };
+
+  const handleArchive = async () => {
+    setIsArchiving(true);
+    const ok = await archiveListing(item.id);
+    setIsArchiving(false);
+    if (ok) {
+      toast({ title: t('listing.archiveSuccess') });
+      fetchItem();
+    } else {
+      toast({ title: t('listing.saveError'), variant: 'destructive' });
+    }
+  };
 
   console.log('Banknote data for detail view:', banknote);
   console.log('Image sources:', { obverseImage, reverseImage, banknoteImages: banknote.imageUrls });
@@ -375,14 +418,29 @@ const MarketplaceItemDetail = () => {
 
                 <div className="text-3xl font-bold text-ottoman-500">
                   {!isAuction && salePrice != null && (
-                    <span className={`${direction === 'rtl' ? 'text-left' : 'text-right'}`}> ${salePrice} </span>
+                    <span className={`${direction === 'rtl' ? 'text-left' : 'text-right'}`}> {formatListingPrice(salePrice, item.currency)} </span>
                   )}
                 </div>
               </div>
 
-              <p className="text-base font-semibold text-foreground mt-1">
+              <p className="text-lg font-bold text-black dark:text-white mt-1">
                 <span>{isAuction ? t('listing.auctionItem') : t('listing.buyNowItem')}</span>
               </p>
+              {item.reference_code && (
+                <p className="text-xs text-muted-foreground">
+                  {t('listing.referenceId')} {formatReferenceCode(item.reference_code)}
+                </p>
+              )}
+              {!isAuction && item.is_sold && (
+                <p className="mt-2 inline-block rounded bg-destructive/90 px-3 py-1 text-lg font-bold text-destructive-foreground">
+                  {t('listing.itemSold')}
+                </p>
+              )}
+              {isAuction && item.realized_price != null && (
+                <p className="mt-2 inline-block rounded bg-black/80 px-3 py-1 text-lg font-bold text-white">
+                  {t('listing.priceRealizedLabel', { price: formatListingPrice(item.realized_price, item.currency) })}
+                </p>
+              )}
               {item.public_remark && (
                 <p className="text-sm text-muted-foreground mt-2">{item.public_remark}</p>
               )}
@@ -395,9 +453,42 @@ const MarketplaceItemDetail = () => {
                     </div>
                   )}
                   {item.lot_number && <p>{t('listing.lot')}: {item.lot_number}</p>}
-                  {item.start_price != null && <p>{t('listing.startPrice')}: ${item.start_price}</p>}
-                  {item.estimated_price && <p>{t('listing.estimatedPrice')}: ${item.estimated_price}</p>}
-                  {item.realized_price != null && <p>{t('listing.realizedPrice')}: ${item.realized_price}</p>}
+                  {item.start_price != null && <p>{t('listing.startPrice')}: {formatListingPrice(item.start_price, item.currency)}</p>}
+                  {item.estimated_price && <p>{t('listing.estimatedPrice')}: {formatListingPrice(item.estimated_price, item.currency)}</p>}
+                  {item.realized_price != null && <p className="font-bold">{t('listing.realizedPrice')}: {formatListingPrice(item.realized_price, item.currency)}</p>}
+                </div>
+              )}
+
+              {/* Owner-only inline controls (spec §8.2) */}
+              {isOwner && !isAuction && item.status === 'Available' && (
+                <div className="mt-3 flex items-center gap-2">
+                  <Checkbox
+                    id="detail-mark-sold"
+                    checked={Boolean(item.is_sold)}
+                    onCheckedChange={(v) => handleToggleSold(v === true)}
+                  />
+                  <label htmlFor="detail-mark-sold" className="text-sm cursor-pointer">
+                    {t('listing.markAsSold')}
+                  </label>
+                </div>
+              )}
+              {isOwner && isAuction && auctionEnded && (
+                <div className="mt-3 space-y-1">
+                  <p className="text-sm">{t('listing.enterRealizedPrice')}</p>
+                  <div className="flex gap-2">
+                    <Input
+                      className="h-8 w-32"
+                      value={realizedInput}
+                      onChange={(e) => {
+                        if (e.target.value === '' || /^[0-9]*\.?[0-9]*$/.test(e.target.value)) {
+                          setRealizedInput(e.target.value);
+                        }
+                      }}
+                    />
+                    <Button size="sm" disabled={!realizedInput} onClick={handleUpdateRealized}>
+                      {t('listing.update')}
+                    </Button>
+                  </div>
                 </div>
               )}
               {showSource && (
@@ -504,6 +595,16 @@ const MarketplaceItemDetail = () => {
                       >
                         {t('listing.editItem')}
                       </Button>
+                      {!item.archived_at && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleArchive}
+                          disabled={isArchiving}
+                        >
+                          {t('listing.archive')}
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"

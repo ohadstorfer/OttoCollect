@@ -16,6 +16,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { MessageSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { AuthRequiredDialog } from '@/components/auth/AuthRequiredDialog';
 
 interface ContactSellerProps {
   sellerId: string;
@@ -58,12 +59,19 @@ export function ContactSeller({ sellerId, sellerName, itemId, itemName }: Contac
     }
   };
   
+  // Spec §8b: guests see the button too — clicking prompts them to register/log in.
   if (!user) {
     return (
-      <div> </div>
+      <>
+        <Button size="sm" className="mt-2" variant="outline" onClick={() => setIsOpen(true)}>
+          <MessageSquare className="h-4 w-4 mr-2" />
+          {t('contactSeller.contactButton')}
+        </Button>
+        <AuthRequiredDialog open={isOpen} onOpenChange={setIsOpen} />
+      </>
     );
   }
-  
+
   // Don't show contact button if viewing your own listing
   if (user.id === sellerId) {
     return null;
