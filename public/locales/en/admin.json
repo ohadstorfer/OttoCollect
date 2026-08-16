@@ -49,7 +49,17 @@
     "approve": "Approve",
     "reject": "Reject",
     "requestedBy": "Requested by",
-    "requestRejected": "Requests for \"{{domain}}\" rejected"
+    "requestRejected": "Requests for \"{{domain}}\" rejected",
+    "approvedList": "Approved sites",
+    "pendingList": "Pending approval",
+    "rejectedList": "Rejected sites",
+    "saleType": "Sale type",
+    "requestDate": "Request date",
+    "rejectedDate": "Rejected date",
+    "username": "User",
+    "restore": "Restore",
+    "domainRestored": "\"{{domain}}\" moved back to pending",
+    "noRejected": "No rejected sites."
   },
   "userManagement": {
     "searchPlaceholder": "Search users...",

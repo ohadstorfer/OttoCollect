@@ -49,7 +49,17 @@
     "approve": "موافقة",
     "reject": "رفض",
     "requestedBy": "طلب بواسطة",
-    "requestRejected": "تم رفض طلبات \"{{domain}}\""
+    "requestRejected": "تم رفض طلبات \"{{domain}}\"",
+    "approvedList": "المواقع المعتمدة",
+    "pendingList": "بانتظار الاعتماد",
+    "rejectedList": "المواقع المرفوضة",
+    "saleType": "نوع البيع",
+    "requestDate": "تاريخ الطلب",
+    "rejectedDate": "تاريخ الرفض",
+    "username": "المستخدم",
+    "restore": "استعادة",
+    "domainRestored": "تمت إعادة \"{{domain}}\" إلى قائمة الانتظار",
+    "noRejected": "لا توجد مواقع مرفوضة."
   },
   "userManagement": {
     "searchPlaceholder": "البحث في المستخدمين...",

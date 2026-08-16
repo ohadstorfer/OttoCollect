@@ -49,7 +49,17 @@
     "approve": "Onayla",
     "reject": "Reddet",
     "requestedBy": "Talep eden",
-    "requestRejected": "\"{{domain}}\" için talepler reddedildi"
+    "requestRejected": "\"{{domain}}\" için talepler reddedildi",
+    "approvedList": "Onaylı siteler",
+    "pendingList": "Onay bekleyenler",
+    "rejectedList": "Reddedilen siteler",
+    "saleType": "Satış türü",
+    "requestDate": "Talep tarihi",
+    "rejectedDate": "Reddedilme tarihi",
+    "username": "Kullanıcı",
+    "restore": "Geri al",
+    "domainRestored": "\"{{domain}}\" bekleyenlere geri taşındı",
+    "noRejected": "Reddedilen site yok."
   },
   "userManagement": {
     "searchPlaceholder": "Kullanıcılarda ara...",
