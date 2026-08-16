@@ -266,11 +266,15 @@ const ApprovedDomainsManager: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Pending Approval Requests (spec §6a: date | URL | user | sale type) */}
-      {pendingRequests.length > 0 && (
-        <div className="mt-8">
-          <h4 className="text-lg font-medium mb-4"><span>{t('urls.pendingList', 'Pending approval')}</span></h4>
-          {(() => {
+      {/* Pending Approval Requests (spec §6a: date | URL | user | sale type).
+          Always rendered — an empty section still tells the admin where
+          incoming requests will appear. */}
+      <div className="mt-8">
+        <h4 className="text-lg font-medium mb-4"><span>{t('urls.pendingList', 'Pending approval')}</span></h4>
+        {pendingRequests.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('urls.noPending', 'No websites are waiting for approval.')}</p>
+        ) : (
+          (() => {
             // Group requests by domain — approve/reject act on the whole domain.
             const grouped = new Map<string, PendingDomainRequest[]>();
             pendingRequests.forEach(req => {
@@ -336,15 +340,17 @@ const ApprovedDomainsManager: React.FC = () => {
                 </Table>
               </div>
             ));
-          })()}
-        </div>
-      )}
+          })()
+        )}
+      </div>
 
       {/* Rejected sites (spec §6a: date | URL | user | sale type, with Restore) */}
-      {rejectedDomains.length > 0 && (
-        <div className="mt-8">
-          <h4 className="text-lg font-medium mb-4"><span>{t('urls.rejectedList', 'Rejected sites')}</span></h4>
-          {(() => {
+      <div className="mt-8">
+        <h4 className="text-lg font-medium mb-4"><span>{t('urls.rejectedList', 'Rejected sites')}</span></h4>
+        {rejectedDomains.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('urls.noRejected', 'No rejected sites.')}</p>
+        ) : (
+          (() => {
             const grouped = new Map<string, RejectedDomain[]>();
             rejectedDomains.forEach(rej => {
               const list = grouped.get(rej.domain) || [];
@@ -397,9 +403,9 @@ const ApprovedDomainsManager: React.FC = () => {
                 </Table>
               </div>
             ));
-          })()}
-        </div>
-      )}
+          })()
+        )}
+      </div>
     </div>
   );
 };

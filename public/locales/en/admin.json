@@ -59,6 +59,7 @@
     "username": "User",
     "restore": "Restore",
     "domainRestored": "\"{{domain}}\" moved back to pending",
+    "noPending": "No websites are waiting for approval.",
     "noRejected": "No rejected sites."
   },
   "userManagement": {

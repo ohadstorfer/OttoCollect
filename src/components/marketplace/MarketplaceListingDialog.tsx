@@ -519,11 +519,13 @@ export function MarketplaceListingDialog({
                     <p className="text-sm font-medium text-destructive">{fieldErrors.url}</p>
                   )}
                   {/* Auction: no manual request button — publishing an unapproved URL
-                      queues it automatically and holds the item (spec §5.3). */}
+                      queues it automatically and holds the item (spec §5.3).
+                      Nothing has been submitted yet at this point, so the copy
+                      describes what Publish will do. */}
                   {urlTrimmed && urlIsValid && !urlApproved && (
                     <div className="p-2 rounded bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
                       <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                        {t('listing.waitingUrlApprovalNotice')}
+                        {t('listing.urlWillBeSubmittedNotice')}
                       </p>
                     </div>
                   )}

@@ -59,6 +59,7 @@
     "username": "Kullanıcı",
     "restore": "Geri al",
     "domainRestored": "\"{{domain}}\" bekleyenlere geri taşındı",
+    "noPending": "Onay bekleyen site yok.",
     "noRejected": "Reddedilen site yok."
   },
   "userManagement": {

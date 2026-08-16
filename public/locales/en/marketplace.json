@@ -145,6 +145,7 @@
     "chatConsentRequired": "You must agree to receive chat summaries by email to publish",
     "waitingUrlApproval": "Waiting for URL Approval",
     "waitingUrlApprovalNotice": "This website is not approved yet and has been submitted for approval — the item will wait for approval and will then be published automatically.",
+    "urlWillBeSubmittedNotice": "This website is not approved yet. When you publish, it will be submitted for approval and the item will go live automatically once approved.",
     "cancelConfirmTitle": "Changes will not be saved",
     "cancelConfirmOk": "OK",
     "cancelConfirmBack": "Back",

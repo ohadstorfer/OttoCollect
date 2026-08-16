@@ -59,6 +59,7 @@
     "username": "المستخدم",
     "restore": "استعادة",
     "domainRestored": "تمت إعادة \"{{domain}}\" إلى قائمة الانتظار",
+    "noPending": "لا توجد مواقع بانتظار الاعتماد.",
     "noRejected": "لا توجد مواقع مرفوضة."
   },
   "userManagement": {

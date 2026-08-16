@@ -146,6 +146,7 @@
     "chatConsentRequired": "Yayınlamak için sohbet özetlerini e-posta ile almayı kabul etmelisiniz",
     "waitingUrlApproval": "URL Onayı Bekleniyor",
     "waitingUrlApprovalNotice": "Bu site henüz onaylı değil ve onaya gönderildi — ürün onay bekleyecek ve ardından otomatik olarak yayınlanacaktır.",
+    "urlWillBeSubmittedNotice": "Bu site henüz onaylı değil. Yayınladığınızda onaya gönderilecek ve onaylandığında ürün otomatik olarak yayına alınacaktır.",
     "cancelConfirmTitle": "Değişiklikler kaydedilmeyecek",
     "cancelConfirmOk": "Tamam",
     "cancelConfirmBack": "Geri",
