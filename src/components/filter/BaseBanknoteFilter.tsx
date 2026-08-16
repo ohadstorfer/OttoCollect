@@ -61,6 +61,7 @@ export type BaseBanknoteFilterProps = {
   countryNameAr?: string;
   countryNameTr?: string;
   countries?: FilterOption[]; // Add countries support for marketplace
+  hideSort?: boolean; // Marketplace rev1.50: spec ordering replaces user sort
 };
 
 export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
@@ -77,6 +78,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
   onViewModeChange,
   groupMode = false,
   onGroupModeChange,
+  hideSort = false,
   imagesOnly = false,
   onImagesOnlyChange,
   countryName,
@@ -747,6 +749,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
             </SheetContent>
           </Sheet>
 
+          {!hideSort && (
           <Sheet open={isSortSheetOpen} onOpenChange={setIsSortSheetOpen}>
             <SheetTrigger asChild>
               <Button 
@@ -797,6 +800,7 @@ export const BaseBanknoteFilter: React.FC<BaseBanknoteFilterProps> = ({
               </div>
             </SheetContent>
           </Sheet>
+          )}
         </div>
       </div>
     </div>

@@ -2,8 +2,14 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { MarketplaceItem as MarketplaceItemType } from "@/types";
-import { SortAsc, AlertCircle, RefreshCw, Archive } from "lucide-react";
-import { isListingArchived } from "@/lib/marketplaceListing";
+import { AlertCircle, RefreshCw, Archive } from "lucide-react";
+import {
+  buildMarketplaceSections,
+  isListingArchived,
+  MarketplaceSection,
+} from "@/lib/marketplaceListing";
+import { fetchCountries } from "@/services/countryService";
+import { useLanguage } from "@/context/LanguageContext";
 import MarketplaceItem from "@/components/marketplace/MarketplaceItem";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -44,7 +50,10 @@ const Marketplace = () => {
   const [availableCategories, setAvailableCategories] = useState<FilterOption[]>([]);
   const [availableTypes, setAvailableTypes] = useState<FilterOption[]>([]);
   const [availableCountries, setAvailableCountries] = useState<FilterOption[]>([]);
-  const [view, setView] = useState<'active' | 'archive'>('active');
+  const [countryOrder, setCountryOrder] = useState<Array<{ id: string; name: string; name_ar?: string; name_tr?: string; display_order: number }>>([]);
+  // Country sections whose beyond-two-weeks auctions are expanded (spec §8.3).
+  const [expandedFar, setExpandedFar] = useState<Set<string>>(new Set());
+  const { currentLanguage } = useLanguage();
 
 
 
@@ -67,7 +76,7 @@ const Marketplace = () => {
         await synchronizeMarketplaceWithCollection();
       }
 
-      const items = await fetchMarketplaceItems();
+      const items = await fetchMarketplaceItems(user?.id);
 
 
       if (items.length === 0) {
@@ -126,29 +135,46 @@ const Marketplace = () => {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [toast, user?.role, t]);
+  }, [toast, user?.role, user?.id, t]);
 
   useEffect(() => {
-   
+
     loadMarketplaceItems();
   }, [loadMarketplaceItems]);
 
-  // Split into active vs. archived listings before the filter pipeline so
-  // filters/sorting operate only on the items relevant to the current view.
-  const visibleItems = useMemo(
-    () => marketplaceItems.filter((i) => (view === 'archive') === isListingArchived(i)),
-    [marketplaceItems, view]
+  useEffect(() => {
+    fetchCountries().then((data) =>
+      setCountryOrder(
+        data.map((c) => ({
+          id: c.id,
+          name: c.name,
+          name_ar: c.name_ar ?? undefined,
+          name_tr: c.name_tr ?? undefined,
+          display_order: c.display_order ?? 999,
+        }))
+      )
+    );
+  }, []);
+
+  // The owner's Draft / PendingUrl listings are pinned above everything (spec §8.3).
+  const ownerPendingItems = useMemo(
+    () => marketplaceItems.filter((i) => i.status !== 'Available'),
+    [marketplaceItems]
+  );
+  const publishedItems = useMemo(
+    () => marketplaceItems.filter((i) => i.status === 'Available'),
+    [marketplaceItems]
   );
 
   // Transform marketplace items to have the banknote property at the top level
   // This allows useBanknoteFilter to work correctly, while preserving collectionItem for price sorting
   const marketplaceItemsForFilter = useMemo(() => {
-    return visibleItems.map(item => ({
+    return publishedItems.map(item => ({
       ...item,
       banknote: item.collectionItem?.banknote,
       collectionItem: item.collectionItem // Preserve collectionItem for price/date sorting
     }));
-  }, [visibleItems]);
+  }, [publishedItems]);
 
   const {
     filteredItems,
@@ -161,6 +187,42 @@ const Marketplace = () => {
       sort: ["newest"] // Default to "Newest Listed" when no user preferences are loaded
     }
   });
+
+  // Spec §11 ordering: active items sectioned by country (Ottoman first),
+  // archive rendered the same way further down the scroll.
+  const activeItems = useMemo(
+    () => (filteredItems ?? []).filter((i: any) => !isListingArchived(i)),
+    [filteredItems]
+  );
+  const archivedItems = useMemo(
+    () => (filteredItems ?? []).filter((i: any) => isListingArchived(i)),
+    [filteredItems]
+  );
+  const activeSections = useMemo(
+    () => buildMarketplaceSections(activeItems as any[], countryOrder),
+    [activeItems, countryOrder]
+  );
+  const archivedSections = useMemo(
+    () => buildMarketplaceSections(archivedItems as any[], countryOrder),
+    [archivedItems, countryOrder]
+  );
+
+  const localizedCountryName = useCallback((section: MarketplaceSection) => {
+    const country = countryOrder.find((c) => c.name === section.countryName);
+    if (!country) return section.countryName;
+    if (currentLanguage === 'ar') return country.name_ar || country.name;
+    if (currentLanguage === 'tr') return country.name_tr || country.name;
+    return country.name;
+  }, [countryOrder, currentLanguage]);
+
+  const toggleFar = useCallback((countryId: string) => {
+    setExpandedFar((prev) => {
+      const next = new Set(prev);
+      if (next.has(countryId)) next.delete(countryId);
+      else next.add(countryId);
+      return next;
+    });
+  }, []);
 
   
 
@@ -205,23 +267,16 @@ const Marketplace = () => {
   }, [error, handleRefresh, t]);
 
   const emptySection = useMemo(() => {
-    const hasActiveFilters = filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search || filters.countries?.length > 0 || filters.sort?.length > 0);
-    // The archive itself may be empty (no archived listings at all) regardless of
-    // filter state — sort is always seeded with a default value, so hasActiveFilters
-    // alone can never distinguish "nothing archived" from "filters hid everything".
-    const isArchiveEmpty = view === 'archive' && visibleItems.length === 0;
-    const showClearFilters = hasActiveFilters && !isArchiveEmpty;
+    const hasActiveFilters = filters && (filters.categories?.length > 0 || filters.types?.length > 0 || filters.search || filters.countries?.length > 0);
     return (
       <Card className="text-center py-20 dark:bg-dark-600/50 bg-white/90 dark:border-ottoman-900/30 border-ottoman-200/70">
         <h3 className="text-2xl font-serif font-semibold dark:text-ottoman-200 text-ottoman-800 mb-2">
           <span>{tWithFallback('status.noItems', 'No Items Found')}</span>
         </h3>
         <p className="dark:text-ottoman-400 text-ottoman-600 mb-6">
-          {isArchiveEmpty
-            ? t('listing.noArchivedItems')
-            : hasActiveFilters
-              ? tWithFallback('status.noItemsFiltered', 'No items match your current filters. Try adjusting your criteria.')
-              : tWithFallback('status.noItemsDescription', 'There are currently no items available in the marketplace')}
+          {hasActiveFilters
+            ? tWithFallback('status.noItemsFiltered', 'No items match your current filters. Try adjusting your criteria.')
+            : tWithFallback('status.noItemsDescription', 'There are currently no items available in the marketplace')}
         </p>
         <div className="space-x-4">
           <Button
@@ -231,7 +286,7 @@ const Marketplace = () => {
             <RefreshCw className="h-4 w-4 mr-2" />
             {tWithFallback('actions.refresh', 'Refresh')}
           </Button>
-          {showClearFilters && (
+          {hasActiveFilters && (
             <Button
               variant="outline"
               onClick={() => setFilters({ categories: [], types: [], search: "", sort: ["newest"], countries: [] })}
@@ -242,21 +297,13 @@ const Marketplace = () => {
         </div>
       </Card>
     );
-  }, [handleRefresh, filters, setFilters, t, view, visibleItems]);
+  }, [handleRefresh, filters, setFilters, t]);
 
-  const marketplaceItemsSection = useMemo(() => {
-  if (!filteredItems || filteredItems.length === 0) {
-    return null;
-  }
-
-  // For marketplace, use filtered and sorted items directly (no grouping needed)
-  const allItems = filteredItems;
-
-  return (
+  const renderGrid = useCallback((items: MarketplaceItemType[], keyPrefix: string) => (
     <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-      {allItems.map((item, index) => (
+      {items.map((item, index) => (
         <div
-          key={`marketplace-item-${index}`}
+          key={`${keyPrefix}-${item.id ?? index}`}
           className="animate-fade-in"
           style={{ animationDelay: `${index * 100}ms` }}
         >
@@ -264,20 +311,80 @@ const Marketplace = () => {
         </div>
       ))}
     </div>
-  );
-}, [groupedItems, theme, filteredItems]);
+  ), []);
+
+  const renderSection = useCallback((section: MarketplaceSection, keyPrefix: string) => {
+    const farOpen = expandedFar.has(`${keyPrefix}-${section.countryId}`);
+    return (
+      <div key={`${keyPrefix}-${section.countryId}`} className="mb-8">
+        <h2 className="text-2xl font-serif font-bold dark:text-ottoman-200 text-ottoman-800 border-b border-ottoman-200/70 dark:border-ottoman-900/40 pb-1 mb-2">
+          <span>{localizedCountryName(section)}</span>
+        </h2>
+        {section.nearAuctions.length > 0 && renderGrid(section.nearAuctions as MarketplaceItemType[], `${keyPrefix}-near`)}
+        {section.farAuctions.length > 0 && (
+          <div className="pt-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => toggleFar(`${keyPrefix}-${section.countryId}`)}
+            >
+              {farOpen
+                ? t('listing.hideUpcomingAuctions')
+                : t('listing.showUpcomingAuctions', { count: section.farAuctions.length })}
+            </Button>
+            {farOpen && renderGrid(section.farAuctions as MarketplaceItemType[], `${keyPrefix}-far`)}
+          </div>
+        )}
+        {section.buyNow.length > 0 && renderGrid(section.buyNow as MarketplaceItemType[], `${keyPrefix}-buy`)}
+      </div>
+    );
+  }, [expandedFar, localizedCountryName, renderGrid, t, toggleFar]);
+
+  const marketplaceItemsSection = useMemo(() => {
+    if (activeItems.length === 0 && archivedItems.length === 0 && ownerPendingItems.length === 0) {
+      return null;
+    }
+    return (
+      <div>
+        {/* Owner's drafts & PendingUrl items, pinned on top (spec §8.3). */}
+        {ownerPendingItems.length > 0 && (
+          <div className="mb-8 rounded-lg border border-dashed border-ottoman-400/60 p-3">
+            <h2 className="text-xl font-serif font-bold mb-1">
+              <span>{t('listing.yourListings')}</span>
+            </h2>
+            {renderGrid(ownerPendingItems, 'pending')}
+          </div>
+        )}
+
+        {activeSections.map((s) => renderSection(s, 'active'))}
+
+        {/* Archive, further down the same scroll (spec §10). */}
+        {archivedItems.length > 0 && (
+          <div className="mt-10">
+            <h2 className="text-2xl font-serif font-bold flex items-center gap-2 dark:text-ottoman-300 text-ottoman-700 mb-3">
+              <Archive className="w-5 h-5" />
+              <span>{t('listing.archiveHeading')}</span>
+            </h2>
+            <div className="opacity-80">
+              {archivedSections.map((s) => renderSection(s, 'archive'))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }, [activeItems, archivedItems, ownerPendingItems, activeSections, archivedSections, renderGrid, renderSection, t]);
 
   const contentSection = useMemo(() => {
     if (loading) {
       return loadingSection;
     } else if (error) {
       return errorSection;
-    } else if (!filteredItems || filteredItems.length === 0) {
+    } else if (!marketplaceItemsSection) {
       return emptySection;
     } else {
       return marketplaceItemsSection;
     }
-  }, [loading, error, filteredItems, loadingSection, errorSection, emptySection, marketplaceItemsSection]);
+  }, [loading, error, loadingSection, errorSection, emptySection, marketplaceItemsSection]);
 
   return (
     <div className="min-h-screen animate-fade-in">
@@ -317,24 +424,6 @@ const Marketplace = () => {
                 availableTypes={availableTypes}
                 availableCountries={availableCountries}
               />
-
-            <div className="flex justify-center gap-2 my-3">
-              <Button
-                variant={view === 'active' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setView('active')}
-              >
-                {t('listing.activeTab')}
-              </Button>
-              <Button
-                variant={view === 'archive' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setView('archive')}
-              >
-                <Archive className="w-4 h-4 mr-1" />
-                {t('listing.archiveTab')}
-              </Button>
-            </div>
 
             {contentSection}
             

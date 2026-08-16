@@ -337,6 +337,7 @@ export const BanknoteFilterMarketplace: React.FC<BanknoteFilterMarketplaceProps>
         viewMode={viewMode}
         onViewModeChange={onViewModeChange}
         countries={externalCountries || availableCountries}
+        hideSort
       />
     </div>
   );
