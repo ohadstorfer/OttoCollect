@@ -29,17 +29,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { Trash2, Plus, CheckCircle, XCircle } from 'lucide-react';
+import { Trash2, Plus, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
 import {
   fetchApprovedDomains,
   addApprovedDomain,
   deleteApprovedDomain,
   normalizeDomain,
   fetchPendingDomainRequests,
-  approvePendingDomain,
-  deletePendingRequestsByDomain,
+  fetchRejectedDomains,
+  approveDomain,
+  rejectDomain,
+  restoreRejectedDomain,
   type ApprovedDomain,
-  type PendingDomainRequest
+  type PendingDomainRequest,
+  type RejectedDomain
 } from '@/services/approvedDomainsService';
 
 const ApprovedDomainsManager: React.FC = () => {
@@ -52,10 +55,12 @@ const ApprovedDomainsManager: React.FC = () => {
   const [selectedDomain, setSelectedDomain] = useState<ApprovedDomain | null>(null);
   const [newDomain, setNewDomain] = useState('');
   const [pendingRequests, setPendingRequests] = useState<PendingDomainRequest[]>([]);
+  const [rejectedDomains, setRejectedDomains] = useState<RejectedDomain[]>([]);
 
   useEffect(() => {
     loadDomains();
     loadPendingRequests();
+    loadRejectedDomains();
   }, []);
 
   const loadDomains = async () => {
@@ -79,22 +84,42 @@ const ApprovedDomainsManager: React.FC = () => {
     setPendingRequests(data);
   };
 
+  const loadRejectedDomains = async () => {
+    const data = await fetchRejectedDomains();
+    setRejectedDomains(data);
+  };
+
+  const reloadAll = () => {
+    loadDomains();
+    loadPendingRequests();
+    loadRejectedDomains();
+  };
+
+  // approve/reject/restore run through Super-Admin security-definer RPCs —
+  // the approval also attaches links and promotes PendingUrl auctions.
   const handleApproveDomain = async (domain: string) => {
-    const success = await approvePendingDomain(domain);
+    const success = await approveDomain(domain);
     if (success) {
       toast({ title: t('urls.domainAdded', { domain }) });
-      loadDomains();
-      loadPendingRequests();
+      reloadAll();
     } else {
       toast({ title: t('urls.failedToAdd'), variant: "destructive" });
     }
   };
 
   const handleRejectDomain = async (domain: string) => {
-    const success = await deletePendingRequestsByDomain(domain);
+    const success = await rejectDomain(domain);
     if (success) {
       toast({ title: t('urls.requestRejected', { domain, defaultValue: `Requests for "${domain}" rejected` }) });
-      loadPendingRequests();
+      reloadAll();
+    }
+  };
+
+  const handleRestoreDomain = async (domain: string) => {
+    const success = await restoreRejectedDomain(domain);
+    if (success) {
+      toast({ title: t('urls.domainRestored', { domain, defaultValue: `"${domain}" moved back to pending` }) });
+      reloadAll();
     }
   };
 
@@ -152,6 +177,7 @@ const ApprovedDomainsManager: React.FC = () => {
         </Button>
       </div>
 
+      <h4 className="text-lg font-medium mb-2"><span>{t('urls.approvedList', 'Approved sites')}</span></h4>
       {loading ? (
         <p className="text-center py-8 text-muted-foreground">{t('urls.loading')}</p>
       ) : domains.length === 0 ? (
@@ -240,12 +266,12 @@ const ApprovedDomainsManager: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Pending Approval Requests */}
+      {/* Pending Approval Requests (spec §6a: date | URL | user | sale type) */}
       {pendingRequests.length > 0 && (
         <div className="mt-8">
-          <h4 className="text-lg font-medium mb-4"><span>{t('urls.waitingForApproval', 'Waiting for Approval')}</span></h4>
+          <h4 className="text-lg font-medium mb-4"><span>{t('urls.pendingList', 'Pending approval')}</span></h4>
           {(() => {
-            // Group requests by domain
+            // Group requests by domain — approve/reject act on the whole domain.
             const grouped = new Map<string, PendingDomainRequest[]>();
             pendingRequests.forEach(req => {
               const list = grouped.get(req.domain) || [];
@@ -276,18 +302,99 @@ const ApprovedDomainsManager: React.FC = () => {
                     </Button>
                   </div>
                 </div>
-                <div className="space-y-1">
-                  {requests.map(req => (
-                    <div key={req.id} className="text-sm text-muted-foreground flex items-center gap-2">
-                      <span>{t('urls.requestedBy', 'Requested by')}: <strong>{req.profiles?.username || 'Unknown'}</strong></span>
-                      <span>—</span>
-                      <a href={req.requested_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline truncate max-w-[300px]">
-                        {req.requested_url}
-                      </a>
-                      <span className="text-xs">({new Date(req.created_at).toLocaleDateString()})</span>
-                    </div>
-                  ))}
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('urls.requestDate', 'Request date')}</TableHead>
+                      <TableHead>URL</TableHead>
+                      <TableHead>{t('urls.username', 'User')}</TableHead>
+                      <TableHead>{t('urls.saleType', 'Sale type')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {requests.map(req => (
+                      <TableRow key={req.id}>
+                        <TableCell className="text-muted-foreground">
+                          {new Date(req.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <a href={req.requested_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline truncate inline-block max-w-[280px] align-bottom">
+                            {req.requested_url}
+                          </a>
+                        </TableCell>
+                        <TableCell>{req.profiles?.username || 'Unknown'}</TableCell>
+                        <TableCell>
+                          {req.listing_type === 'auction'
+                            ? 'Auction'
+                            : req.listing_type === 'sale'
+                              ? 'Buy now'
+                              : '—'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ));
+          })()}
+        </div>
+      )}
+
+      {/* Rejected sites (spec §6a: date | URL | user | sale type, with Restore) */}
+      {rejectedDomains.length > 0 && (
+        <div className="mt-8">
+          <h4 className="text-lg font-medium mb-4"><span>{t('urls.rejectedList', 'Rejected sites')}</span></h4>
+          {(() => {
+            const grouped = new Map<string, RejectedDomain[]>();
+            rejectedDomains.forEach(rej => {
+              const list = grouped.get(rej.domain) || [];
+              list.push(rej);
+              grouped.set(rej.domain, list);
+            });
+
+            return Array.from(grouped.entries()).map(([domain, rows]) => (
+              <div key={domain} className="mb-4 p-4 border rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-lg">{domain}</span>
+                  <Button size="sm" variant="outline" onClick={() => handleRestoreDomain(domain)}>
+                    <RotateCcw className="h-4 w-4 mr-1" />
+                    {t('urls.restore', 'Restore')}
+                  </Button>
                 </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('urls.rejectedDate', 'Rejected date')}</TableHead>
+                      <TableHead>URL</TableHead>
+                      <TableHead>{t('urls.username', 'User')}</TableHead>
+                      <TableHead>{t('urls.saleType', 'Sale type')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rows.map(rej => (
+                      <TableRow key={rej.id}>
+                        <TableCell className="text-muted-foreground">
+                          {new Date(rej.rejected_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {rej.requested_url ? (
+                            <a href={rej.requested_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline truncate inline-block max-w-[280px] align-bottom">
+                              {rej.requested_url}
+                            </a>
+                          ) : '—'}
+                        </TableCell>
+                        <TableCell>{rej.profiles?.username || 'Unknown'}</TableCell>
+                        <TableCell>
+                          {rej.listing_type === 'auction'
+                            ? 'Auction'
+                            : rej.listing_type === 'sale'
+                              ? 'Buy now'
+                              : '—'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             ));
           })()}
