@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
+import LazyImage from "@/components/shared/LazyImage";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/context/LanguageContext";
 import {
@@ -164,14 +165,17 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
         onClick={handleViewDetails}
       >
         <div className="relative">
-          <div className = "w-full h-full object-cover">
-            <img
+          {/* Same image box as BanknoteCard / CollectionCard: a fixed 4:3 frame
+              so card heights don't vary with the source image's aspect ratio. */}
+          <div className="aspect-[4/3] overflow-hidden">
+            <LazyImage
               src={displayImage}
               alt={`${getLocalizedField(banknote.country, 'country')} ${getLocalizedField(banknote.denomination, 'face_value')} (${banknote.year})`}
               className={cn(
                 "w-full h-full object-cover transition-transform duration-500",
-                isHovering ? "scale-105" : "scale-100"
+                isHovering ? "scale-110" : "scale-100"
               )}
+              fallback="/placeholder.svg"
             />
           </div>
           
