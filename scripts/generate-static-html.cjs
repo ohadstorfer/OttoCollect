@@ -15,18 +15,15 @@ const routes = [
   { path: '/about', canonical: 'https://ottocollect.com/about' },
   { path: '/contact', canonical: 'https://ottocollect.com/contact' },
   { path: '/collection', canonical: 'https://ottocollect.com/collection' },
+  // Country-specific catalog pages. Keep this list in sync with the VISIBLE
+  // countries in the DB (is_visible=true) — the same criterion the sitemap and
+  // the crawler gate (server.js countryIsVisible) use. Listing a country that
+  // isn't a visible catalog produces a dead SEO page (e.g. /catalog/Lebanon,
+  // which the server now 404s for crawlers).
   { path: '/catalog/Ottoman%20Empire', canonical: 'https://ottocollect.com/catalog/Ottoman%20Empire' },
-  { path: '/catalog/Turkey', canonical: 'https://ottocollect.com/catalog/Turkey' },
-  { path: '/catalog/Palestine', canonical: 'https://ottocollect.com/catalog/Palestine' },
-  { path: '/catalog/Syria', canonical: 'https://ottocollect.com/catalog/Syria' },
-  { path: '/catalog/Lebanon', canonical: 'https://ottocollect.com/catalog/Lebanon' },
-  { path: '/catalog/Iraq', canonical: 'https://ottocollect.com/catalog/Iraq' },
   { path: '/catalog/Jordan', canonical: 'https://ottocollect.com/catalog/Jordan' },
-  { path: '/catalog/Egypt', canonical: 'https://ottocollect.com/catalog/Egypt' },
-  { path: '/catalog/Greece', canonical: 'https://ottocollect.com/catalog/Greece' },
-  { path: '/catalog/Bulgaria', canonical: 'https://ottocollect.com/catalog/Bulgaria' },
-  { path: '/catalog/Albania', canonical: 'https://ottocollect.com/catalog/Albania' },
-  { path: '/catalog/Israel', canonical: 'https://ottocollect.com/catalog/Israel' },
+  { path: '/catalog/Libya', canonical: 'https://ottocollect.com/catalog/Libya' },
+  { path: '/catalog/Palestine', canonical: 'https://ottocollect.com/catalog/Palestine' },
 ];
 
 // Read the base index.html

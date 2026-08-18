@@ -16,20 +16,14 @@ function generateRoutes() {
     '/collection'
   ];
 
-  // Country-specific routes
+  // Country-specific routes. Only VISIBLE DB countries (is_visible=true),
+  // matching the sitemap + crawler gate. Non-existent/hidden countries (e.g.
+  // Lebanon, Syria) would be dead SEO pages that the server now 404s for crawlers.
   const countries = [
     'Ottoman%20Empire',
-    'Turkish%20Republic',
-    'Palestine%20Mandate',
-    'Syria',
-    'Lebanon',
-    'Iraq',
     'Jordan',
-    'Egypt',
-    'Greece',
-    'Bulgaria',
-    'Albania',
-    'Israel'
+    'Libya',
+    'Palestine'
   ];
 
   const countryRoutes = countries.map(country => `/catalog/${country}`);

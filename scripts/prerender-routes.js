@@ -15,20 +15,14 @@ const routes = [
   '/contact',
   '/collection',
   
-  // Country-specific catalog pages
+  // Country-specific catalog pages. Only VISIBLE DB countries (is_visible=true),
+  // matching the sitemap + crawler gate. Non-existent/hidden countries (e.g.
+  // Lebanon, Syria) would be dead SEO pages that the server now 404s for crawlers.
   '/catalog/Ottoman%20Empire',
-  '/catalog/Turkish%20Republic',
-  '/catalog/Palestine%20Mandate',
-  '/catalog/Syria',
-  '/catalog/Lebanon',
-  '/catalog/Iraq',
   '/catalog/Jordan',
-  '/catalog/Egypt',
-  '/catalog/Greece',
-  '/catalog/Bulgaria',
-  '/catalog/Albania',
-  '/catalog/Israel',
-  
+  '/catalog/Libya',
+  '/catalog/Palestine',
+
   // Blog post routes (if you have specific blog posts)
   // '/blog/how-to-authenticate-1908-ottoman-banknotes',
   // '/blog/top-5-most-valuable-ottoman-empire-currencies-2024',
