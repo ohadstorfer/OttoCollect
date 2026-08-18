@@ -248,6 +248,18 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
         </CardHeader>
         
         <CardContent className={`pt-0 pb-1 px-4 ${direction === "rtl" ? "text-right" : "text-left"}`}>
+          {/* Seller sits directly under the country/year line, above the remark
+              and the auction details. */}
+          {seller && (
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-sm text-ottoman-600 dark:text-ottoman-400">{tWithFallback('item.seller', 'Seller')}:</span>
+              <div className="flex items-center gap-1">
+                <span className="text-base text-ottoman-700 dark:text-ottoman-200">{seller.username}</span>
+                <Badge variant="user" rank={sellerRank} role={seller.role} className="ml-1" />
+              </div>
+            </div>
+          )}
+
           {(item.public_remark || publicNote) && (
             <p className="text-sm text-ottoman-700 dark:text-ottoman-200 line-clamp-2 mb-2">
               {item.public_remark || publicNote}
@@ -275,13 +287,17 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
             </div>
           )}
 
-          {seller && (
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-sm text-ottoman-600 dark:text-ottoman-400">{tWithFallback('item.seller', 'Seller')}:</span>
-              <div className="flex items-center gap-1">
-                <span className="text-base text-ottoman-700 dark:text-ottoman-200">{seller.username}</span>
-                <Badge variant="user" rank={sellerRank} role={seller.role} className="ml-1" />
-              </div>
+          {/* Buy-now listings get the Contact button here, styled like View Source
+              on auction cards, so both card types share the same primary action look. */}
+          {!isAuction && (
+            <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+              <ContactSellerButton
+                item={item}
+                buttonClassName="w-full bg-ottoman-600 hover:bg-ottoman-700 text-white font-semibold"
+                buttonVariant="default"
+                buttonSize="default"
+                hideIcon
+              />
             </div>
           )}
         </CardContent>
@@ -307,11 +323,6 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
             <p className="text-center text-xs text-muted-foreground">
               {t('listing.referenceId')} {formatReferenceCode(item.reference_code)}
             </p>
-          )}
-          {!isAuction && (
-            <div className="flex justify-between pt-1" onClick={(e) => e.stopPropagation()}>
-              <ContactSellerButton item={item} />
-            </div>
           )}
 
           {/* Owner-only inline controls (spec §8.2) */}

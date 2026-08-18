@@ -23,9 +23,23 @@ interface ContactSellerProps {
   sellerName: string;
   itemId: string;
   itemName: string;
+  /** Styling overrides for the trigger button (marketplace cards use the View Source look). */
+  buttonClassName?: string;
+  buttonVariant?: React.ComponentProps<typeof Button>['variant'];
+  buttonSize?: React.ComponentProps<typeof Button>['size'];
+  hideIcon?: boolean;
 }
 
-export function ContactSeller({ sellerId, sellerName, itemId, itemName }: ContactSellerProps) {
+export function ContactSeller({
+  sellerId,
+  sellerName,
+  itemId,
+  itemName,
+  buttonClassName,
+  buttonVariant = 'outline',
+  buttonSize = 'sm',
+  hideIcon = false,
+}: ContactSellerProps) {
   const [message, setMessage] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -59,14 +73,23 @@ export function ContactSeller({ sellerId, sellerName, itemId, itemName }: Contac
     }
   };
   
+  const triggerButton = (onClick?: () => void) => (
+    <Button
+      size={buttonSize}
+      variant={buttonVariant}
+      className={buttonClassName ?? 'mt-2'}
+      onClick={onClick}
+    >
+      {!hideIcon && <MessageSquare className="h-4 w-4 mr-2" />}
+      {t('contactSeller.contactButton')}
+    </Button>
+  );
+
   // Spec §8b: guests see the button too — clicking prompts them to register/log in.
   if (!user) {
     return (
       <>
-        <Button size="sm" className="mt-2" variant="outline" onClick={() => setIsOpen(true)}>
-          <MessageSquare className="h-4 w-4 mr-2" />
-          {t('contactSeller.contactButton')}
-        </Button>
+        {triggerButton(() => setIsOpen(true))}
         <AuthRequiredDialog open={isOpen} onOpenChange={setIsOpen} />
       </>
     );
@@ -79,12 +102,7 @@ export function ContactSeller({ sellerId, sellerName, itemId, itemName }: Contac
   
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" className="mt-2" variant="outline">
-          <MessageSquare className="h-4 w-4 mr-2" />
-          {t('contactSeller.contactButton')}
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{triggerButton()}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('contactSeller.dialogTitle', { sellerName })}</DialogTitle>

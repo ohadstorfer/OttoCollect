@@ -425,6 +425,30 @@ const MarketplaceItemDetail = () => {
                 </div>
               </div>
 
+              {/* Country/year sits directly under the title, same order as the card. */}
+              <div className="mb-3">
+                <p className="text-lg text-ottoman-300">
+                  {getLocalizedField(banknote.country, 'country')}
+                  {banknote.country && banknote.year ? ', ' : ''}
+                  {banknote.year}
+                </p>
+                <div className={`mt-2 ${direction === "rtl" ? "text-right" : "text-left"}`}>
+                  {collectionItem.condition && !collectionItem.grade && (
+                    <Badge variant="secondary">
+                      {collectionItem.condition}
+                    </Badge>
+                  )}
+                  {collectionItem.grade && (
+                    <Badge variant="secondary">
+                      {collectionItem.grade_by && `${collectionItem.grade_by} `}
+                      {collectionItem.grade}
+                      {collectionItem.grade_condition_description &&
+                        ` - ${collectionItem.grade_condition_description}`}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
               <p className="text-lg font-bold text-black dark:text-white mt-1">
                 <span>{isAuction ? t('listing.auctionItem') : t('listing.buyNowItem')}</span>
               </p>
@@ -508,37 +532,6 @@ const MarketplaceItemDetail = () => {
                   )}
                 </div>
               )}
-
-              <div className="flex items-center gap-2 mb-4">
-
-
-                <div className=" items-center gap-2 ">
-                  <p className="text-lg text-ottoman-300">
-                    {getLocalizedField(banknote.country, 'country')}
-                    {banknote.country && banknote.year ? ', ' : ''}
-                    {banknote.year}
-                  </p>
-                  <div
-                    className={`mt-2 ${direction === "rtl" ? "text-right" : "text-left"
-                      }`}
-                  >
-                    {collectionItem.condition && !collectionItem.grade && (
-                      <Badge variant="secondary">
-                        {collectionItem.condition}
-                      </Badge>
-                    )}
-                    {collectionItem.grade && (
-                      <Badge variant="secondary">
-                        {collectionItem.grade_by && `${collectionItem.grade_by} `}
-                        {collectionItem.grade}
-                        {collectionItem.grade_condition_description &&
-                          ` - ${collectionItem.grade_condition_description}`}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-
-              </div>
 
 
               {/* {publicNote && (
