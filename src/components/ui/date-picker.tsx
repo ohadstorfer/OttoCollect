@@ -87,12 +87,20 @@ export function DatePicker({
         aria-invalid={invalid}
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          "w-full justify-start text-left font-normal transition-transform active:scale-[0.99]",
+          // min-w-0 + px-3: this sits in a half-width grid column on phones, where
+          // the Button's default px-4 and its `whitespace-nowrap` would push the
+          // value past the border instead of letting it shrink.
+          "w-full min-w-0 justify-start px-3 text-left font-normal transition-transform active:scale-[0.99]",
           !value && "text-muted-foreground",
           invalid && "border-destructive",
         )}
       >
-        <span>{selected ? format(selected, "PPP") : placeholder}</span>
+        {/* "PP" ("Sep 17, 2026") rather than "PPP" ("September 17th, 2026"): the
+            long form does not fit half a dialog on a phone. truncate + min-w-0 so
+            a narrower column still ellipsizes instead of clipping a glyph. */}
+        <span className="min-w-0 truncate">
+          {selected ? format(selected, "PP") : placeholder}
+        </span>
         <CalendarIcon className="ml-auto h-4 w-4 shrink-0 opacity-50" />
       </Button>
       {open && (
