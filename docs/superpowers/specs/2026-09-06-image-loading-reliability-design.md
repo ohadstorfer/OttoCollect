@@ -13,9 +13,22 @@ render. Not always, not the same images, and a reload usually fixes it.
 | Hypothesis | How it was checked | Result |
 |---|---|---|
 | Broken URLs / bad storage rows | Joined every image URL in `collection_items` + `detailed_banknotes` against `storage.objects` | **0 dangling of 6,186** |
-| A recent deploy broke it | Prod `last-modified: Sat, 04 Jul 2026`; `main` HEAD = `2320f463` (2026-07-04) | The `marketplace-auction-upgrade` work (Aug 16–18) was never merged. **Prod code has not changed since July 4** |
+| A recent deploy broke it | Prod serves `last-modified: Sat, 04 Jul 2026` | **Prod code has not changed since July 4**, so the Aug 16–18 work is not the cause |
 | Cleanup job deleted live images | `image_cleanup_queue`, `cron.job_run_details` | No deletions in the window |
 | Data/traffic spike | `storage.objects` by day; `collection_items` by week | 18 objects (3 MB) on Aug 22, nothing else |
+
+### Two GitHub repos — read this before checking "what was deployed"
+
+The working copy's `origin` is `github.com/ohadstorfer/OttoCollect`, but that is **not**
+the repo Lovable and Cloud Build use. The live repo is
+`github.com/ohadstorfer/ottoman-banknote-archive-hub` (single branch, `main`), and the
+Cloud Run service in `cloudbuild.yaml` is likewise named `ottoman-banknote-archive-hub`.
+
+`OttoCollect/main` sits at `2320f463` (2026-07-04) and is stale; the Aug 16–18 marketplace
+work is merged on `ottoman-banknote-archive-hub/main`. An earlier draft of this spec read
+the stale repo and concluded that work "was never merged" — wrong repo. The conclusion it
+supported still holds by a different route: production serves a 2026-07-04 build, so
+whatever changed in late August did not come from application code.
 
 ### Root cause (infrastructure)
 
