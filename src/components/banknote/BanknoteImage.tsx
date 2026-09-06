@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { getFirstImageUrl } from '@/utils/imageHelpers';
 import { ImageUrls } from '@/types/banknote';
 import { DEFAULT_IMAGE_URL } from '@/lib/constants';
+import { ResilientImage } from '@/components/shared/ResilientImage';
 
 interface BanknoteImageProps {
   imageUrl: ImageUrls | null | undefined;
@@ -10,6 +10,8 @@ interface BanknoteImageProps {
   className?: string;
   fallback?: string;
   onClick?: () => void;
+  /** Opt out of lazy loading for an above-the-fold image. */
+  eager?: boolean;
 }
 
 export const BanknoteImage: React.FC<BanknoteImageProps> = ({
@@ -17,20 +19,21 @@ export const BanknoteImage: React.FC<BanknoteImageProps> = ({
   alt = "Banknote image",
   className = "w-full h-full object-cover",
   fallback = DEFAULT_IMAGE_URL,
-  onClick
+  onClick,
+  eager = false,
 }) => {
-
-  
   const safeImageUrl = getFirstImageUrl(imageUrl, fallback);
-  
-  
+
+  // ResilientImage retries a transient Supabase Storage stall before giving up,
+  // which is what a bare <img> could not do — see @/lib/imageLoadState.
   return (
-    <img
+    <ResilientImage
       src={safeImageUrl}
       alt={alt}
       className={className}
+      fallbackSrc={fallback}
       onClick={onClick}
-      loading="lazy"
+      eager={eager}
     />
   );
 };

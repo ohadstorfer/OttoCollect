@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ResilientImage } from '@/components/shared/ResilientImage';
 
 interface OptimizedImageProps {
   src: string;
@@ -33,6 +34,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     onLoad?.();
   };
 
+  // ResilientImage has already exhausted its retries by the time this fires.
   const handleError = () => {
     setHasError(true);
     onError?.();
@@ -42,30 +44,31 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     <div className={`relative ${className}`} style={{ width, height }}>
       {/* Placeholder while loading */}
       {!isLoaded && !hasError && placeholder && (
-        <div 
+        <div
           className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center"
           style={{ width, height }}
         >
           <div className="text-gray-400 text-sm">Loading...</div>
         </div>
       )}
-      
+
       {/* Main image */}
-      <img
-        src={src}
-        alt={alt}
-        className={`transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className}`}
-        loading={lazy && !priority ? 'lazy' : 'eager'}
-        fetchpriority={priority ? 'high' : 'auto'}
-        decoding="async"
-        onLoad={handleLoad}
-        onError={handleError}
-        style={{ width, height }}
-      />
-      
+      {!hasError && (
+        <ResilientImage
+          src={src}
+          alt={alt}
+          className={`transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className}`}
+          eager={!lazy || priority}
+          priority={priority}
+          onLoad={handleLoad}
+          onError={handleError}
+          style={{ width, height }}
+        />
+      )}
+
       {/* Error fallback */}
       {hasError && (
-        <div 
+        <div
           className="absolute inset-0 bg-gray-100 flex items-center justify-center text-gray-500"
           style={{ width, height }}
         >

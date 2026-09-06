@@ -28,6 +28,7 @@ import { useTranslation } from 'react-i18next';
 import { useLanguage } from "@/context/LanguageContext";
 import { getLocalizedText } from "@/utils/localizationUtils";
 import { Helmet } from 'react-helmet-async';
+import { ResilientImage } from '@/components/shared/ResilientImage';
 
 interface BanknoteDetailCardProps {
   banknote: DetailedBanknote;
@@ -408,10 +409,9 @@ const BanknoteDetailCard = ({
   const renderBanknoteImage = () => {
     if (displayImage && displayImage !== '/placeholder.svg') {
       return (
-        <img
+        <ResilientImage
           src={displayImage}
           alt={` ${banknote.denomination} banknote from ${banknote.country}, issued in ${banknote.year} with Pick number ${banknote.pickNumber}`}
-
           className="object-contain w-full h-auto max-h-60"
         />
       );
@@ -448,10 +448,9 @@ const BanknoteDetailCard = ({
               {/* Front image */}
               <div className="h-[58px] w-[90px] flex-shrink-0 overflow-hidden rounded">
                 {displayImage && displayImage !== '/placeholder.svg' ? (
-                  <img
+                  <ResilientImage
                     src={displayImage}
                     alt={` ${banknote.denomination} banknote from ${banknote.country}, issued in ${banknote.year} with Pick number ${banknote.pickNumber}`}
-
                     className="w-full h-full object-contain"
                   />
                 ) : (
@@ -468,10 +467,9 @@ const BanknoteDetailCard = ({
               {/* Back image */}
               <div className="h-[58px] w-[90px] flex-shrink-0 overflow-hidden rounded">
                 {banknote.backPictureThumbnail || (banknote.imageUrls && banknote.imageUrls[1]) ? (
-                  <img
+                  <ResilientImage
                     src={banknote.backPictureThumbnail || banknote.imageUrls[1]}
                     alt={` ${banknote.denomination} banknote from ${banknote.country}, issued in ${banknote.year} with Pick number ${banknote.pickNumber}`}
-
                     className="w-full h-full object-contain"
                   />
                 ) : (

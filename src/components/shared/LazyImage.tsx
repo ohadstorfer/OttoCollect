@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { ResilientImage } from './ResilientImage';
 
 interface LazyImageProps {
   src: string;
@@ -22,8 +23,6 @@ const LazyImage: React.FC<LazyImageProps> = ({
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isInView, setIsInView] = useState(false);
-  const [hasError, setHasError] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Intersection Observer for lazy loading
@@ -48,17 +47,23 @@ const LazyImage: React.FC<LazyImageProps> = ({
     return () => observer.disconnect();
   }, []);
 
+  // Reset the loaded flag when the source changes, otherwise a recycled element
+  // keeps the previous image's result and the new one never fades in.
+  useEffect(() => {
+    setIsLoaded(false);
+  }, [src]);
+
   const handleImageLoad = () => {
     setIsLoaded(true);
     onLoad?.();
   };
 
+  // Reveal on final failure too, otherwise the fallback would render at
+  // opacity-0 behind a placeholder that pulses forever.
   const handleImageError = () => {
-    setHasError(true);
+    setIsLoaded(true);
     onError?.();
   };
-
-  const imageSrc = hasError ? fallback : src;
 
   return (
     <div
@@ -87,11 +92,11 @@ const LazyImage: React.FC<LazyImageProps> = ({
             />
           )}
 
-          {/* Main image */}
-          <img
-            ref={imgRef}
-            src={imageSrc}
+          {/* Main image — retries an error or a stall before falling back. */}
+          <ResilientImage
+            src={src}
             alt={alt}
+            fallbackSrc={fallback}
             className={cn(
               "w-full h-full object-cover transition-opacity duration-500",
               isLoaded ? "opacity-100" : "opacity-0",
@@ -99,7 +104,6 @@ const LazyImage: React.FC<LazyImageProps> = ({
             )}
             onLoad={handleImageLoad}
             onError={handleImageError}
-            loading="lazy"
           />
         </>
       )}
