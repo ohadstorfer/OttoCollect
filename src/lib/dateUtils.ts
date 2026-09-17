@@ -18,7 +18,9 @@ export const getDateLocale = (language: string) => {
 export const formatDate = (date: Date | string, formatString: string, language: string = 'en') => {
   const locale = getDateLocale(language);
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
+  // date-fns throws RangeError on an invalid date, and these run during render.
+  if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return '';
+
   try {
     return format(dateObj, formatString, { locale });
   } catch (error) {
@@ -32,7 +34,8 @@ export const formatDate = (date: Date | string, formatString: string, language: 
 export const formatRelativeTime = (date: Date | string, language: string = 'en') => {
   const locale = getDateLocale(language);
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
+  if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return '';
+
   try {
     return formatDistanceToNow(dateObj, { 
       addSuffix: true,

@@ -260,7 +260,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
                   {(message.sender_id === effectiveUserId || message.senderId === effectiveUserId) ? (
                     <div className="flex justify-end">
                       <div className="bg-primary text-primary-foreground p-3 rounded-lg max-w-[80%] break-words">
-                        <div>{message.content}</div>
+                        <div className="whitespace-pre-wrap">{message.content}</div>
                         <div className="text-xs opacity-70 text-right mt-1">
                           {formatDate(message)}
                         </div>
@@ -269,7 +269,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
                   ) : (
                     <div className="flex justify-start">
                       <div className="bg-muted p-3 rounded-lg max-w-[80%] break-words">
-                        <div>{message.content}</div>
+                        <div className="whitespace-pre-wrap">{message.content}</div>
                         <div className="text-xs opacity-70 mt-1">
                           {formatDate(message)}
                         </div>

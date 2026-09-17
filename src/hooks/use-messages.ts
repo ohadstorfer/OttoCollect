@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Conversation, Message } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -256,15 +256,25 @@ export default function useMessages(): UseMessagesReturn {
     }
   }, [user, temporaryConversations]);
 
+  // The realtime handler reads the latest buildConversations through a ref, so
+  // the subscription below does not tear down and re-subscribe every time
+  // temporaryConversations changes (e.g. opening /messaging/:userId).
+  const buildConversationsRef = useRef(buildConversations);
   useEffect(() => {
-    if (!user) return;
+    buildConversationsRef.current = buildConversations;
+  }, [buildConversations]);
+
+  const userId = user?.id;
+
+  useEffect(() => {
+    if (!userId) return;
 
     const loadConversations = async () => {
       setIsLoading(true);
       try {
-        const fetchedMessages = await getMessages(user.id);
+        const fetchedMessages = await getMessages(userId);
         setMessages(fetchedMessages);
-        await buildConversations(fetchedMessages);
+        await buildConversationsRef.current(fetchedMessages);
       } catch (error) {
         console.error('Error loading conversations:', error);
       } finally {
@@ -274,25 +284,29 @@ export default function useMessages(): UseMessagesReturn {
 
     loadConversations();
 
-    // Subscribe to new messages
+    // Unique topic per subscription: supabase.channel(name) hands back an
+    // existing channel with the same topic, and removeChannel() is async, so a
+    // quick unmount/remount got the old, already-subscribed channel back and
+    // .on() threw "cannot add postgres_changes callbacks ... after subscribe()"
+    // — which crashed the whole chat page.
     const channel = supabase
-      .channel('messages')
+      .channel(`messages-${userId}-${crypto.randomUUID()}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
-        filter: `receiver_id=eq.${user.id}`,
+        filter: `receiver_id=eq.${userId}`,
       }, async () => {
-        const fetchedMessages = await getMessages(user.id);
+        const fetchedMessages = await getMessages(userId);
         setMessages(fetchedMessages);
-        await buildConversations(fetchedMessages);
+        await buildConversationsRef.current(fetchedMessages);
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, buildConversations]);
+  }, [userId]);
 
   // Load messages for a specific user conversation
   const loadMessages = useCallback(async (userId: string) => {

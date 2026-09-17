@@ -254,12 +254,12 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
           {/* Seller sits directly under the country/year line, above the remark
               and the auction details. */}
           {seller && (
-            <div className="flex items-center gap-2 mb-4">
+            // Wraps in whole pieces: on a narrow card the rank badge drops below
+            // the name as one pill instead of both squeezing onto two lines.
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-4">
               <span className="text-sm text-ottoman-600 dark:text-ottoman-400">{tWithFallback('item.seller', 'Seller')}:</span>
-              <div className="flex items-center gap-1">
-                <span className="text-base text-ottoman-700 dark:text-ottoman-200">{seller.username}</span>
-                <Badge variant="user" rank={sellerRank} role={seller.role} className="ml-1" />
-              </div>
+              <span className="text-base text-ottoman-700 dark:text-ottoman-200 min-w-0 break-words">{seller.username}</span>
+              <Badge variant="user" rank={sellerRank} role={seller.role} className="shrink-0 whitespace-nowrap" />
             </div>
           )}
 

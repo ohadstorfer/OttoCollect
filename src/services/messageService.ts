@@ -124,7 +124,7 @@ export async function getUnreadMessagesCount(userId: string): Promise<number> {
 
 export function subscribeToMessages(userId: string, onNewMessage: () => void): () => void {
   const subscription = supabase
-    .channel(`user-messages-${userId}`)
+    .channel(`user-messages-${userId}-${crypto.randomUUID()}`)
     .on('postgres_changes', {
       event: 'INSERT', 
       schema: 'public',

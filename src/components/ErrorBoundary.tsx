@@ -7,6 +7,7 @@ interface ErrorBoundaryProps {
 interface ErrorBoundaryState {
   error: Error | null;
   componentStack: string | null;
+  copied: boolean;
 }
 
 /**
@@ -16,7 +17,7 @@ interface ErrorBoundaryState {
  * diagnostics; the fallback gives the user a way out.
  */
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { error: null, componentStack: null };
+  state: ErrorBoundaryState = { error: null, componentStack: null, copied: false };
 
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     return { error };
@@ -35,6 +36,29 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     window.location.reload();
   };
 
+  // Production has no console for the person who hit the error, so the details
+  // are shown (collapsed) and copyable — that is how a crash report reaches us.
+  private getReport = () => {
+    const { error, componentStack } = this.state;
+    return [
+      `Page: ${window.location.href}`,
+      `Time: ${new Date().toISOString()}`,
+      `Browser: ${navigator.userAgent}`,
+      '',
+      String(error?.stack ?? error),
+      componentStack ? `\nComponent stack:${componentStack}` : '',
+    ].join('\n');
+  };
+
+  private handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(this.getReport());
+      this.setState({ copied: true });
+    } catch {
+      // Clipboard can be blocked; the details stay selectable below.
+    }
+  };
+
   private handleGoHome = () => {
     window.location.href = '/';
   };
@@ -42,8 +66,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   render() {
     if (!this.state.error) return this.props.children;
 
-    const { error, componentStack } = this.state;
-    const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env?.DEV;
+    const { copied } = this.state;
 
     return (
       <div
@@ -84,17 +107,24 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               Go to home
             </button>
           </div>
-          {isDev && (
-            <details style={{ background: '#fff', border: '1px solid #eee', borderRadius: 6, padding: 12 }}>
-              <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Error details (dev only)</summary>
-              <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, marginTop: 8 }}>{String(error?.stack ?? error)}</pre>
-              {componentStack && (
-                <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, marginTop: 8, color: '#555' }}>
-                  {componentStack}
-                </pre>
-              )}
-            </details>
-          )}
+          <details style={{ background: '#fff', border: '1px solid #eee', borderRadius: 6, padding: 12 }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Technical details</summary>
+            <p style={{ fontSize: 13, color: '#555', margin: '8px 0' }}>
+              If this keeps happening, copy these details and send them to the site admin.
+            </p>
+            <button
+              onClick={this.handleCopy}
+              style={{
+                padding: '6px 12px', border: '1px solid #ccc', background: '#fff', color: '#111',
+                borderRadius: 6, cursor: 'pointer', fontSize: 13,
+              }}
+            >
+              {copied ? 'Copied' : 'Copy details'}
+            </button>
+            <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 12, marginTop: 8, userSelect: 'text' }}>
+              {this.getReport()}
+            </pre>
+          </details>
         </div>
       </div>
     );

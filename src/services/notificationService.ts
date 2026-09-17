@@ -98,7 +98,8 @@ export const notificationService = {
   // Subscribe to new notifications
   subscribeToNotifications(userId: string, callback: (notification: Notification) => void) {
     return supabase
-      .channel('notifications')
+      // Unique topic: a reused same-name channel throws once already subscribed.
+      .channel(`notifications-${userId}-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
         {
