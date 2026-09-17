@@ -159,6 +159,8 @@
     "archiveSuccess": "Ürün Arşive taşındı",
     "showUpcomingAuctions": "Yaklaşan müzayedeleri göster ({{count}})",
     "hideUpcomingAuctions": "Yaklaşan müzayedeleri gizle",
+    "allCountries": "Tüm Ülkeler",
+    "newestFirst": "En Yeniler",
     "yourListings": "Taslaklarınız ve bekleyen ürünleriniz",
     "referenceId": "Ref.",
     "priceRealizedLabel": "Gerçekleşen Fiyat: {{price}}",

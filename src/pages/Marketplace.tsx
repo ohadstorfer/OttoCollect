@@ -8,6 +8,7 @@ import {
   buildMarketplaceSections,
   isListingArchived,
   MarketplaceSection,
+  sortNewestFirst,
 } from "@/lib/marketplaceListing";
 import { fetchCountries } from "@/services/countryService";
 import { useLanguage } from "@/context/LanguageContext";
@@ -21,7 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { useTheme } from "@/context/ThemeContext";
-import { BanknoteFilterMarketplace } from "@/components/filter/BanknoteFilterMarketplace";
+import { BanknoteFilterMarketplace, MARKETPLACE_PREFERENCES_KEY } from "@/components/filter/BanknoteFilterMarketplace";
 import { useBanknoteFilter } from "@/hooks/use-banknote-filter";
 import { FilterOption } from "@/components/filter/BaseBanknoteFilter";
 import SEOHead from "@/components/seo/SEOHead";
@@ -54,6 +55,9 @@ const Marketplace = () => {
   const [countryOrder, setCountryOrder] = useState<Array<{ id: string; name: string; name_ar?: string; name_tr?: string; display_order: number }>>([]);
   // Country sections whose beyond-two-weeks auctions are expanded (spec §8.3).
   const [expandedFar, setExpandedFar] = useState<Set<string>>(new Set());
+  // Quick views (client remark 8.1 §5): sections per country in catalog order,
+  // or one flat list of everything, newest published first.
+  const [viewMode, setViewMode] = useState<'countries' | 'newest'>('countries');
   const { currentLanguage } = useLanguage();
 
 
@@ -246,6 +250,22 @@ const Marketplace = () => {
     setFilters(newFilters);
   }, [setFilters]);
 
+  const handleAllCountries = useCallback(() => {
+    setViewMode('countries');
+    setFilters({ ...filters, countries: [] });
+    // The filter bar restores saved countries on the next visit; clear them too
+    // so "All Countries" sticks.
+    if (user?.id) {
+      const key = `${MARKETPLACE_PREFERENCES_KEY}-${user.id}`;
+      try {
+        const saved = JSON.parse(localStorage.getItem(key) || 'null');
+        if (saved) localStorage.setItem(key, JSON.stringify({ ...saved, countries: [] }));
+      } catch {
+        // Unreadable prefs are simply left alone.
+      }
+    }
+  }, [filters, setFilters, user?.id]);
+
   const loadingSection = useMemo(() => {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
@@ -367,7 +387,36 @@ const Marketplace = () => {
           </div>
         )}
 
-        {activeSections.map((s) => renderSection(s, 'active'))}
+        <div className="flex flex-wrap justify-end gap-2 pb-2">
+          <Button
+            size="sm"
+            variant="outline"
+            aria-pressed={viewMode === 'countries'}
+            onClick={handleAllCountries}
+            className={cn(
+              "transition-[transform,background-color,color] duration-150 active:scale-[0.97]",
+              viewMode === 'countries' && "bg-ottoman-600 text-white border-ottoman-600 hover:bg-ottoman-700"
+            )}
+          >
+            {t('listing.allCountries')}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            aria-pressed={viewMode === 'newest'}
+            onClick={() => setViewMode('newest')}
+            className={cn(
+              "transition-[transform,background-color,color] duration-150 active:scale-[0.97]",
+              viewMode === 'newest' && "bg-ottoman-600 text-white border-ottoman-600 hover:bg-ottoman-700"
+            )}
+          >
+            {t('listing.newestFirst')}
+          </Button>
+        </div>
+
+        {viewMode === 'countries'
+          ? activeSections.map((s) => renderSection(s, 'active'))
+          : activeItems.length > 0 && <div className="mb-8">{renderGrid(sortNewestFirst(activeItems as any[]) as MarketplaceItemType[], 'newest')}</div>}
 
         {/* Archive, further down the same scroll (spec §10). */}
         {archivedItems.length > 0 && (
@@ -377,13 +426,15 @@ const Marketplace = () => {
               <span>{t('listing.archiveHeading')}</span>
             </h2>
             <div className="opacity-80">
-              {archivedSections.map((s) => renderSection(s, 'archive'))}
+              {viewMode === 'countries'
+                ? archivedSections.map((s) => renderSection(s, 'archive'))
+                : renderGrid(sortNewestFirst(archivedItems as any[]) as MarketplaceItemType[], 'archive-newest')}
             </div>
           </div>
         )}
       </div>
     );
-  }, [activeItems, archivedItems, ownerPendingItems, activeSections, archivedSections, renderGrid, renderSection, t]);
+  }, [activeItems, archivedItems, ownerPendingItems, activeSections, archivedSections, renderGrid, renderSection, t, viewMode, handleAllCountries]);
 
   const contentSection = useMemo(() => {
     if (loading) {

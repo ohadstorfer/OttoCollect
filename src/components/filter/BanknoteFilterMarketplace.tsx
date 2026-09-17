@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 
 
 // Create marketplace preferences key constant to avoid typos
-const MARKETPLACE_PREFERENCES_KEY = 'marketplace-filters';
+export const MARKETPLACE_PREFERENCES_KEY = 'marketplace-filters';
 
 interface BanknoteFilterMarketplaceProps {
   onFilterChange: (filters: Partial<DynamicFilterState>) => void;

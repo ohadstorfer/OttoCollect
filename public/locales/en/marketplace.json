@@ -158,6 +158,8 @@
     "archiveSuccess": "Item moved to Archive",
     "showUpcomingAuctions": "Show upcoming auctions ({{count}})",
     "hideUpcomingAuctions": "Hide upcoming auctions",
+    "allCountries": "All Countries",
+    "newestFirst": "Newest First",
     "yourListings": "Your drafts & pending items",
     "referenceId": "Ref.",
     "priceRealizedLabel": "Price Realized: {{price}}",

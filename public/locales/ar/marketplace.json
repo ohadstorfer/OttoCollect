@@ -159,6 +159,8 @@
     "archiveSuccess": "تم نقل العنصر إلى الأرشيف",
     "showUpcomingAuctions": "عرض المزادات القادمة ({{count}})",
     "hideUpcomingAuctions": "إخفاء المزادات القادمة",
+    "allCountries": "كل الدول",
+    "newestFirst": "الأحدث أولاً",
     "yourListings": "مسوداتك وعناصرك المعلقة",
     "referenceId": "مرجع",
     "priceRealizedLabel": "السعر النهائي: {{price}}",

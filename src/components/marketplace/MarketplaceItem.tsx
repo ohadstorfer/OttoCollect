@@ -3,7 +3,6 @@ import { Badge } from "@/components/ui/badge";
 import { MarketplaceItem as MarketplaceItemType, UserRank } from "@/types";
 import { Eye, MessageCircle, LogIn, ShoppingBag, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { setListingSold, setRealizedPrice } from "@/services/marketplaceService";
@@ -26,7 +25,7 @@ import LazyImage from "@/components/shared/LazyImage";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/context/LanguageContext";
 import {
-  formatAuctionDateTime,
+  formatAuctionDateTimeParts,
   formatListingPrice,
   formatReferenceCode,
   getListingHostname,
@@ -44,6 +43,9 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   // Optimistic owner-only inline controls (spec §8.2).
   const [soldState, setSoldState] = useState(Boolean(item.is_sold));
+  // "Mark as Item Sold" is only a selection; Update commits it (client remark 8.1 §4b).
+  const [soldSelected, setSoldSelected] = useState(Boolean(item.is_sold));
+  const [savingSold, setSavingSold] = useState(false);
   const [realizedState, setRealizedState] = useState<number | null>(item.realized_price ?? null);
   // Prefilled so the owner can correct an already-entered price, not only add one.
   const [realizedInput, setRealizedInput] = useState(
@@ -53,7 +55,7 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { direction, currentLanguage } = useLanguage();
-  const { t } = useTranslation(['marketplace']);
+  const { t } = useTranslation(['marketplace', 'messaging']);
   
   // Memoize the fallback function to prevent infinite re-renders
   const tWithFallback = useMemo(() => {
@@ -103,18 +105,21 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
   const showSource = Boolean(item.external_listing_url && item.is_url_approved);
   const sourceHostname = getListingHostname(item.external_listing_url);
   const auctionDateTime = item.auction_at
-    ? formatAuctionDateTime(item.auction_at, item.auction_timezone ?? null)
+    ? formatAuctionDateTimeParts(item.auction_at, item.auction_timezone ?? null)
     : null;
   const handleViewSource = (e: React.MouseEvent) => {
     e.stopPropagation();
     window.open(item.external_listing_url!, '_blank', 'noopener,noreferrer');
   };
 
-  const handleToggleSold = async (checked: boolean) => {
-    setSoldState(checked);
-    const ok = await setListingSold(item.id, checked);
+  const handleConfirmSold = async () => {
+    if (!soldSelected || soldState || savingSold) return;
+    setSavingSold(true);
+    setSoldState(true);
+    const ok = await setListingSold(item.id, true);
+    setSavingSold(false);
     if (!ok) {
-      setSoldState(!checked);
+      setSoldState(false);
       toast({ title: t('listing.saveError'), variant: 'destructive' });
     }
   };
@@ -165,16 +170,14 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
         onClick={handleViewDetails}
       >
         <div className="relative">
-          {/* Same image box as BanknoteCard / CollectionCard: a fixed 4:3 frame
-              so card heights don't vary with the source image's aspect ratio. */}
+          {/* Fixed 4:3 frame so card heights stay even, but the note is fitted
+              inside it, never cropped: the whole slab/note is what a buyer
+              judges (client remark 8.1 §1). No hover zoom — it would crop. */}
           <div className="aspect-[4/3] overflow-hidden">
             <LazyImage
               src={displayImage}
               alt={`${getLocalizedField(banknote.country, 'country')} ${getLocalizedField(banknote.denomination, 'face_value')} (${banknote.year})`}
-              className={cn(
-                "w-full h-full object-cover transition-transform duration-500",
-                isHovering ? "scale-110" : "scale-100"
-              )}
+              className="w-full h-full object-contain"
               fallback="/placeholder.svg"
             />
           </div>
@@ -271,7 +274,10 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
               {auctionDateTime && (
                 <div className="rounded border border-ottoman-200 dark:border-ottoman-700 bg-muted/40 px-2 py-1">
                   <p className="text-xs text-muted-foreground">{t('listing.auctionDateTime')}</p>
-                  <p className="font-bold">{auctionDateTime}</p>
+                  <p className="font-bold flex flex-wrap gap-x-4">
+                    <span>{auctionDateTime.date}</span>
+                    <span>{auctionDateTime.time}</span>
+                  </p>
                 </div>
               )}
               {/* Inline row that wraps: short values sit side by side on a wide
@@ -289,7 +295,16 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
 
           {/* Buy-now listings get the Contact button here, styled like View Source
               on auction cards, so both card types share the same primary action look. */}
-          {!isAuction && (
+          {/* The seller sees their own button greyed out, so the card reads the
+              same as everyone else's (client remark 8.1 §4a). */}
+          {!isAuction && isOwner && (
+            <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+              <Button disabled className="w-full bg-muted text-muted-foreground font-semibold disabled:opacity-100">
+                {t('contactSeller.contactButton', { ns: 'messaging' })}
+              </Button>
+            </div>
+          )}
+          {!isAuction && !isOwner && (
             <div className="mt-2" onClick={(e) => e.stopPropagation()}>
               <ContactSellerButton
                 item={item}
@@ -327,15 +342,46 @@ const MarketplaceItem = ({ item, className }: MarketplaceItemProps) => {
 
           {/* Owner-only inline controls (spec §8.2) */}
           {isOwner && !isAuction && item.status === 'Available' && (
-            <div className="flex items-center gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
-              <Checkbox
-                id={`sold-${item.id}`}
-                checked={soldState}
-                onCheckedChange={(v) => handleToggleSold(v === true)}
-              />
-              <label htmlFor={`sold-${item.id}`} className="text-sm cursor-pointer">
+            <div
+              className="mt-1 flex items-center justify-between gap-2 border-t border-ottoman-300/70 dark:border-ottoman-700 pt-2"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={soldSelected}
+                disabled={soldState}
+                onClick={() => setSoldSelected((v) => !v)}
+                className="flex items-center gap-2 text-sm disabled:cursor-default"
+              >
+                <span
+                  className={cn(
+                    "flex h-4 w-4 items-center justify-center rounded-full border transition-colors duration-150",
+                    soldSelected ? "border-ottoman-600" : "border-ottoman-400"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "h-2 w-2 rounded-full bg-ottoman-600 transition-[transform,opacity] duration-150 ease-out",
+                      soldSelected ? "scale-100 opacity-100" : "scale-50 opacity-0"
+                    )}
+                  />
+                </span>
                 {t('listing.markAsSold')}
-              </label>
+              </button>
+              <Button
+                size="sm"
+                disabled={!soldSelected || soldState || savingSold}
+                onClick={handleConfirmSold}
+                className={cn(
+                  "min-w-20 font-semibold transition-[transform,background-color] duration-150 active:scale-[0.97] disabled:opacity-100",
+                  soldSelected && !soldState
+                    ? "bg-ottoman-600 hover:bg-ottoman-700 text-white"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {soldState ? t('listing.sold') : t('listing.update')}
+              </Button>
             </div>
           )}
           {isOwner && isAuction && auctionEnded && (

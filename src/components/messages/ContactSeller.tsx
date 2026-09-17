@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -23,6 +23,8 @@ interface ContactSellerProps {
   sellerName: string;
   itemId: string;
   itemName: string;
+  /** Pre-typed opening line (item + reference); the cursor starts on the line below it. */
+  initialMessage?: string;
   /** Styling overrides for the trigger button (marketplace cards use the View Source look). */
   buttonClassName?: string;
   buttonVariant?: React.ComponentProps<typeof Button>['variant'];
@@ -35,6 +37,7 @@ export function ContactSeller({
   sellerName,
   itemId,
   itemName,
+  initialMessage = '',
   buttonClassName,
   buttonVariant = 'outline',
   buttonSize = 'sm',
@@ -42,6 +45,13 @@ export function ContactSeller({
 }: ContactSellerProps) {
   const [message, setMessage] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleOpenChange = (open: boolean) => {
+    // Only seed an empty draft, so a half-written message survives close/reopen.
+    if (open && !message) setMessage(initialMessage);
+    setIsOpen(open);
+  };
   const [isSending, setIsSending] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -101,9 +111,18 @@ export function ContactSeller({
   }
   
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{triggerButton()}</DialogTrigger>
-      <DialogContent>
+      <DialogContent
+        onOpenAutoFocus={(e) => {
+          // Put the caret after the pre-typed line instead of at the start.
+          e.preventDefault();
+          const el = textareaRef.current;
+          if (!el) return;
+          el.focus();
+          el.setSelectionRange(el.value.length, el.value.length);
+        }}
+      >
         <DialogHeader>
           <DialogTitle>{t('contactSeller.dialogTitle', { sellerName })}</DialogTitle>
           <DialogDescription>
@@ -113,6 +132,7 @@ export function ContactSeller({
         
         <div className="py-4">
           <Textarea
+            ref={textareaRef}
             placeholder={t('contactSeller.messagePlaceholder')}
             value={message}
             onChange={(e) => setMessage(e.target.value)}

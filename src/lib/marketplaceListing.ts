@@ -118,14 +118,27 @@ function ordinal(n: number): string {
   }
 }
 
-export function formatAuctionDateTime(auctionAt: string, tz: string | null): string | null {
+/**
+ * Date and time kept apart so the card can put visible space between them
+ * (client remark: the time ran into the date). `time` carries the UTC offset.
+ */
+export function formatAuctionDateTimeParts(
+  auctionAt: string,
+  tz: string | null,
+): { date: string; time: string } | null {
   const ts = new Date(auctionAt).getTime();
   if (Number.isNaN(ts)) return null;
   const offset = parseUtcOffset(tz);
   const d = new Date(ts + (offset ?? 0) * 60 * 1000);
   const pad = (n: number) => String(n).padStart(2, '0');
-  const label = `${MONTHS[d.getUTCMonth()]} ${ordinal(d.getUTCDate())}, ${d.getUTCFullYear()} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
-  return offset !== null && tz ? `${label} ${tz}` : label;
+  const date = `${MONTHS[d.getUTCMonth()]} ${ordinal(d.getUTCDate())}, ${d.getUTCFullYear()}`;
+  const clock = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+  return { date, time: offset !== null && tz ? `${clock} ${tz}` : clock };
+}
+
+export function formatAuctionDateTime(auctionAt: string, tz: string | null): string | null {
+  const parts = formatAuctionDateTimeParts(auctionAt, tz);
+  return parts ? `${parts.date} ${parts.time}` : null;
 }
 
 /**
@@ -171,17 +184,10 @@ export interface SectionableListing extends ListingLike {
 export interface MarketplaceSection<T extends SectionableListing = SectionableListing> {
   countryId: string;
   countryName: string;
-  nearAuctions: T[]; // auction within the next 14 days, soonest first
+  nearAuctions: T[]; // auction within the next 14 days, newest published first
   farAuctions: T[];  // auction beyond 14 days, folded behind a toggle
   buyNow: T[];       // newest published first
 }
-
-const byAuctionDateThenReference = (a: SectionableListing, b: SectionableListing): number => {
-  const ta = a.auction_at ? new Date(a.auction_at).getTime() : Number.POSITIVE_INFINITY;
-  const tb = b.auction_at ? new Date(b.auction_at).getTime() : Number.POSITIVE_INFINITY;
-  if (ta !== tb) return ta - tb;
-  return (a.reference_code ?? '').localeCompare(b.reference_code ?? '');
-};
 
 const publishedTime = (i: SectionableListing): number => {
   const raw = i.published_at ?? i.createdAt ?? i.created_at;
@@ -189,11 +195,18 @@ const publishedTime = (i: SectionableListing): number => {
   return Number.isNaN(t) ? 0 : t;
 };
 
+/** Newest published first; ties broken by reference code so the order is stable. */
+export function sortNewestFirst<T extends SectionableListing>(items: T[]): T[] {
+  return [...items].sort(
+    (a, b) => publishedTime(b) - publishedTime(a) || (b.reference_code ?? '').localeCompare(a.reference_code ?? ''),
+  );
+}
+
 /**
  * Groups active listings into per-country sections: countries in catalog order
  * (Ottoman Empire holds display_order 0), unknown countries last alphabetically.
- * Within a country: near auctions (≤14 days, by date then reference code),
- * far auctions (same order, collapsed in the UI), then buy-now newest-first.
+ * Within a country: near auctions (≤14 days), far auctions (collapsed in the
+ * UI), then buy-now — every group newest published first (client remark 8.1 §5).
  * Countries with no items are omitted.
  */
 export function buildMarketplaceSections<T extends SectionableListing>(
@@ -221,16 +234,14 @@ export function buildMarketplaceSections<T extends SectionableListing>(
 
   return [...known, ...unknown].map(({ id, name }) => {
     const list = buckets.get(name)!;
-    const auctions = list.filter((i) => i.listing_type === 'auction').sort(byAuctionDateThenReference);
+    const auctions = sortNewestFirst(list.filter((i) => i.listing_type === 'auction'));
     const cutoff = now + UPCOMING_AUCTION_WINDOW_MS;
     return {
       countryId: id,
       countryName: name,
       nearAuctions: auctions.filter((i) => i.auction_at && new Date(i.auction_at).getTime() <= cutoff),
       farAuctions: auctions.filter((i) => !i.auction_at || new Date(i.auction_at).getTime() > cutoff),
-      buyNow: list
-        .filter((i) => i.listing_type !== 'auction')
-        .sort((a, b) => publishedTime(b) - publishedTime(a)),
+      buyNow: sortNewestFirst(list.filter((i) => i.listing_type !== 'auction')),
     };
   });
 }

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   combineAuctionDateTime,
   formatAuctionDateTime,
+  formatAuctionDateTimeParts,
+  sortNewestFirst,
   getListingHostname,
   isListingArchived,
   isListingEnded,
@@ -45,6 +47,27 @@ describe('splitAuctionDateTime', () => {
       date: '2026-07-18',
       time: '20:00',
     });
+  });
+});
+
+describe('formatAuctionDateTimeParts', () => {
+  it('splits the date from the time and keeps the offset with the time', () => {
+    expect(formatAuctionDateTimeParts('2026-09-19T17:02:00.000Z', 'UTC+3:00')).toEqual({
+      date: 'September 19th, 2026',
+      time: '20:02 UTC+3:00',
+    });
+    expect(formatAuctionDateTimeParts('nope', null)).toBeNull();
+  });
+});
+
+describe('sortNewestFirst', () => {
+  it('orders by published date, newest first, without mutating the input', () => {
+    const items = [
+      { reference_code: 'B1', published_at: '2026-01-01T00:00:00Z' },
+      { reference_code: 'A1', published_at: '2026-03-01T00:00:00Z' },
+    ];
+    expect(sortNewestFirst(items as any).map((i: any) => i.reference_code)).toEqual(['A1', 'B1']);
+    expect(items[0].reference_code).toBe('B1');
   });
 });
 
@@ -205,12 +228,13 @@ describe('buildMarketplaceSections', () => {
     expect(sections.map((s) => s.countryName)).toEqual(['Ottoman Empire', 'Turkey']);
   });
 
-  it('splits auctions at the 14-day window and sorts by date then reference code', () => {
+  it('splits auctions at the 14-day window and sorts each group newest published first', () => {
+    const pub = (daysAgo: number) => new Date(now - daysAgo * DAY_).toISOString();
     const items = [
-      mk('Jordan', { listing_type: 'auction', auction_at: new Date(now + 20 * DAY_).toISOString(), reference_code: 'A20260800004' }),
-      mk('Jordan', { listing_type: 'auction', auction_at: new Date(now + 3 * DAY_).toISOString(), reference_code: 'A20260800002' }),
-      mk('Jordan', { listing_type: 'auction', auction_at: new Date(now + 3 * DAY_).toISOString(), reference_code: 'A20260800001' }),
-      mk('Jordan', { listing_type: 'auction', auction_at: new Date(now + 10 * DAY_).toISOString(), reference_code: 'A20260800003' }),
+      mk('Jordan', { listing_type: 'auction', auction_at: new Date(now + 20 * DAY_).toISOString(), reference_code: 'A20260800004', published_at: pub(1) }),
+      mk('Jordan', { listing_type: 'auction', auction_at: new Date(now + 3 * DAY_).toISOString(), reference_code: 'A20260800002', published_at: pub(5) }),
+      mk('Jordan', { listing_type: 'auction', auction_at: new Date(now + 3 * DAY_).toISOString(), reference_code: 'A20260800001', published_at: pub(2) }),
+      mk('Jordan', { listing_type: 'auction', auction_at: new Date(now + 10 * DAY_).toISOString(), reference_code: 'A20260800003', published_at: pub(9) }),
     ];
     const [jordan] = buildMarketplaceSections(items as any, countryOrder, now);
     expect(jordan.nearAuctions.map((i: any) => i.reference_code)).toEqual([
